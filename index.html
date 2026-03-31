@@ -1274,7 +1274,7 @@ function showConfirmation() {
   document.getElementById('confirm-range').textContent = `Block period: ${formatDate(bpStart)}  \u2192  ${formatDate(bpEnd)}`;
   document.getElementById('weeks-display').textContent = state.bpWeeks;
 
-  const holidays = getHolidaysInRange(start, end);
+  const holidays = getHolidaysInRange(bpStart, bpEnd);
   const container = document.getElementById('holiday-warning-container');
   if (holidays.length > 0) {
     container.innerHTML = `
