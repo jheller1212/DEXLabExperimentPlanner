@@ -772,7 +772,7 @@ const CONFIG = {
   // BP5 is typically 9 weeks due to spring holidays; all others are 8.
   blockPeriods: [
     { label: "BP4 \u2014 2025/26", start: "2026-02-09", weeks: 8 },
-    { label: "BP5 \u2014 2025/26", start: "2026-04-27", weeks: 9 },
+    { label: "BP5 \u2014 2025/26", start: "2026-04-13", weeks: 9 },
     { label: "BP1 \u2014 2026/27", start: "2026-09-07", weeks: 8 },
     { label: "BP2 \u2014 2026/27", start: "2026-11-02", weeks: 8 },
     // FILL IN: add more block periods as the academic calendar is published
@@ -930,10 +930,10 @@ const MILESTONES = [
   // ── Lab & Equipment (before SONA) ──
   { id: "equipment_book", label: "Book lab (DEXLab / BEELab) and equipment via Resource Booker", offsetDays: -35, relativeTo: "week", roles: ["master","phd"], optional: false, section: "logistics", note: "Book before submitting your SONA request \u2014 you need to know your room and timeslots. Go to resourcebooker.maastrichtuniversity.nl. If you don\u2019t have access, ask your supervisor to book it for you." },
   // ── SONA (relative to BP start) ──
-  { id: "sona_request", label: "Submit SONA participant request form", offsetDays: -28, relativeTo: "bp", roles: ["master","phd"], optional: false, section: "sona", note: "The SONA coordinator sends a request form ~4 weeks before the block period. Fill it in with your estimated N per condition and session length. Miss this and you wait an entire period. Exact dates vary \u2014 check with the SONA coordinator." },
+  { id: "sona_request", label: "Submit SONA participant request form", offsetDays: -38, relativeTo: "bp", roles: ["master","phd"], optional: false, section: "sona", note: "The SONA coordinator sends a request form ~5\u20136 weeks before the block period. Fill it in with your estimated N per condition and session length. Miss this and you wait an entire period. Exact dates vary per period \u2014 check with the SONA coordinator." },
   // ── Materials & Testing ──
   { id: "stimuli_pretest", label: "Pretest stimuli with 3\u20135 people", offsetDays: -14, relativeTo: "week", roles: ["master","phd"], optional: false, section: "materials", note: "Is your manipulation actually manipulating what you think it is?" },
-  { id: "sona_upload", label: "Upload and finalize study on SONA", offsetDays: -7, relativeTo: "bp", roles: ["master","phd"], optional: false, section: "sona", note: "After the matchmaking is shared, upload your study to SONA: set timeslots, participants per slot, and session length. Must be done ~1 week before the period starts. Exact deadline varies \u2014 check the email from the SONA coordinator." },
+  { id: "sona_upload", label: "Upload and finalize study on SONA", offsetDays: -5, relativeTo: "bp", roles: ["master","phd"], optional: false, section: "sona", note: "After the matchmaking is shared, upload your study to SONA: set timeslots, participants per slot, and session length. Must be done ~5 days before the period starts. Exact deadline varies \u2014 check the email from the SONA coordinator." },
   { id: "pilot", label: "Complete full pilot test (dry run with a friend)", offsetDays: -7, relativeTo: "week", roles: ["master","phd"], optional: false, section: "materials", note: "Every tech demo fails the first time. Do not let that be with a real participant." },
   { id: "inform_team", label: "Post planning in Experiment Teams chat", offsetDays: -7, relativeTo: "week", roles: ["master","phd"], optional: false, section: "coordination", note: "Dates, rooms, timeslots, conditions. So others can plan around you." },
   { id: "qualtrics_final", label: "Qualtrics survey and manipulations finalized", offsetDays: -3, relativeTo: "week", roles: ["master","phd"], optional: false, section: "materials", note: "End-to-end test, randomization confirmed, all conditions working." },
