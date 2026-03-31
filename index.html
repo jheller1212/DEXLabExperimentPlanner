@@ -127,6 +127,7 @@ h1, h2, h3 { font-family: 'Fraunces', serif; font-weight: 700; color: var(--navy
   transition: border-color 0.2s, background 0.2s, transform 0.1s;
 }
 .role-btn:hover { border-color: var(--dex-blue); background: var(--dex-blue-light); }
+.role-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .role-btn:active { transform: scale(0.98); }
 .role-btn.selected-master { border-color: var(--dex-blue); background: var(--dex-blue-light); }
 .role-btn.selected-phd { border-color: var(--lab-orange); background: var(--lab-orange-light); }
@@ -158,8 +159,8 @@ select { cursor: pointer; }
   gap: 0.5rem;
 }
 .stepper button {
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   background: var(--surface-alt);
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -590,9 +591,11 @@ select { cursor: pointer; }
 
 /* ── Print ── */
 @media print {
+  @page { margin: 1in; }
   body { background: #fff; color: #000; }
   .header, .card, .checklist-section, .milestone-table { background: #fff; border-color: #ccc; }
   .checklist-section { break-inside: avoid; }
+  .card { break-inside: avoid; }
   .screen:not(.active) { display: none !important; }
   #screen-role, #screen-date, #screen-confirm, #screen-name { display: none !important; }
   .plan-actions, .change-role-link, .btn, .progress-bar-container, .share-box, .bookmark-reminder { display: none !important; }
@@ -629,6 +632,13 @@ select { cursor: pointer; }
   .role-buttons { flex-direction: column; align-items: stretch; }
   .role-btn { max-width: none; }
   .plan-header { flex-direction: column; align-items: flex-start; }
+  .plan-actions { flex-wrap: wrap; }
+  .tl-item { padding-left: 0; }
+  .tl-date { min-width: 5.5rem; font-size: 0.7rem; }
+  .tl-label { font-size: 0.78rem; }
+}
+@media (min-width: 601px) and (max-width: 960px) {
+  .container { max-width: 90%; }
 }
 </style>
 </head>
@@ -637,7 +647,8 @@ select { cursor: pointer; }
 
   <!-- Header -->
   <div class="header">
-    <img src="logo.png" alt="DEXLab" class="header-logo" onerror="this.style.display='none'">
+    <img src="logo.png" alt="DEXLab" class="header-logo" onerror="this.style.display='none';document.getElementById('logo-fallback').style.display='block'">
+    <div id="logo-fallback" style="display:none;font-family:'Fraunces',serif;font-size:1.6rem;font-weight:700;"><span style="color:var(--dex-blue)">DEX</span><span style="color:var(--lab-orange)">LAB</span></div>
     <h1>Experiment Planner for Researchers</h1>
     <div class="subtitle">Backwards-plan your study. Hit every deadline.</div>
     <div class="lab-badge">Maastricht University &middot; SBE</div>
@@ -1014,9 +1025,18 @@ function updateCalc() {
   const lunch = parseInt(document.getElementById('calc-lunch').value) || 0;
 
   // Parse lab hours
-  const startParts = (document.getElementById('calc-lab-start').value || '09:00').split(':').map(Number);
-  const endParts = (document.getElementById('calc-lab-end').value || '17:00').split(':').map(Number);
-  const labMinutes = ((endParts[0] || 17) * 60 + (endParts[1] || 0)) - ((startParts[0] || 9) * 60 + (startParts[1] || 0));
+  const startVal = document.getElementById('calc-lab-start').value || '09:00';
+  const endVal = document.getElementById('calc-lab-end').value || '17:00';
+  const startMatch = startVal.match(/^(\d{1,2}):(\d{2})$/);
+  const endMatch = endVal.match(/^(\d{1,2}):(\d{2})$/);
+  const startMin = startMatch ? (parseInt(startMatch[1]) * 60 + parseInt(startMatch[2])) : 540;
+  const endMin = endMatch ? (parseInt(endMatch[1]) * 60 + parseInt(endMatch[2])) : 1020;
+  const labMinutes = endMin - startMin;
+  if (labMinutes <= 0) {
+    document.getElementById('calc-result').style.display = 'block';
+    document.getElementById('calc-result').innerHTML = '<p style="color:var(--danger);font-size:0.85rem;">Lab end time must be after start time. Use HH:MM format (e.g. 09:00).</p>';
+    return;
+  }
   const usableMinutes = labMinutes - lunch;
 
   // Total participants
@@ -1219,13 +1239,13 @@ function downloadICS() {
   // Prompt for name/title if not set
   if (!state.name) {
     const name = prompt('Enter your name (for calendar events):');
-    if (name === null) return; // cancelled
+    if (name === null) { showToast('Calendar export cancelled.'); return; }
     state.name = name.trim();
     saveState();
   }
   if (!state.studyTitle) {
     const title = prompt('Enter your study title / nickname (for calendar events):');
-    if (title === null) return;
+    if (title === null) { showToast('Calendar export cancelled.'); return; }
     state.studyTitle = title.trim();
     saveState();
   }
@@ -1406,7 +1426,7 @@ function onDateInput() {
   CONFIG.blockPeriods.forEach((bp, i) => {
     if (bp.start === val) { sel.value = i; state.bpStart = bp.start; state.bpWeeks = bp.weeks; matched = true; }
   });
-  if (!matched && !selectedBPIndex && selectedBPIndex !== 0) {
+  if (!matched && selectedBPIndex === null) {
     sel.value = 'custom'; state.bpWeeks = 8; state.bpStart = val;
   }
   document.getElementById('week-select-row').style.display = 'none';
@@ -1487,6 +1507,7 @@ function showBookmarkReminder() {
 }
 
 function renderPlan() {
+  if (!state.role || !state.bpStart) { startOver(); return; }
   const bpStart = parseDate(state.bpStart);
   const bpEnd = addDays(bpStart, state.bpWeeks * 7 - 1);
   const today = new Date(); today.setHours(0,0,0,0);
@@ -1608,12 +1629,13 @@ function renderChecklist(milestones, today) {
     const sectionChecked = items.filter(m => state.checkedItems.includes(m.id)).length;
     checkedCount += sectionChecked;
 
+    const bodyId = `section-${sectionKey}`;
     div.innerHTML = `
-      <button class="checklist-section-header" onclick="this.parentElement.classList.toggle('collapsed')">
+      <button class="checklist-section-header" aria-expanded="true" aria-controls="${bodyId}" onclick="this.setAttribute('aria-expanded',this.parentElement.classList.toggle('collapsed')?'false':'true')">
         <span>${SECTION_LABELS[sectionKey] || sectionKey}<span class="checklist-section-count">${sectionChecked}/${items.length}</span></span>
         <span class="chevron">\u25BC</span>
       </button>
-      <div class="checklist-section-body" id="section-${sectionKey}"></div>`;
+      <div class="checklist-section-body" id="${bodyId}" role="region"></div>`;
     container.appendChild(div);
 
     const body = div.querySelector('.checklist-section-body');
