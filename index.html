@@ -1261,13 +1261,17 @@ function onDateInput() {
 // ── Screen 3: Confirmation ──
 function showConfirmation() {
   if (!state.bpStart) return;
-  const start = parseDate(state.bpStart);
-  const end = addDays(start, state.bpWeeks * 7 - 1);
+  const bpStart = parseDate(state.bpStart);
+  const bpEnd = addDays(bpStart, state.bpWeeks * 7 - 1);
   const matchedBP = CONFIG.blockPeriods.find(bp => bp.start === state.bpStart);
   const label = matchedBP ? matchedBP.label : 'Custom period';
-  document.getElementById('confirm-text').innerHTML =
-    `<span class="check">\u2713</span> <strong>${label}</strong> runs <strong>${state.bpWeeks} weeks</strong>`;
-  document.getElementById('confirm-range').textContent = `${formatDate(start)}  \u2192  ${formatDate(end)}`;
+  let confirmHTML = `<span class="check">\u2713</span> <strong>${label}</strong> runs <strong>${state.bpWeeks} weeks</strong>`;
+  if (state.weekStart && state.weekStart !== state.bpStart) {
+    const ws = parseDate(state.weekStart);
+    confirmHTML += `<br><span style="font-size:0.85rem;">Your data collection starts: <strong>${formatDate(ws)}</strong></span>`;
+  }
+  document.getElementById('confirm-text').innerHTML = confirmHTML;
+  document.getElementById('confirm-range').textContent = `Block period: ${formatDate(bpStart)}  \u2192  ${formatDate(bpEnd)}`;
   document.getElementById('weeks-display').textContent = state.bpWeeks;
 
   const holidays = getHolidaysInRange(start, end);
