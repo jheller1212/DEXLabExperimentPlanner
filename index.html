@@ -605,7 +605,7 @@ select { cursor: pointer; }
   <div class="screen" id="screen-date">
     <div class="card">
       <div class="form-row">
-        <label for="bp-select">Select a block period</label>
+        <label for="bp-select">When does your experiment start? Select the block period for data collection.</label>
         <select id="bp-select" onchange="onBPSelect()">
           <option value="">Choose&hellip;</option>
         </select>
@@ -625,14 +625,13 @@ select { cursor: pointer; }
         <div class="date-range" id="confirm-range"></div>
       </div>
       <div class="yn-group">
-        <span style="font-size:0.85rem;">Does this look right?</span>
-        <button class="btn btn-sm btn-primary" onclick="confirmPeriod()">Yes</button>
-        <span style="font-size:0.85rem;color:var(--text-muted);">No, adjust weeks:</span>
+        <span style="font-size:0.85rem;">Adjust period length if needed:</span>
         <div class="stepper">
           <button onclick="adjustWeeks(-1)">&minus;</button>
           <span class="stepper-value" id="weeks-display"></span>
           <button onclick="adjustWeeks(1)">+</button>
         </div>
+        <span style="font-size:0.8rem;color:var(--text-muted);">weeks</span>
       </div>
       <div id="holiday-warning-container"></div>
     </div>
@@ -1114,20 +1113,15 @@ function showConfirmation() {
     container.innerHTML = '';
   }
 
-  showScreensUpTo('screen-confirm');
+  showScreensUpTo('screen-name');
+  document.getElementById('name-input').value = state.name || '';
+  document.getElementById('title-input').value = state.studyTitle || '';
   saveState();
 }
 
 function adjustWeeks(delta) {
   state.bpWeeks = Math.max(6, Math.min(12, state.bpWeeks + delta));
   showConfirmation();
-}
-
-function confirmPeriod() {
-  showScreensUpTo('screen-name');
-  document.getElementById('name-input').value = state.name || '';
-  document.getElementById('title-input').value = state.studyTitle || '';
-  saveState();
 }
 
 // ── Screen 5: Plan Generation ──
