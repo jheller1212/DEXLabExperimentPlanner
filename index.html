@@ -13,14 +13,40 @@
 html { font-size: 16px; scroll-behavior: smooth; }
 body {
   font-family: 'DM Sans', sans-serif;
-  background: #0d0f14;
-  color: #e2e8f0;
+  background: #f5f7fa;
+  color: #1a2a4a;
   line-height: 1.6;
   min-height: 100vh;
 }
 
+/* ── Brand Colors (DEXLab) ── */
+:root {
+  --dex-blue: #1a9bd7;
+  --dex-blue-light: #e8f4fc;
+  --dex-blue-dark: #1580b5;
+  --lab-orange: #e8632b;
+  --lab-orange-light: #fef0e8;
+  --lab-orange-dark: #c8521f;
+  --navy: #1b2a4a;
+  --navy-light: #2d3f5e;
+  --surface: #ffffff;
+  --surface-alt: #f0f3f8;
+  --border: #dce3ed;
+  --border-light: #e8edf5;
+  --text-primary: #1a2a4a;
+  --text-muted: #6b7a94;
+  --warning: #f97316;
+  --danger: #ef4444;
+  --success: #22c55e;
+}
+
+/* Role accent overrides */
+body.role-master { --accent: var(--dex-blue); --accent-light: var(--dex-blue-light); --accent-dark: var(--dex-blue-dark); }
+body.role-phd { --accent: var(--lab-orange); --accent-light: var(--lab-orange-light); --accent-dark: var(--lab-orange-dark); }
+body { --accent: var(--dex-blue); --accent-light: var(--dex-blue-light); --accent-dark: var(--dex-blue-dark); }
+
 /* ── Typography ── */
-h1, h2, h3 { font-family: 'Fraunces', serif; font-weight: 700; }
+h1, h2, h3 { font-family: 'Fraunces', serif; font-weight: 700; color: var(--navy); }
 .mono { font-family: 'DM Mono', monospace; }
 
 /* ── Layout ── */
@@ -35,23 +61,29 @@ h1, h2, h3 { font-family: 'Fraunces', serif; font-weight: 700; }
   text-align: center;
   margin-bottom: 2.5rem;
   padding-bottom: 1.5rem;
-  border-bottom: 1px solid #252a36;
+  border-bottom: 1px solid var(--border);
+}
+.header-logo {
+  height: 64px;
+  margin-bottom: 0.75rem;
 }
 .header h1 {
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   letter-spacing: -0.02em;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.15rem;
 }
+.header h1 .dex { color: var(--dex-blue); }
+.header h1 .lab { color: var(--lab-orange); }
 .header .subtitle {
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 0.9rem;
 }
 .header .lab-badge {
   display: inline-block;
   font-family: 'DM Mono', monospace;
   font-size: 0.7rem;
-  color: #64748b;
-  border: 1px solid #252a36;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
   border-radius: 4px;
   padding: 0.15rem 0.5rem;
   margin-top: 0.5rem;
@@ -65,11 +97,12 @@ h1, h2, h3 { font-family: 'Fraunces', serif; font-weight: 700; }
 
 /* ── Cards ── */
 .card {
-  background: #13161d;
-  border: 1px solid #252a36;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 1.5rem;
   margin-bottom: 1.25rem;
+  box-shadow: 0 1px 3px rgba(27,42,74,0.04);
 }
 
 /* ── Screen 1: Role ── */
@@ -83,41 +116,36 @@ h1, h2, h3 { font-family: 'Fraunces', serif; font-weight: 700; }
   flex: 1;
   max-width: 260px;
   padding: 1.25rem 1.5rem;
-  background: #13161d;
-  border: 2px solid #252a36;
+  background: var(--surface);
+  border: 2px solid var(--border);
   border-radius: 12px;
-  color: #e2e8f0;
+  color: var(--text-primary);
   font-family: 'DM Sans', sans-serif;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: border-color 0.2s, background 0.2s, transform 0.1s;
 }
-.role-btn:hover { border-color: #4fc3a1; background: #181c25; }
+.role-btn:hover { border-color: var(--dex-blue); background: var(--dex-blue-light); }
 .role-btn:active { transform: scale(0.98); }
-.role-btn.selected-master { border-color: #4fc3a1; background: rgba(79,195,161,0.08); }
-.role-btn.selected-phd { border-color: #c084fc; background: rgba(192,132,252,0.08); }
-.role-label { display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 0.35rem; font-weight: 400; }
-
-/* ── Accent colors by role ── */
-body.role-master { --accent: #4fc3a1; --accent-bg: rgba(79,195,161,0.08); }
-body.role-phd { --accent: #c084fc; --accent-bg: rgba(192,132,252,0.08); }
-body { --accent: #4fc3a1; --accent-bg: rgba(79,195,161,0.08); }
+.role-btn.selected-master { border-color: var(--dex-blue); background: var(--dex-blue-light); }
+.role-btn.selected-phd { border-color: var(--lab-orange); background: var(--lab-orange-light); }
+.role-label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.35rem; font-weight: 400; }
 
 /* ── Form elements ── */
-label { display: block; font-weight: 500; margin-bottom: 0.35rem; font-size: 0.9rem; }
+label { display: block; font-weight: 500; margin-bottom: 0.35rem; font-size: 0.9rem; color: var(--navy); }
 select, input[type="date"], input[type="text"], input[type="number"] {
   width: 100%;
   padding: 0.6rem 0.75rem;
-  background: #0d0f14;
-  border: 1px solid #252a36;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  color: #e2e8f0;
+  color: var(--text-primary);
   font-family: 'DM Sans', sans-serif;
   font-size: 0.9rem;
   transition: border-color 0.2s;
 }
-select:focus, input:focus { outline: none; border-color: var(--accent); }
+select:focus, input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
 select { cursor: pointer; }
 
 .form-row { margin-bottom: 1rem; }
@@ -132,10 +160,10 @@ select { cursor: pointer; }
 .stepper button {
   width: 32px;
   height: 32px;
-  background: #0d0f14;
-  border: 1px solid #252a36;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
   border-radius: 6px;
-  color: #e2e8f0;
+  color: var(--text-primary);
   font-size: 1.1rem;
   cursor: pointer;
   display: flex;
@@ -153,8 +181,8 @@ select { cursor: pointer; }
 
 /* ── Confirmation ── */
 .confirm-box {
-  background: rgba(79,195,161,0.05);
-  border: 1px solid #252a36;
+  background: var(--accent-light);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 1rem 1.25rem;
   margin-bottom: 1rem;
@@ -163,22 +191,22 @@ select { cursor: pointer; }
 .date-range {
   font-family: 'DM Mono', monospace;
   font-size: 0.95rem;
-  color: var(--accent);
+  color: var(--accent-dark);
   margin: 0.5rem 0;
 }
 
 /* ── Holiday warning ── */
 .holiday-warning {
-  background: rgba(249,115,22,0.08);
-  border: 1px solid rgba(249,115,22,0.25);
+  background: var(--lab-orange-light);
+  border: 1px solid rgba(232,99,43,0.25);
   border-radius: 8px;
   padding: 0.75rem 1rem;
   margin-top: 0.75rem;
   font-size: 0.85rem;
-  color: #f97316;
+  color: var(--lab-orange);
 }
 .holiday-warning .hw-icon { margin-right: 0.35rem; }
-.holiday-warning .hw-list { color: #e2e8f0; margin-top: 0.25rem; font-size: 0.82rem; }
+.holiday-warning .hw-list { color: var(--text-primary); margin-top: 0.25rem; font-size: 0.82rem; }
 
 /* ── Buttons ── */
 .btn {
@@ -198,12 +226,16 @@ select { cursor: pointer; }
 .btn:active { transform: scale(0.98); }
 .btn-primary {
   background: var(--accent);
-  color: #0d0f14;
+  color: #fff;
+}
+.btn-orange {
+  background: var(--lab-orange);
+  color: #fff;
 }
 .btn-ghost {
   background: transparent;
-  border: 1px solid #252a36;
-  color: #e2e8f0;
+  border: 1px solid var(--border);
+  color: var(--text-primary);
 }
 .btn-ghost:hover { border-color: var(--accent); }
 .btn-sm { padding: 0.4rem 0.9rem; font-size: 0.8rem; }
@@ -211,17 +243,40 @@ select { cursor: pointer; }
 /* ── Yes/No toggle ── */
 .yn-group { display: flex; gap: 0.75rem; align-items: center; margin-top: 0.75rem; flex-wrap: wrap; }
 
+/* ── Toast notification ── */
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--navy);
+  color: #fff;
+  padding: 0.6rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  z-index: 1000;
+  opacity: 0;
+  transition: transform 0.3s, opacity 0.3s;
+  pointer-events: none;
+}
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
 /* ── Progress bar ── */
 .progress-bar-container {
-  background: #0d0f14;
+  background: var(--surface-alt);
   border-radius: 6px;
   height: 8px;
   overflow: hidden;
   margin-bottom: 1.25rem;
+  border: 1px solid var(--border-light);
 }
 .progress-bar {
   height: 100%;
-  background: var(--accent);
+  background: linear-gradient(90deg, var(--dex-blue), var(--lab-orange));
   border-radius: 6px;
   transition: width 0.4s ease;
   width: 0%;
@@ -237,7 +292,7 @@ select { cursor: pointer; }
 .timeline-line {
   position: relative;
   height: 4px;
-  background: #252a36;
+  background: var(--border);
   border-radius: 2px;
   min-width: 600px;
 }
@@ -249,12 +304,13 @@ select { cursor: pointer; }
   height: 14px;
   border-radius: 50%;
   background: var(--accent);
-  border: 2px solid #13161d;
+  border: 2px solid var(--surface);
   z-index: 2;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
-.timeline-dot.past { background: #64748b; }
+.timeline-dot.past { background: var(--text-muted); }
 .timeline-dot.holiday-marker {
-  background: #f97316;
+  background: var(--warning);
   width: 10px;
   height: 10px;
   border-radius: 2px;
@@ -265,7 +321,7 @@ select { cursor: pointer; }
   top: 16px;
   transform: translateX(-50%);
   font-size: 0.65rem;
-  color: #64748b;
+  color: var(--text-muted);
   white-space: nowrap;
   text-align: center;
   line-height: 1.3;
@@ -274,7 +330,7 @@ select { cursor: pointer; }
   display: block;
   font-family: 'DM Mono', monospace;
   font-size: 0.6rem;
-  color: #e2e8f0;
+  color: var(--text-primary);
 }
 
 /* ── Milestone table ── */
@@ -286,8 +342,8 @@ select { cursor: pointer; }
 .milestone-table th {
   text-align: left;
   padding: 0.5rem 0.75rem;
-  border-bottom: 1px solid #252a36;
-  color: #64748b;
+  border-bottom: 2px solid var(--border);
+  color: var(--text-muted);
   font-weight: 500;
   font-size: 0.75rem;
   text-transform: uppercase;
@@ -295,43 +351,44 @@ select { cursor: pointer; }
 }
 .milestone-table td {
   padding: 0.6rem 0.75rem;
-  border-bottom: 1px solid #1a1e28;
+  border-bottom: 1px solid var(--border-light);
 }
-.milestone-table tr.past td { color: #64748b; text-decoration: line-through; }
+.milestone-table tr.past td { color: var(--text-muted); text-decoration: line-through; }
 .milestone-table .ms-date { font-family: 'DM Mono', monospace; font-size: 0.8rem; white-space: nowrap; }
-.status-past { color: #64748b; }
-.status-urgent { color: #f97316; font-weight: 600; }
-.status-overdue { color: #f87171; font-weight: 600; }
-.status-ok { color: #64748b; }
+.status-past { color: var(--text-muted); }
+.status-urgent { color: var(--warning); font-weight: 600; }
+.status-overdue { color: var(--danger); font-weight: 600; }
+.status-ok { color: var(--text-muted); }
 .status-today { color: var(--accent); font-weight: 600; }
 
 /* ── Checklist sections ── */
 .checklist-section {
-  border: 1px solid #252a36;
+  border: 1px solid var(--border);
   border-radius: 10px;
   margin-bottom: 0.75rem;
   overflow: hidden;
+  background: var(--surface);
 }
 .checklist-section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem 1rem;
-  background: #13161d;
+  background: var(--surface-alt);
   cursor: pointer;
   user-select: none;
   font-weight: 600;
   font-size: 0.9rem;
   border: none;
   width: 100%;
-  color: #e2e8f0;
+  color: var(--text-primary);
   font-family: 'DM Sans', sans-serif;
   text-align: left;
 }
-.checklist-section-header:hover { background: #181c25; }
+.checklist-section-header:hover { background: var(--border-light); }
 .checklist-section-header .chevron {
   transition: transform 0.2s;
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 0.75rem;
 }
 .checklist-section.collapsed .chevron { transform: rotate(-90deg); }
@@ -340,7 +397,7 @@ select { cursor: pointer; }
 .checklist-section-count {
   font-family: 'DM Mono', monospace;
   font-size: 0.7rem;
-  color: #64748b;
+  color: var(--text-muted);
   margin-left: 0.5rem;
 }
 
@@ -357,9 +414,9 @@ select { cursor: pointer; }
   width: 20px;
   height: 20px;
   min-width: 20px;
-  border: 2px solid #252a36;
+  border: 2px solid var(--border);
   border-radius: 4px;
-  background: #0d0f14;
+  background: var(--surface);
   cursor: pointer;
   position: relative;
   margin-top: 2px;
@@ -376,23 +433,23 @@ select { cursor: pointer; }
   left: 5px;
   width: 5px;
   height: 9px;
-  border: solid #0d0f14;
+  border: solid #fff;
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
 }
 .check-item input[type="checkbox"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .check-item-label { font-size: 0.85rem; cursor: pointer; }
-.check-item-label.checked { color: #64748b; text-decoration: line-through; }
+.check-item-label.checked { color: var(--text-muted); text-decoration: line-through; }
 .check-item-note {
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--text-muted);
   margin-top: 0.15rem;
   line-height: 1.4;
 }
 .check-item-date {
   font-family: 'DM Mono', monospace;
   font-size: 0.7rem;
-  color: var(--accent);
+  color: var(--accent-dark);
   margin-top: 0.1rem;
 }
 
@@ -410,12 +467,12 @@ select { cursor: pointer; }
 
 /* ── localStorage notice ── */
 .ls-notice {
-  background: rgba(249,115,22,0.08);
-  border: 1px solid rgba(249,115,22,0.2);
+  background: var(--lab-orange-light);
+  border: 1px solid rgba(232,99,43,0.2);
   border-radius: 8px;
   padding: 0.6rem 1rem;
   font-size: 0.8rem;
-  color: #f97316;
+  color: var(--lab-orange);
   margin-bottom: 1rem;
 }
 
@@ -424,14 +481,14 @@ select { cursor: pointer; }
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #64748b;
+  color: var(--text-muted);
   margin-bottom: 0.75rem;
 }
 
 /* ── Change role link ── */
 .change-role-link {
   font-size: 0.8rem;
-  color: #64748b;
+  color: var(--text-muted);
   cursor: pointer;
   border: none;
   background: none;
@@ -441,6 +498,32 @@ select { cursor: pointer; }
 }
 .change-role-link:hover { color: var(--accent); }
 
+/* ── Share link box ── */
+.share-box {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+}
+.share-box p { margin-bottom: 0.5rem; color: var(--text-muted); }
+.share-url {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.share-url input {
+  flex: 1;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  padding: 0.4rem 0.6rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+}
+
 /* ── Print ── */
 @media print {
   body { background: #fff; color: #000; }
@@ -448,7 +531,7 @@ select { cursor: pointer; }
   .checklist-section { break-inside: avoid; }
   .screen:not(.active) { display: none !important; }
   #screen-role, #screen-date, #screen-confirm, #screen-name { display: none !important; }
-  .plan-actions, .change-role-link, .btn, .progress-bar-container { display: none !important; }
+  .plan-actions, .change-role-link, .btn, .progress-bar-container, .share-box { display: none !important; }
   .checklist-section.collapsed .checklist-section-body { display: block !important; }
   .checklist-section .chevron { display: none !important; }
   h1, h2, h3 { color: #000; }
@@ -473,7 +556,7 @@ select { cursor: pointer; }
     padding-top: 1rem;
     border-top: 1px solid #ddd;
   }
-  .ls-notice { display: none !important; }
+  .ls-notice, .toast { display: none !important; }
 }
 .print-footer { display: none; }
 
@@ -490,7 +573,8 @@ select { cursor: pointer; }
 
   <!-- Header -->
   <div class="header">
-    <h1>DEXLab &middot; Experiment Planner</h1>
+    <img src="logo.png" alt="DEXLab" class="header-logo" onerror="this.style.display='none'">
+    <h1>Experiment Planner</h1>
     <div class="subtitle">Backwards-plan your study. Hit every deadline.</div>
     <div class="lab-badge">Maastricht University &middot; SBE</div>
   </div>
@@ -543,7 +627,7 @@ select { cursor: pointer; }
       <div class="yn-group">
         <span style="font-size:0.85rem;">Does this look right?</span>
         <button class="btn btn-sm btn-primary" onclick="confirmPeriod()">Yes</button>
-        <span style="font-size:0.85rem;color:#64748b;">No, adjust weeks:</span>
+        <span style="font-size:0.85rem;color:var(--text-muted);">No, adjust weeks:</span>
         <div class="stepper">
           <button onclick="adjustWeeks(-1)">&minus;</button>
           <span class="stepper-value" id="weeks-display"></span>
@@ -579,6 +663,8 @@ select { cursor: pointer; }
         <button class="change-role-link" onclick="startOver()">Start over</button>
       </div>
       <div class="plan-actions">
+        <button class="btn btn-sm btn-primary" onclick="copyShareLink()">Copy Link</button>
+        <button class="btn btn-sm btn-orange" onclick="copyProgressSummary()">Copy Progress</button>
         <button class="btn btn-sm btn-ghost" onclick="window.print()">Print / PDF</button>
         <button class="btn btn-sm btn-ghost" onclick="resetState()">Reset</button>
       </div>
@@ -613,6 +699,9 @@ select { cursor: pointer; }
 
 </div>
 
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
 <script>
 // ============================================================
 // ANNUAL CONFIG — UPDATE ONCE PER ACADEMIC YEAR
@@ -625,10 +714,10 @@ const CONFIG = {
   // Add/remove rows each year. 'weeks' is total period length including exam week.
   // BP5 is typically 9 weeks due to spring holidays; all others are 8.
   blockPeriods: [
-    { label: "BP4 — 2025/26", start: "2026-02-09", weeks: 8 },
-    { label: "BP5 — 2025/26", start: "2026-04-27", weeks: 9 },
-    { label: "BP1 — 2026/27", start: "2026-09-07", weeks: 8 },
-    { label: "BP2 — 2026/27", start: "2026-11-02", weeks: 8 },
+    { label: "BP4 \u2014 2025/26", start: "2026-02-09", weeks: 8 },
+    { label: "BP5 \u2014 2025/26", start: "2026-04-27", weeks: 9 },
+    { label: "BP1 \u2014 2026/27", start: "2026-09-07", weeks: 8 },
+    { label: "BP2 \u2014 2026/27", start: "2026-11-02", weeks: 8 },
     // FILL IN: add more block periods as the academic calendar is published
   ],
 
@@ -653,7 +742,7 @@ const CONFIG = {
   // Bridge days (brugdagen) — UM-specific, not national holidays.
   bridgeDays: [
     { date: "2026-05-04", label: "Bridge Day (UM)" },
-    { date: "2026-05-15", label: "Bridge Day — Ascension (UM)" },
+    { date: "2026-05-15", label: "Bridge Day \u2014 Ascension (UM)" },
   ],
 };
 // ============================================================
@@ -682,12 +771,12 @@ function getEaster(year) {
 
 function getEasterHolidays(year) {
   const easter = getEaster(year);
-  const addDays = (d, n) => new Date(d.getTime() + n * 86400000);
+  const add = (d, n) => new Date(d.getTime() + n * 86400000);
   return [
-    { date: addDays(easter, -2), label: "Good Friday" },
-    { date: addDays(easter, 1), label: "Easter Monday" },
-    { date: addDays(easter, 39), label: "Ascension Day" },
-    { date: addDays(easter, 49), label: "Whit Monday" },
+    { date: add(easter, -2), label: "Good Friday" },
+    { date: add(easter, 1), label: "Easter Monday" },
+    { date: add(easter, 39), label: "Ascension Day" },
+    { date: add(easter, 49), label: "Whit Monday" },
   ];
 }
 
@@ -717,10 +806,6 @@ function addDays(date, n) {
   return new Date(date.getTime() + n * 86400000);
 }
 
-function isHoliday(date, holidaySet) {
-  return holidaySet.has(date.toDateString());
-}
-
 function nextWorkingDay(date, holidaySet) {
   let d = new Date(date);
   while (d.getDay() === 0 || d.getDay() === 6 || holidaySet.has(d.toDateString())) {
@@ -745,8 +830,20 @@ function formatDateShort(d) {
   return `${d.getDate()} ${months[d.getMonth()]}`;
 }
 
+function toISO(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
 function daysBetween(a, b) {
   return Math.round((b - a) / 86400000);
+}
+
+// ── Toast ──
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
 }
 
 // ── Milestones ──
@@ -789,6 +886,111 @@ let state = {
 
 let hasLocalStorage = true;
 
+// ── Shareable URL ──
+function encodeState() {
+  const payload = {
+    v: 1,
+    r: state.role,
+    n: state.name,
+    t: state.studyTitle,
+    s: state.bpStart,
+    w: state.bpWeeks,
+    c: state.checkedItems,
+  };
+  return btoa(JSON.stringify(payload));
+}
+
+function decodeState(hash) {
+  try {
+    const json = atob(hash);
+    const p = JSON.parse(json);
+    if (p.v === 1 && p.r && p.s) {
+      state.role = p.r;
+      state.name = p.n || "";
+      state.studyTitle = p.t || "";
+      state.bpStart = p.s;
+      state.bpWeeks = p.w || 8;
+      state.checkedItems = p.c || [];
+      return true;
+    }
+  } catch (e) {}
+  return false;
+}
+
+function getShareURL() {
+  const base = window.location.href.split('#')[0].split('?')[0];
+  return base + '#' + encodeState();
+}
+
+function copyShareLink() {
+  const url = getShareURL();
+  navigator.clipboard.writeText(url).then(() => {
+    showToast('Link copied! Bookmark it or share it to return to this plan.');
+  }).catch(() => {
+    // Fallback
+    prompt('Copy this link to save/share your plan:', url);
+  });
+  // Also update the URL bar silently
+  history.replaceState(null, '', '#' + encodeState());
+}
+
+function copyProgressSummary() {
+  const bpStart = parseDate(state.bpStart);
+  const bpEnd = addDays(bpStart, state.bpWeeks * 7 - 1);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const holidaySet = buildHolidaySet(addDays(bpStart, -60), bpEnd);
+  const roleMilestones = MILESTONES.filter(m => m.roles.includes(state.role));
+  const computed = roleMilestones.map(m => {
+    let date = addDays(bpStart, m.offsetDays);
+    if (m.id !== 'data_collection') date = nextWorkingDay(date, holidaySet);
+    return { ...m, date };
+  }).sort((a, b) => a.date - b.date);
+
+  const total = computed.length;
+  const done = computed.filter(m => state.checkedItems.includes(m.id)).length;
+  const pct = Math.round((done / total) * 100);
+  const displayName = state.name || 'Student';
+  const titleLine = state.studyTitle ? ` \u2014 ${state.studyTitle}` : '';
+
+  let lines = [];
+  lines.push(`DEXLab Experiment Planner \u2014 Progress Update`);
+  lines.push(`${displayName}${titleLine}`);
+  lines.push(`Role: ${state.role === 'phd' ? 'PhD Researcher' : 'Master Student'}`);
+  lines.push(`Data collection: ${formatDate(bpStart)} \u2192 ${formatDate(bpEnd)}`);
+  lines.push(`Overall: ${done}/${total} milestones complete (${pct}%)`);
+  lines.push('');
+
+  // Group status
+  const overdue = computed.filter(m => !state.checkedItems.includes(m.id) && daysBetween(today, m.date) < 0);
+  const upcoming = computed.filter(m => !state.checkedItems.includes(m.id) && daysBetween(today, m.date) >= 0 && daysBetween(today, m.date) <= 7);
+  const completed = computed.filter(m => state.checkedItems.includes(m.id));
+
+  if (overdue.length > 0) {
+    lines.push('OVERDUE:');
+    overdue.forEach(m => lines.push(`  \u2717 ${m.label} (was due ${formatDate(m.date)})`));
+    lines.push('');
+  }
+  if (upcoming.length > 0) {
+    lines.push('DUE THIS WEEK:');
+    upcoming.forEach(m => lines.push(`  \u25CB ${m.label} (${formatDate(m.date)})`));
+    lines.push('');
+  }
+  if (completed.length > 0) {
+    lines.push('COMPLETED:');
+    completed.forEach(m => lines.push(`  \u2713 ${m.label}`));
+    lines.push('');
+  }
+
+  lines.push(`Generated: ${formatDate(today)}`);
+
+  const text = lines.join('\n');
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('Progress summary copied! Paste it into Teams or email.');
+  }).catch(() => {
+    prompt('Copy this progress summary:', text);
+  });
+}
+
 // ── localStorage ──
 function loadState() {
   try {
@@ -811,7 +1013,11 @@ function saveState() {
   try {
     state.lastUpdated = new Date().toISOString();
     localStorage.setItem("dexlab_planner_state", JSON.stringify(state));
-  } catch (e) { /* private browsing — silently fail */ }
+  } catch (e) { /* private browsing */ }
+  // Also update hash silently when on plan screen
+  if (document.getElementById('screen-plan').classList.contains('active')) {
+    history.replaceState(null, '', '#' + encodeState());
+  }
 }
 
 // ── Screen Management ──
@@ -875,7 +1081,6 @@ function onDateInput() {
   const val = document.getElementById('date-input').value;
   if (!val) return;
   state.bpStart = val;
-  // Check if matches a known BP
   const sel = document.getElementById('bp-select');
   let matched = false;
   CONFIG.blockPeriods.forEach((bp, i) => {
@@ -890,7 +1095,6 @@ function showConfirmation() {
   if (!state.bpStart) return;
   const start = parseDate(state.bpStart);
   const end = addDays(start, state.bpWeeks * 7 - 1);
-  // Find matching BP label
   const matchedBP = CONFIG.blockPeriods.find(bp => bp.start === state.bpStart);
   const label = matchedBP ? matchedBP.label : 'Custom period';
   document.getElementById('confirm-text').innerHTML =
@@ -898,7 +1102,6 @@ function showConfirmation() {
   document.getElementById('confirm-range').textContent = `${formatDate(start)}  \u2192  ${formatDate(end)}`;
   document.getElementById('weeks-display').textContent = state.bpWeeks;
 
-  // Holidays
   const holidays = getHolidaysInRange(start, end);
   const container = document.getElementById('holiday-warning-container');
   if (holidays.length > 0) {
@@ -922,7 +1125,6 @@ function adjustWeeks(delta) {
 
 function confirmPeriod() {
   showScreensUpTo('screen-name');
-  // Pre-fill from state
   document.getElementById('name-input').value = state.name || '';
   document.getElementById('title-input').value = state.studyTitle || '';
   saveState();
@@ -946,29 +1148,19 @@ function renderPlan() {
   const title = state.studyTitle ? `${displayName}${state.name ? '\u2019s' : ''} Plan: ${state.studyTitle}` : `${displayName}${state.name ? '\u2019s' : ''} Experiment Plan`;
   document.getElementById('plan-title').textContent = title;
 
-  // Filter milestones by role
   const roleMilestones = MILESTONES.filter(m => m.roles.includes(state.role));
-
-  // Compute dates
   const computed = roleMilestones.map(m => {
     let date = addDays(bpStart, m.offsetDays);
     if (m.id !== 'data_collection') date = nextWorkingDay(date, holidaySet);
     return { ...m, date };
   }).sort((a, b) => a.date - b.date);
 
-  // Holidays in range for timeline
   const holidaysInRange = getHolidaysInRange(bpStart, bpEnd);
 
-  // ── 5a: Timeline ──
   renderTimeline(computed, holidaysInRange, today);
-
-  // ── 5b: Milestone Table ──
   renderMilestoneTable(computed, today);
-
-  // ── 5c: Checklist ──
   renderChecklist(computed, today);
 
-  // Print footer
   document.getElementById('print-footer').textContent = `Generated by DEXLab Experiment Planner \u00B7 dexlab.nl \u00B7 ${formatDate(today)}`;
 }
 
@@ -1019,7 +1211,7 @@ function renderMilestoneTable(milestones, today) {
     else if (diff <= 7) { statusClass = 'status-urgent'; statusText = `\u26A0 ${diff} day${diff !== 1 ? 's' : ''}`; }
     else { statusClass = 'status-ok'; statusText = `${diff} days`; }
     tr.innerHTML = `
-      <td>${m.label}${m.optional ? ' <span style="color:#64748b;font-size:0.75rem;">(optional)</span>' : ''}</td>
+      <td>${m.label}${m.optional ? ' <span style="color:var(--text-muted);font-size:0.75rem;">(optional)</span>' : ''}</td>
       <td class="ms-date">${formatDate(m.date)}</td>
       <td class="${statusClass}">${statusText}</td>`;
     tbody.appendChild(tr);
@@ -1030,7 +1222,6 @@ function renderChecklist(milestones, today) {
   const container = document.getElementById('checklist-container');
   container.innerHTML = '';
 
-  // Group by section
   const sections = {};
   milestones.forEach(m => {
     if (!sections[m.section]) sections[m.section] = [];
@@ -1079,7 +1270,6 @@ function toggleCheck(id) {
   if (idx === -1) state.checkedItems.push(id);
   else state.checkedItems.splice(idx, 1);
   saveState();
-  // Re-render checklist to update counts and progress
   const bpStart = parseDate(state.bpStart);
   const bpEnd = addDays(bpStart, state.bpWeeks * 7 - 1);
   const today = new Date(); today.setHours(0,0,0,0);
@@ -1106,6 +1296,7 @@ function startOver() {
 function resetState() {
   state = { version: 1, role: null, name: "", studyTitle: "", bpStart: null, bpWeeks: 8, checkedItems: [], lastUpdated: null };
   try { localStorage.removeItem("dexlab_planner_state"); } catch (e) {}
+  history.replaceState(null, '', window.location.pathname);
   document.body.className = '';
   document.getElementById('btn-master').className = 'role-btn';
   document.getElementById('btn-phd').className = 'role-btn';
@@ -1122,12 +1313,30 @@ function resetState() {
   try { localStorage.setItem('_test', '1'); localStorage.removeItem('_test'); }
   catch (e) { hasLocalStorage = false; document.getElementById('ls-notice').style.display = 'block'; }
 
-  const hadState = loadState();
-  if (hadState && state.role && state.bpStart) {
-    // Restore full state
+  // Check URL hash first (shared link takes priority)
+  const hash = window.location.hash.slice(1);
+  if (hash && decodeState(hash)) {
     selectRole(state.role);
     document.getElementById('date-input').value = state.bpStart;
-    // Sync dropdown
+    const sel = document.getElementById('bp-select');
+    let matched = false;
+    CONFIG.blockPeriods.forEach((bp, i) => {
+      if (bp.start === state.bpStart) { sel.value = i; matched = true; }
+    });
+    if (!matched) sel.value = 'custom';
+    document.getElementById('name-input').value = state.name || '';
+    document.getElementById('title-input').value = state.studyTitle || '';
+    saveState(); // persist to localStorage too
+    renderPlan();
+    showScreen('screen-plan');
+    return;
+  }
+
+  // Otherwise load from localStorage
+  const hadState = loadState();
+  if (hadState && state.role && state.bpStart) {
+    selectRole(state.role);
+    document.getElementById('date-input').value = state.bpStart;
     const sel = document.getElementById('bp-select');
     let matched = false;
     CONFIG.blockPeriods.forEach((bp, i) => {
