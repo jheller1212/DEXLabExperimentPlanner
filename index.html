@@ -1593,7 +1593,12 @@ function toggleCheck(id) {
   else state.checkedItems.splice(idx, 1);
   saveState();
   const today = new Date(); today.setHours(0,0,0,0);
-  renderChecklist(computeMilestones(), today);
+  const computed = computeMilestones();
+  const bpStart = parseDate(state.bpStart);
+  const bpEnd = addDays(bpStart, state.bpWeeks * 7 - 1);
+  renderTimeline(computed, getHolidaysInRange(bpStart, bpEnd), today);
+  renderMilestoneTable(computed, today);
+  renderChecklist(computed, today);
 }
 
 function updateProgress(checked, total) {
