@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DEXLab Experiment Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,700&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & Base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; scroll-behavior: smooth; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: #0d0f14;
+  color: #e2e8f0;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ── Typography ── */
+h1, h2, h3 { font-family: 'Fraunces', serif; font-weight: 700; }
+.mono { font-family: 'DM Mono', monospace; }
+
+/* ── Layout ── */
+.container {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+/* ── Header ── */
+.header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #252a36;
+}
+.header h1 {
+  font-size: 1.8rem;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.25rem;
+}
+.header .subtitle {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+.header .lab-badge {
+  display: inline-block;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: #64748b;
+  border: 1px solid #252a36;
+  border-radius: 4px;
+  padding: 0.15rem 0.5rem;
+  margin-top: 0.5rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* ── Screens ── */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ── Cards ── */
+.card {
+  background: #13161d;
+  border: 1px solid #252a36;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+/* ── Screen 1: Role ── */
+.role-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+.role-btn {
+  flex: 1;
+  max-width: 260px;
+  padding: 1.25rem 1.5rem;
+  background: #13161d;
+  border: 2px solid #252a36;
+  border-radius: 12px;
+  color: #e2e8f0;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, transform 0.1s;
+}
+.role-btn:hover { border-color: #4fc3a1; background: #181c25; }
+.role-btn:active { transform: scale(0.98); }
+.role-btn.selected-master { border-color: #4fc3a1; background: rgba(79,195,161,0.08); }
+.role-btn.selected-phd { border-color: #c084fc; background: rgba(192,132,252,0.08); }
+.role-label { display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 0.35rem; font-weight: 400; }
+
+/* ── Accent colors by role ── */
+body.role-master { --accent: #4fc3a1; --accent-bg: rgba(79,195,161,0.08); }
+body.role-phd { --accent: #c084fc; --accent-bg: rgba(192,132,252,0.08); }
+body { --accent: #4fc3a1; --accent-bg: rgba(79,195,161,0.08); }
+
+/* ── Form elements ── */
+label { display: block; font-weight: 500; margin-bottom: 0.35rem; font-size: 0.9rem; }
+select, input[type="date"], input[type="text"], input[type="number"] {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  background: #0d0f14;
+  border: 1px solid #252a36;
+  border-radius: 8px;
+  color: #e2e8f0;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  transition: border-color 0.2s;
+}
+select:focus, input:focus { outline: none; border-color: var(--accent); }
+select { cursor: pointer; }
+
+.form-row { margin-bottom: 1rem; }
+.form-row:last-child { margin-bottom: 0; }
+
+/* ── Stepper ── */
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.stepper button {
+  width: 32px;
+  height: 32px;
+  background: #0d0f14;
+  border: 1px solid #252a36;
+  border-radius: 6px;
+  color: #e2e8f0;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s;
+}
+.stepper button:hover { border-color: var(--accent); }
+.stepper .stepper-value {
+  font-family: 'DM Mono', monospace;
+  font-size: 1rem;
+  min-width: 2ch;
+  text-align: center;
+}
+
+/* ── Confirmation ── */
+.confirm-box {
+  background: rgba(79,195,161,0.05);
+  border: 1px solid #252a36;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+.confirm-box .check { color: var(--accent); font-weight: 600; }
+.date-range {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.95rem;
+  color: var(--accent);
+  margin: 0.5rem 0;
+}
+
+/* ── Holiday warning ── */
+.holiday-warning {
+  background: rgba(249,115,22,0.08);
+  border: 1px solid rgba(249,115,22,0.25);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: #f97316;
+}
+.holiday-warning .hw-icon { margin-right: 0.35rem; }
+.holiday-warning .hw-list { color: #e2e8f0; margin-top: 0.25rem; font-size: 0.82rem; }
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.65rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+}
+.btn:hover { opacity: 0.9; }
+.btn:active { transform: scale(0.98); }
+.btn-primary {
+  background: var(--accent);
+  color: #0d0f14;
+}
+.btn-ghost {
+  background: transparent;
+  border: 1px solid #252a36;
+  color: #e2e8f0;
+}
+.btn-ghost:hover { border-color: var(--accent); }
+.btn-sm { padding: 0.4rem 0.9rem; font-size: 0.8rem; }
+
+/* ── Yes/No toggle ── */
+.yn-group { display: flex; gap: 0.75rem; align-items: center; margin-top: 0.75rem; flex-wrap: wrap; }
+
+/* ── Progress bar ── */
+.progress-bar-container {
+  background: #0d0f14;
+  border-radius: 6px;
+  height: 8px;
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+}
+.progress-bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 6px;
+  transition: width 0.4s ease;
+  width: 0%;
+}
+
+/* ── Timeline strip ── */
+.timeline-strip {
+  position: relative;
+  padding: 1.5rem 0 2rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+.timeline-line {
+  position: relative;
+  height: 4px;
+  background: #252a36;
+  border-radius: 2px;
+  min-width: 600px;
+}
+.timeline-dot {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid #13161d;
+  z-index: 2;
+}
+.timeline-dot.past { background: #64748b; }
+.timeline-dot.holiday-marker {
+  background: #f97316;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+.timeline-label {
+  position: absolute;
+  top: 16px;
+  transform: translateX(-50%);
+  font-size: 0.65rem;
+  color: #64748b;
+  white-space: nowrap;
+  text-align: center;
+  line-height: 1.3;
+}
+.timeline-label .tl-date {
+  display: block;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  color: #e2e8f0;
+}
+
+/* ── Milestone table ── */
+.milestone-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+.milestone-table th {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #252a36;
+  color: #64748b;
+  font-weight: 500;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.milestone-table td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid #1a1e28;
+}
+.milestone-table tr.past td { color: #64748b; text-decoration: line-through; }
+.milestone-table .ms-date { font-family: 'DM Mono', monospace; font-size: 0.8rem; white-space: nowrap; }
+.status-past { color: #64748b; }
+.status-urgent { color: #f97316; font-weight: 600; }
+.status-overdue { color: #f87171; font-weight: 600; }
+.status-ok { color: #64748b; }
+.status-today { color: var(--accent); font-weight: 600; }
+
+/* ── Checklist sections ── */
+.checklist-section {
+  border: 1px solid #252a36;
+  border-radius: 10px;
+  margin-bottom: 0.75rem;
+  overflow: hidden;
+}
+.checklist-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: #13161d;
+  cursor: pointer;
+  user-select: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: none;
+  width: 100%;
+  color: #e2e8f0;
+  font-family: 'DM Sans', sans-serif;
+  text-align: left;
+}
+.checklist-section-header:hover { background: #181c25; }
+.checklist-section-header .chevron {
+  transition: transform 0.2s;
+  color: #64748b;
+  font-size: 0.75rem;
+}
+.checklist-section.collapsed .chevron { transform: rotate(-90deg); }
+.checklist-section.collapsed .checklist-section-body { display: none; }
+.checklist-section-body { padding: 0.5rem 1rem 0.75rem; }
+.checklist-section-count {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: #64748b;
+  margin-left: 0.5rem;
+}
+
+/* ── Checkbox items ── */
+.check-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.45rem 0;
+}
+.check-item input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  border: 2px solid #252a36;
+  border-radius: 4px;
+  background: #0d0f14;
+  cursor: pointer;
+  position: relative;
+  margin-top: 2px;
+  transition: background 0.2s, border-color 0.2s;
+}
+.check-item input[type="checkbox"]:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.check-item input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 5px;
+  width: 5px;
+  height: 9px;
+  border: solid #0d0f14;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+.check-item input[type="checkbox"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.check-item-label { font-size: 0.85rem; cursor: pointer; }
+.check-item-label.checked { color: #64748b; text-decoration: line-through; }
+.check-item-note {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: 0.15rem;
+  line-height: 1.4;
+}
+.check-item-date {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--accent);
+  margin-top: 0.1rem;
+}
+
+/* ── Plan header ── */
+.plan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+.plan-header h2 { font-size: 1.3rem; }
+.plan-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+/* ── localStorage notice ── */
+.ls-notice {
+  background: rgba(249,115,22,0.08);
+  border: 1px solid rgba(249,115,22,0.2);
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  font-size: 0.8rem;
+  color: #f97316;
+  margin-bottom: 1rem;
+}
+
+/* ── Section label ── */
+.section-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+  margin-bottom: 0.75rem;
+}
+
+/* ── Change role link ── */
+.change-role-link {
+  font-size: 0.8rem;
+  color: #64748b;
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: 'DM Sans', sans-serif;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.change-role-link:hover { color: var(--accent); }
+
+/* ── Print ── */
+@media print {
+  body { background: #fff; color: #000; }
+  .header, .card, .checklist-section, .milestone-table { background: #fff; border-color: #ccc; }
+  .checklist-section { break-inside: avoid; }
+  .screen:not(.active) { display: none !important; }
+  #screen-role, #screen-date, #screen-confirm, #screen-name { display: none !important; }
+  .plan-actions, .change-role-link, .btn, .progress-bar-container { display: none !important; }
+  .checklist-section.collapsed .checklist-section-body { display: block !important; }
+  .checklist-section .chevron { display: none !important; }
+  h1, h2, h3 { color: #000; }
+  .milestone-table th { color: #666; }
+  .milestone-table td { color: #000; border-color: #ddd; }
+  .milestone-table tr.past td { color: #999; }
+  .check-item input[type="checkbox"]:checked { background: #000; border-color: #000; }
+  .check-item input[type="checkbox"]:checked::after { border-color: #fff; }
+  .timeline-dot { background: #333; border-color: #fff; }
+  .timeline-dot.holiday-marker { background: #c00; }
+  .timeline-line { background: #ccc; }
+  .holiday-warning { background: #fff8f0; border-color: #f97316; color: #c2410c; }
+  .holiday-warning .hw-list { color: #000; }
+  .confirm-box { background: #f8fdf9; }
+  .date-range { color: #333; }
+  .print-footer {
+    display: block !important;
+    text-align: center;
+    font-size: 0.75rem;
+    color: #999;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #ddd;
+  }
+  .ls-notice { display: none !important; }
+}
+.print-footer { display: none; }
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .role-buttons { flex-direction: column; align-items: stretch; }
+  .role-btn { max-width: none; }
+  .plan-header { flex-direction: column; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>DEXLab &middot; Experiment Planner</h1>
+    <div class="subtitle">Backwards-plan your study. Hit every deadline.</div>
+    <div class="lab-badge">Maastricht University &middot; SBE</div>
+  </div>
+
+  <!-- localStorage notice (hidden by default) -->
+  <div class="ls-notice" id="ls-notice" style="display:none;">
+    Private browsing detected &mdash; your progress won't be saved between sessions, but the tool works normally.
+  </div>
+
+  <!-- Screen 1: Role Selection -->
+  <div class="screen active" id="screen-role">
+    <div class="card" style="text-align:center;">
+      <p class="section-title">I am a&hellip;</p>
+      <div class="role-buttons">
+        <button class="role-btn" id="btn-master" onclick="selectRole('master')">
+          <span class="role-label">Thesis track</span>
+          Master Student
+        </button>
+        <button class="role-btn" id="btn-phd" onclick="selectRole('phd')">
+          <span class="role-label">Doctoral track</span>
+          PhD Researcher
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 2: Date Selection -->
+  <div class="screen" id="screen-date">
+    <div class="card">
+      <div class="form-row">
+        <label for="bp-select">Select a block period</label>
+        <select id="bp-select" onchange="onBPSelect()">
+          <option value="">Choose&hellip;</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label for="date-input">Or pick a custom start date</label>
+        <input type="date" id="date-input" onchange="onDateInput()">
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 3: Period Confirmation -->
+  <div class="screen" id="screen-confirm">
+    <div class="card">
+      <div class="confirm-box">
+        <div id="confirm-text"></div>
+        <div class="date-range" id="confirm-range"></div>
+      </div>
+      <div class="yn-group">
+        <span style="font-size:0.85rem;">Does this look right?</span>
+        <button class="btn btn-sm btn-primary" onclick="confirmPeriod()">Yes</button>
+        <span style="font-size:0.85rem;color:#64748b;">No, adjust weeks:</span>
+        <div class="stepper">
+          <button onclick="adjustWeeks(-1)">&minus;</button>
+          <span class="stepper-value" id="weeks-display"></span>
+          <button onclick="adjustWeeks(1)">+</button>
+        </div>
+      </div>
+      <div id="holiday-warning-container"></div>
+    </div>
+  </div>
+
+  <!-- Screen 4: Name -->
+  <div class="screen" id="screen-name">
+    <div class="card">
+      <div class="form-row">
+        <label for="name-input">Your name (optional &mdash; personalizes output)</label>
+        <input type="text" id="name-input" placeholder="e.g. Joana">
+      </div>
+      <div class="form-row">
+        <label for="title-input">Study title / nickname (optional)</label>
+        <input type="text" id="title-input" placeholder="e.g. Future Self AR Study">
+      </div>
+      <div style="margin-top:1rem;">
+        <button class="btn btn-primary" onclick="generatePlan()">Generate My Plan &rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 5: Plan -->
+  <div class="screen" id="screen-plan">
+    <div class="plan-header">
+      <div>
+        <h2 id="plan-title">Your Experiment Plan</h2>
+        <button class="change-role-link" onclick="startOver()">Start over</button>
+      </div>
+      <div class="plan-actions">
+        <button class="btn btn-sm btn-ghost" onclick="window.print()">Print / PDF</button>
+        <button class="btn btn-sm btn-ghost" onclick="resetState()">Reset</button>
+      </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-bar-container"><div class="progress-bar" id="progress-bar"></div></div>
+
+    <!-- 5a: Timeline -->
+    <div class="card">
+      <p class="section-title">Timeline</p>
+      <div class="timeline-strip" id="timeline-strip">
+        <div class="timeline-line" id="timeline-line"></div>
+      </div>
+    </div>
+
+    <!-- 5b: Milestone table -->
+    <div class="card">
+      <p class="section-title">Milestones</p>
+      <table class="milestone-table" id="milestone-table">
+        <thead><tr><th>Milestone</th><th>Deadline</th><th>Status</th></tr></thead>
+        <tbody id="milestone-tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- 5c: Checklist -->
+    <div id="checklist-container"></div>
+
+    <!-- Print footer -->
+    <div class="print-footer" id="print-footer"></div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+// ANNUAL CONFIG — UPDATE ONCE PER ACADEMIC YEAR
+// All dates are ISO strings: "YYYY-MM-DD"
+// BP = Block Period (SBE/MSCM teaching period)
+// ============================================================
+const CONFIG = {
+
+  // Block periods available for selection.
+  // Add/remove rows each year. 'weeks' is total period length including exam week.
+  // BP5 is typically 9 weeks due to spring holidays; all others are 8.
+  blockPeriods: [
+    { label: "BP4 — 2025/26", start: "2026-02-09", weeks: 8 },
+    { label: "BP5 — 2025/26", start: "2026-04-27", weeks: 9 },
+    { label: "BP1 — 2026/27", start: "2026-09-07", weeks: 8 },
+    { label: "BP2 — 2026/27", start: "2026-11-02", weeks: 8 },
+    // FILL IN: add more block periods as the academic calendar is published
+  ],
+
+  // Dutch national public holidays (fixed-date only).
+  // Easter-relative holidays are computed automatically — do NOT list them here.
+  // Only list: fixed holidays + UM-specific closures.
+  fixedHolidays: [
+    // ── 2025/26 ──
+    { date: "2025-12-25", label: "Christmas Day" },
+    { date: "2025-12-26", label: "Second Christmas Day" },
+    { date: "2026-01-01", label: "New Year's Day" },
+    { date: "2026-02-16", label: "Carnival (UM closure)" },
+    { date: "2026-02-17", label: "Carnival (UM closure)" },
+    { date: "2026-04-27", label: "King's Day" },
+    { date: "2026-05-05", label: "Liberation Day" },
+    // ── 2026/27 — fill in when academic calendar is published ──
+    // { date: "2026-12-25", label: "Christmas Day" },
+    // { date: "2026-12-26", label: "Second Christmas Day" },
+    // { date: "2027-01-01", label: "New Year's Day" },
+  ],
+
+  // Bridge days (brugdagen) — UM-specific, not national holidays.
+  bridgeDays: [
+    { date: "2026-05-04", label: "Bridge Day (UM)" },
+    { date: "2026-05-15", label: "Bridge Day — Ascension (UM)" },
+  ],
+};
+// ============================================================
+// END OF ANNUAL CONFIG — DO NOT EDIT BELOW THIS LINE
+// unless you are changing app logic
+// ============================================================
+
+// ── Easter Algorithm (Meeus/Jones/Butcher) ──
+function getEaster(year) {
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31);
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(year, month - 1, day);
+}
+
+function getEasterHolidays(year) {
+  const easter = getEaster(year);
+  const addDays = (d, n) => new Date(d.getTime() + n * 86400000);
+  return [
+    { date: addDays(easter, -2), label: "Good Friday" },
+    { date: addDays(easter, 1), label: "Easter Monday" },
+    { date: addDays(easter, 39), label: "Ascension Day" },
+    { date: addDays(easter, 49), label: "Whit Monday" },
+  ];
+}
+
+function getAllHolidays(startYear, endYear) {
+  const holidays = [];
+  CONFIG.fixedHolidays.forEach(h => holidays.push({ date: parseDate(h.date), label: h.label }));
+  CONFIG.bridgeDays.forEach(h => holidays.push({ date: parseDate(h.date), label: h.label }));
+  for (let y = startYear; y <= endYear; y++) {
+    getEasterHolidays(y).forEach(h => holidays.push(h));
+  }
+  return holidays;
+}
+
+function getHolidaysInRange(startDate, endDate) {
+  const years = new Set();
+  for (let y = startDate.getFullYear(); y <= endDate.getFullYear(); y++) years.add(y);
+  const all = getAllHolidays(Math.min(...years), Math.max(...years));
+  return all.filter(h => h.date >= startDate && h.date <= endDate);
+}
+
+function parseDate(str) {
+  const [y, m, d] = str.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function addDays(date, n) {
+  return new Date(date.getTime() + n * 86400000);
+}
+
+function isHoliday(date, holidaySet) {
+  return holidaySet.has(date.toDateString());
+}
+
+function nextWorkingDay(date, holidaySet) {
+  let d = new Date(date);
+  while (d.getDay() === 0 || d.getDay() === 6 || holidaySet.has(d.toDateString())) {
+    d = addDays(d, 1);
+  }
+  return d;
+}
+
+function buildHolidaySet(startDate, endDate) {
+  const holidays = getHolidaysInRange(addDays(startDate, -60), addDays(endDate, 30));
+  return new Set(holidays.map(h => h.date.toDateString()));
+}
+
+function formatDate(d) {
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function formatDateShort(d) {
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${d.getDate()} ${months[d.getMonth()]}`;
+}
+
+function daysBetween(a, b) {
+  return Math.round((b - a) / 86400000);
+}
+
+// ── Milestones ──
+const MILESTONES = [
+  { id: "power_analysis", label: "Power analysis \u2014 calculate minimum N per condition", offsetDays: -42, roles: ["master","phd"], optional: true, section: "design", note: "Do this early. If your pool is fixed, report achieved power post-hoc." },
+  { id: "sona_request", label: "Request participant pool from SONA coordinator", offsetDays: -28, roles: ["master","phd"], optional: false, section: "sona", note: "Rough N per condition is enough at this stage. Miss this and you wait a full period." },
+  { id: "ethics_submit", label: "Submit ethics application to ERCIC", offsetDays: -21, roles: ["phd"], optional: false, section: "ethics", note: "Do not start data collection without approval in hand." },
+  { id: "supervisor_checkin", label: "Check in with supervisor \u2014 ethics and pre-registration confirmed", offsetDays: -21, roles: ["master"], optional: false, section: "ethics", note: "Your supervisor handles formal ethics and pre-registration. Your job is to confirm it is done." },
+  { id: "stimuli_pretest", label: "Pretest stimuli with 3\u20135 people", offsetDays: -14, roles: ["master","phd"], optional: false, section: "materials", note: "Is your manipulation actually manipulating what you think it is?" },
+  { id: "equipment_book", label: "Book equipment and rooms via Resource Booker", offsetDays: -14, roles: ["master","phd"], optional: false, section: "logistics", note: "DEXLab + i1.008 or i1.013 if running combined sessions." },
+  { id: "prereg", label: "Pre-register on OSF or AsPredicted", offsetDays: -7, roles: ["phd"], optional: false, section: "ethics", note: "Before data collection starts, not after. Separates confirmatory from exploratory." },
+  { id: "sona_finalize", label: "Finalize SONA \u2014 timeslots, participants per slot, session length", offsetDays: -7, roles: ["master","phd"], optional: false, section: "sona", note: "Study must be live on SONA one week before BP starts." },
+  { id: "pilot", label: "Complete full pilot test (dry run with a friend)", offsetDays: -7, roles: ["master","phd"], optional: false, section: "materials", note: "Every tech demo fails the first time. Do not let that be with a real participant." },
+  { id: "inform_team", label: "Post planning in Experiment Teams chat", offsetDays: -7, roles: ["master","phd"], optional: false, section: "coordination", note: "Dates, rooms, timeslots, conditions. So others can plan around you." },
+  { id: "qualtrics_final", label: "Qualtrics survey and manipulations finalized", offsetDays: -3, roles: ["master","phd"], optional: false, section: "materials", note: "End-to-end test, randomization confirmed, all conditions working." },
+  { id: "data_collection", label: "Data collection starts", offsetDays: 0, roles: ["master","phd"], optional: false, section: "collection", note: "BP starts. SONA slots open. Go." },
+];
+
+const SECTION_LABELS = {
+  design: "Study Design",
+  sona: "SONA / Participant Pool",
+  ethics: "Ethics & Pre-registration",
+  materials: "Materials & Testing",
+  logistics: "Logistics & Rooms",
+  coordination: "Team Coordination",
+  collection: "Data Collection",
+};
+
+// ── App State ──
+let state = {
+  version: 1,
+  role: null,
+  name: "",
+  studyTitle: "",
+  bpStart: null,
+  bpWeeks: 8,
+  checkedItems: [],
+  lastUpdated: null,
+};
+
+let hasLocalStorage = true;
+
+// ── localStorage ──
+function loadState() {
+  try {
+    const raw = localStorage.getItem("dexlab_planner_state");
+    if (raw) {
+      const saved = JSON.parse(raw);
+      if (saved && saved.version) {
+        Object.assign(state, saved);
+        return true;
+      }
+    }
+  } catch (e) {
+    hasLocalStorage = false;
+    document.getElementById('ls-notice').style.display = 'block';
+  }
+  return false;
+}
+
+function saveState() {
+  try {
+    state.lastUpdated = new Date().toISOString();
+    localStorage.setItem("dexlab_planner_state", JSON.stringify(state));
+  } catch (e) { /* private browsing — silently fail */ }
+}
+
+// ── Screen Management ──
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function showScreensUpTo(id) {
+  const order = ['screen-role','screen-date','screen-confirm','screen-name','screen-plan'];
+  const idx = order.indexOf(id);
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  for (let i = 0; i <= idx; i++) {
+    document.getElementById(order[i]).classList.add('active');
+  }
+}
+
+// ── Screen 1: Role ──
+function selectRole(role) {
+  state.role = role;
+  document.body.className = `role-${role}`;
+  document.getElementById('btn-master').className = `role-btn${role === 'master' ? ' selected-master' : ''}`;
+  document.getElementById('btn-phd').className = `role-btn${role === 'phd' ? ' selected-phd' : ''}`;
+  populateBPDropdown();
+  showScreensUpTo('screen-date');
+  saveState();
+}
+
+// ── Screen 2: Date ──
+function populateBPDropdown() {
+  const sel = document.getElementById('bp-select');
+  sel.innerHTML = '<option value="">Choose\u2026</option>';
+  CONFIG.blockPeriods.forEach((bp, i) => {
+    const d = parseDate(bp.start);
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = `${bp.label}  (starts ${formatDateShort(d)})`;
+    sel.appendChild(opt);
+  });
+  const custom = document.createElement('option');
+  custom.value = 'custom';
+  custom.textContent = 'Custom date\u2026';
+  sel.appendChild(custom);
+}
+
+function onBPSelect() {
+  const sel = document.getElementById('bp-select');
+  const val = sel.value;
+  if (val === '' || val === 'custom') {
+    document.getElementById('date-input').value = '';
+    return;
+  }
+  const bp = CONFIG.blockPeriods[parseInt(val)];
+  state.bpStart = bp.start;
+  state.bpWeeks = bp.weeks;
+  document.getElementById('date-input').value = bp.start;
+  showConfirmation();
+}
+
+function onDateInput() {
+  const val = document.getElementById('date-input').value;
+  if (!val) return;
+  state.bpStart = val;
+  // Check if matches a known BP
+  const sel = document.getElementById('bp-select');
+  let matched = false;
+  CONFIG.blockPeriods.forEach((bp, i) => {
+    if (bp.start === val) { sel.value = i; state.bpWeeks = bp.weeks; matched = true; }
+  });
+  if (!matched) { sel.value = 'custom'; state.bpWeeks = 8; }
+  showConfirmation();
+}
+
+// ── Screen 3: Confirmation ──
+function showConfirmation() {
+  if (!state.bpStart) return;
+  const start = parseDate(state.bpStart);
+  const end = addDays(start, state.bpWeeks * 7 - 1);
+  // Find matching BP label
+  const matchedBP = CONFIG.blockPeriods.find(bp => bp.start === state.bpStart);
+  const label = matchedBP ? matchedBP.label : 'Custom period';
+  document.getElementById('confirm-text').innerHTML =
+    `<span class="check">\u2713</span> <strong>${label}</strong> runs <strong>${state.bpWeeks} weeks</strong>`;
+  document.getElementById('confirm-range').textContent = `${formatDate(start)}  \u2192  ${formatDate(end)}`;
+  document.getElementById('weeks-display').textContent = state.bpWeeks;
+
+  // Holidays
+  const holidays = getHolidaysInRange(start, end);
+  const container = document.getElementById('holiday-warning-container');
+  if (holidays.length > 0) {
+    container.innerHTML = `
+      <div class="holiday-warning">
+        <span class="hw-icon">\u26A0</span> <strong>${holidays.length} public holiday${holidays.length > 1 ? 's' : ''}</strong> fall${holidays.length === 1 ? 's' : ''} in this window
+        <div class="hw-list">\u2192 ${holidays.map(h => h.label).join(', ')}<br>These are highlighted in your timeline.</div>
+      </div>`;
+  } else {
+    container.innerHTML = '';
+  }
+
+  showScreensUpTo('screen-confirm');
+  saveState();
+}
+
+function adjustWeeks(delta) {
+  state.bpWeeks = Math.max(6, Math.min(12, state.bpWeeks + delta));
+  showConfirmation();
+}
+
+function confirmPeriod() {
+  showScreensUpTo('screen-name');
+  // Pre-fill from state
+  document.getElementById('name-input').value = state.name || '';
+  document.getElementById('title-input').value = state.studyTitle || '';
+  saveState();
+}
+
+// ── Screen 5: Plan Generation ──
+function generatePlan() {
+  state.name = document.getElementById('name-input').value.trim();
+  state.studyTitle = document.getElementById('title-input').value.trim();
+  saveState();
+  renderPlan();
+  showScreen('screen-plan');
+}
+
+function renderPlan() {
+  const bpStart = parseDate(state.bpStart);
+  const bpEnd = addDays(bpStart, state.bpWeeks * 7 - 1);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const holidaySet = buildHolidaySet(addDays(bpStart, -60), bpEnd);
+  const displayName = state.name || 'Your';
+  const title = state.studyTitle ? `${displayName}${state.name ? '\u2019s' : ''} Plan: ${state.studyTitle}` : `${displayName}${state.name ? '\u2019s' : ''} Experiment Plan`;
+  document.getElementById('plan-title').textContent = title;
+
+  // Filter milestones by role
+  const roleMilestones = MILESTONES.filter(m => m.roles.includes(state.role));
+
+  // Compute dates
+  const computed = roleMilestones.map(m => {
+    let date = addDays(bpStart, m.offsetDays);
+    if (m.id !== 'data_collection') date = nextWorkingDay(date, holidaySet);
+    return { ...m, date };
+  }).sort((a, b) => a.date - b.date);
+
+  // Holidays in range for timeline
+  const holidaysInRange = getHolidaysInRange(bpStart, bpEnd);
+
+  // ── 5a: Timeline ──
+  renderTimeline(computed, holidaysInRange, today);
+
+  // ── 5b: Milestone Table ──
+  renderMilestoneTable(computed, today);
+
+  // ── 5c: Checklist ──
+  renderChecklist(computed, today);
+
+  // Print footer
+  document.getElementById('print-footer').textContent = `Generated by DEXLab Experiment Planner \u00B7 dexlab.nl \u00B7 ${formatDate(today)}`;
+}
+
+function renderTimeline(milestones, holidays, today) {
+  const line = document.getElementById('timeline-line');
+  line.innerHTML = '';
+  if (milestones.length === 0) return;
+
+  const allDates = [...milestones.map(m => m.date), ...holidays.map(h => h.date)];
+  const minDate = Math.min(...allDates.map(d => d.getTime()));
+  const maxDate = Math.max(...allDates.map(d => d.getTime()));
+  const range = maxDate - minDate || 1;
+
+  milestones.forEach(m => {
+    const pct = ((m.date.getTime() - minDate) / range) * 90 + 5;
+    const dot = document.createElement('div');
+    dot.className = `timeline-dot${m.date < today ? ' past' : ''}`;
+    dot.style.left = pct + '%';
+    dot.title = `${m.label}\n${formatDate(m.date)}`;
+    line.appendChild(dot);
+
+    const lbl = document.createElement('div');
+    lbl.className = 'timeline-label';
+    lbl.style.left = pct + '%';
+    lbl.innerHTML = `${m.label.split(' ')[0]}<span class="tl-date">${formatDateShort(m.date)}</span>`;
+    line.appendChild(lbl);
+  });
+
+  holidays.forEach(h => {
+    const pct = ((h.date.getTime() - minDate) / range) * 90 + 5;
+    const dot = document.createElement('div');
+    dot.className = 'timeline-dot holiday-marker';
+    dot.style.left = pct + '%';
+    dot.title = h.label;
+    line.appendChild(dot);
+  });
+}
+
+function renderMilestoneTable(milestones, today) {
+  const tbody = document.getElementById('milestone-tbody');
+  tbody.innerHTML = '';
+  milestones.forEach(m => {
+    const tr = document.createElement('tr');
+    const diff = daysBetween(today, m.date);
+    let statusClass, statusText;
+    if (diff < 0) { statusClass = 'status-past'; statusText = '\u2713 Past'; tr.className = 'past'; }
+    else if (diff === 0) { statusClass = 'status-today'; statusText = 'Today'; }
+    else if (diff <= 7) { statusClass = 'status-urgent'; statusText = `\u26A0 ${diff} day${diff !== 1 ? 's' : ''}`; }
+    else { statusClass = 'status-ok'; statusText = `${diff} days`; }
+    tr.innerHTML = `
+      <td>${m.label}${m.optional ? ' <span style="color:#64748b;font-size:0.75rem;">(optional)</span>' : ''}</td>
+      <td class="ms-date">${formatDate(m.date)}</td>
+      <td class="${statusClass}">${statusText}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderChecklist(milestones, today) {
+  const container = document.getElementById('checklist-container');
+  container.innerHTML = '';
+
+  // Group by section
+  const sections = {};
+  milestones.forEach(m => {
+    if (!sections[m.section]) sections[m.section] = [];
+    sections[m.section].push(m);
+  });
+
+  const totalItems = milestones.length;
+  let checkedCount = 0;
+
+  Object.entries(sections).forEach(([sectionKey, items]) => {
+    const div = document.createElement('div');
+    div.className = 'checklist-section';
+
+    const sectionChecked = items.filter(m => state.checkedItems.includes(m.id)).length;
+    checkedCount += sectionChecked;
+
+    div.innerHTML = `
+      <button class="checklist-section-header" onclick="this.parentElement.classList.toggle('collapsed')">
+        <span>${SECTION_LABELS[sectionKey] || sectionKey}<span class="checklist-section-count">${sectionChecked}/${items.length}</span></span>
+        <span class="chevron">\u25BC</span>
+      </button>
+      <div class="checklist-section-body" id="section-${sectionKey}"></div>`;
+    container.appendChild(div);
+
+    const body = div.querySelector('.checklist-section-body');
+    items.forEach(m => {
+      const checked = state.checkedItems.includes(m.id);
+      const item = document.createElement('div');
+      item.className = 'check-item';
+      item.innerHTML = `
+        <input type="checkbox" id="check-${m.id}" ${checked ? 'checked' : ''} onchange="toggleCheck('${m.id}')">
+        <div>
+          <label for="check-${m.id}" class="check-item-label${checked ? ' checked' : ''}">${m.label}</label>
+          <div class="check-item-date">Due: ${formatDate(m.date)}</div>
+          ${m.note ? `<div class="check-item-note">${m.note}</div>` : ''}
+        </div>`;
+      body.appendChild(item);
+    });
+  });
+
+  updateProgress(checkedCount, totalItems);
+}
+
+function toggleCheck(id) {
+  const idx = state.checkedItems.indexOf(id);
+  if (idx === -1) state.checkedItems.push(id);
+  else state.checkedItems.splice(idx, 1);
+  saveState();
+  // Re-render checklist to update counts and progress
+  const bpStart = parseDate(state.bpStart);
+  const bpEnd = addDays(bpStart, state.bpWeeks * 7 - 1);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const holidaySet = buildHolidaySet(addDays(bpStart, -60), bpEnd);
+  const roleMilestones = MILESTONES.filter(m => m.roles.includes(state.role));
+  const computed = roleMilestones.map(m => {
+    let date = addDays(bpStart, m.offsetDays);
+    if (m.id !== 'data_collection') date = nextWorkingDay(date, holidaySet);
+    return { ...m, date };
+  }).sort((a, b) => a.date - b.date);
+  renderChecklist(computed, today);
+}
+
+function updateProgress(checked, total) {
+  const pct = total > 0 ? (checked / total) * 100 : 0;
+  document.getElementById('progress-bar').style.width = pct + '%';
+}
+
+// ── Navigation ──
+function startOver() {
+  resetState();
+}
+
+function resetState() {
+  state = { version: 1, role: null, name: "", studyTitle: "", bpStart: null, bpWeeks: 8, checkedItems: [], lastUpdated: null };
+  try { localStorage.removeItem("dexlab_planner_state"); } catch (e) {}
+  document.body.className = '';
+  document.getElementById('btn-master').className = 'role-btn';
+  document.getElementById('btn-phd').className = 'role-btn';
+  document.getElementById('bp-select').innerHTML = '<option value="">Choose\u2026</option>';
+  document.getElementById('date-input').value = '';
+  document.getElementById('name-input').value = '';
+  document.getElementById('title-input').value = '';
+  showScreen('screen-role');
+}
+
+// ── Init ──
+(function init() {
+  // Check localStorage
+  try { localStorage.setItem('_test', '1'); localStorage.removeItem('_test'); }
+  catch (e) { hasLocalStorage = false; document.getElementById('ls-notice').style.display = 'block'; }
+
+  const hadState = loadState();
+  if (hadState && state.role && state.bpStart) {
+    // Restore full state
+    selectRole(state.role);
+    document.getElementById('date-input').value = state.bpStart;
+    // Sync dropdown
+    const sel = document.getElementById('bp-select');
+    let matched = false;
+    CONFIG.blockPeriods.forEach((bp, i) => {
+      if (bp.start === state.bpStart) { sel.value = i; matched = true; }
+    });
+    if (!matched) sel.value = 'custom';
+    showConfirmation();
+    if (state.name || state.studyTitle || state.checkedItems.length > 0) {
+      document.getElementById('name-input').value = state.name || '';
+      document.getElementById('title-input').value = state.studyTitle || '';
+      renderPlan();
+      showScreen('screen-plan');
+    }
+  } else if (hadState && state.role) {
+    selectRole(state.role);
+  }
+})();
+</script>
+</body>
+</html>
