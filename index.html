@@ -344,6 +344,10 @@ select { cursor: pointer; }
 .tl-item.overdue .tl-date { color: var(--danger); }
 .tl-item.holiday-item .tl-label { color: var(--warning); font-weight: 500; }
 .tl-item.holiday-item .tl-date { color: var(--warning); }
+.tl-item.key-date { background: var(--accent-light); border-radius: 6px; margin: 0.2rem -0.5rem; padding: 0.5rem 0.5rem 0.5rem 2.5rem; }
+.tl-item.key-date .tl-dot { background: var(--accent); width: 16px; height: 16px; }
+.tl-item.key-date .tl-label { font-weight: 700; color: var(--accent-dark); }
+.tl-item.key-date .tl-date { color: var(--accent-dark); font-weight: 600; }
 
 /* Today marker in timeline */
 .tl-today {
@@ -938,8 +942,8 @@ const MILESTONES = [
   { id: "inform_team", label: "Post planning in Experiment Teams chat", offsetDays: -7, relativeTo: "week", roles: ["master","phd"], optional: false, section: "coordination", note: "Dates, rooms, timeslots, conditions. So others can plan around you." },
   { id: "qualtrics_final", label: "Qualtrics survey and manipulations finalized", offsetDays: -3, relativeTo: "week", roles: ["master","phd"], optional: false, section: "materials", note: "End-to-end test, randomization confirmed, all conditions working." },
   // ── Go time ──
-  { id: "sona_active", label: "SONA study must be active", offsetDays: 0, relativeTo: "bp", roles: ["master","phd"], optional: false, section: "sona", note: "Your study must be live and visible to students when the block period starts. If it is not active on day one, you lose participant slots." },
-  { id: "data_collection", label: "Data collection starts", offsetDays: 0, relativeTo: "week", roles: ["master","phd"], optional: false, section: "collection", note: "Your chosen data collection week begins. SONA slots open. Go." },
+  { id: "sona_active", label: "SONA study must be active", offsetDays: 0, relativeTo: "bp", roles: ["master","phd"], optional: false, section: "sona", keyDate: true, note: "Your study must be live and visible to students when the block period starts. If it is not active on day one, you lose participant slots." },
+  { id: "data_collection", label: "Data collection starts", offsetDays: 0, relativeTo: "week", roles: ["master","phd"], optional: false, section: "collection", keyDate: true, note: "Your chosen data collection week begins. SONA slots open. Go." },
 ];
 
 const SECTION_LABELS = {
@@ -1323,7 +1327,7 @@ function renderTimeline(milestones, holidays, today) {
 
   // Merge milestones and holidays into one sorted list
   const items = [
-    ...milestones.map(m => ({ date: m.date, label: m.label, type: 'milestone', id: m.id, checked: state.checkedItems.includes(m.id) })),
+    ...milestones.map(m => ({ date: m.date, label: m.label, type: 'milestone', id: m.id, checked: state.checkedItems.includes(m.id), keyDate: m.keyDate })),
     ...holidays.map(h => ({ date: h.date, label: h.label, type: 'holiday' })),
   ].sort((a, b) => a.date - b.date);
 
@@ -1343,7 +1347,8 @@ function renderTimeline(milestones, holidays, today) {
     const isPast = item.date < today;
     const isHoliday = item.type === 'holiday';
     const isOverdue = isPast && !isHoliday && !item.checked;
-    div.className = `tl-item${isOverdue ? ' overdue' : (isPast ? ' past' : '')}${isHoliday ? ' holiday-item' : ''}`;
+    const isKey = item.keyDate && !isPast;
+    div.className = `tl-item${isKey ? ' key-date' : (isOverdue ? ' overdue' : (isPast ? ' past' : ''))}${isHoliday ? ' holiday-item' : ''}`;
     div.innerHTML = `
       <div class="tl-dot${isOverdue ? '' : (isPast ? ' past' : '')}${isHoliday ? ' holiday' : ''}"></div>
       <span class="tl-date">${formatDateShort(item.date)}</span>
