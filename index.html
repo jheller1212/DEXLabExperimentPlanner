@@ -614,10 +614,14 @@ select { cursor: pointer; }
   <div class="screen" id="screen-date">
     <div class="card">
       <div class="form-row">
-        <label for="bp-select">When does your experiment start? Select the block period for data collection.</label>
+        <label for="bp-select">Which block period will you run your experiment in?</label>
         <select id="bp-select" onchange="onBPSelect()">
           <option value="">Choose&hellip;</option>
         </select>
+      </div>
+      <div class="form-row" id="week-select-row" style="display:none;">
+        <label for="week-select">Which week does your data collection start?</label>
+        <select id="week-select" onchange="onWeekSelect()"></select>
       </div>
       <div class="form-row">
         <label for="date-input">Or pick a custom start date</label>
@@ -1072,14 +1076,35 @@ function populateBPDropdown() {
 function onBPSelect() {
   const sel = document.getElementById('bp-select');
   const val = sel.value;
+  const weekRow = document.getElementById('week-select-row');
   if (val === '' || val === 'custom') {
+    weekRow.style.display = 'none';
     document.getElementById('date-input').value = '';
     return;
   }
+  // Populate week picker for this BP
   const bp = CONFIG.blockPeriods[parseInt(val)];
-  state.bpStart = bp.start;
   state.bpWeeks = bp.weeks;
-  document.getElementById('date-input').value = bp.start;
+  const weekSel = document.getElementById('week-select');
+  weekSel.innerHTML = '<option value="">Choose a week\u2026</option>';
+  for (let w = 1; w <= bp.weeks; w++) {
+    const weekStart = addDays(parseDate(bp.start), (w - 1) * 7);
+    const weekEnd = addDays(weekStart, 4); // Mon-Fri
+    const opt = document.createElement('option');
+    opt.value = toISO(weekStart);
+    opt.textContent = `Week ${w}: ${formatDateShort(weekStart)} \u2013 ${formatDateShort(weekEnd)}`;
+    weekSel.appendChild(opt);
+  }
+  weekRow.style.display = 'block';
+  // Clear downstream
+  document.getElementById('date-input').value = '';
+}
+
+function onWeekSelect() {
+  const val = document.getElementById('week-select').value;
+  if (!val) return;
+  state.bpStart = val;
+  document.getElementById('date-input').value = val;
   showConfirmation();
 }
 
@@ -1093,6 +1118,7 @@ function onDateInput() {
     if (bp.start === val) { sel.value = i; state.bpWeeks = bp.weeks; matched = true; }
   });
   if (!matched) { sel.value = 'custom'; state.bpWeeks = 8; }
+  document.getElementById('week-select-row').style.display = 'none';
   showConfirmation();
 }
 
