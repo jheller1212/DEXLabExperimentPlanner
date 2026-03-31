@@ -339,8 +339,43 @@ select { cursor: pointer; }
   line-height: 1.4;
 }
 .tl-item.past .tl-label { color: var(--text-muted); text-decoration: line-through; }
+.tl-item.overdue .tl-dot { background: var(--danger); }
+.tl-item.overdue .tl-label { color: var(--danger); font-weight: 600; text-decoration: none; }
+.tl-item.overdue .tl-date { color: var(--danger); }
 .tl-item.holiday-item .tl-label { color: var(--warning); font-weight: 500; }
 .tl-item.holiday-item .tl-date { color: var(--warning); }
+
+/* Today marker in timeline */
+.tl-today {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0 0.5rem 2rem;
+  margin: 0.15rem 0;
+}
+.tl-today::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  background: var(--accent);
+  opacity: 0.5;
+}
+.tl-today-badge {
+  position: relative;
+  z-index: 2;
+  background: var(--accent);
+  color: #fff;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  white-space: nowrap;
+}
 
 /* ── Milestone table ── */
 .milestone-table {
@@ -886,18 +921,24 @@ function showToast(msg) {
 // ── Milestones ──
 // relativeTo: "bp" = offset from BP start date, "week" (default) = offset from chosen data collection week
 const MILESTONES = [
-  { id: "sona_request", label: "Submit SONA participant request form", offsetDays: -28, relativeTo: "bp", roles: ["master","phd"], optional: false, section: "sona", note: "This is the very first step. The SONA coordinator sends a request form ~4 weeks before the block period. Fill it in with your estimated N per condition and session length. Miss this and you wait an entire period. Exact dates vary \u2014 check with the SONA coordinator (tijana.lovrinovic@maastrichtuniversity.nl)." },
-  { id: "ethics_check", label: "Confirm ERCIC ethics approval is in hand", offsetDays: -42, relativeTo: "week", roles: ["phd"], optional: false, section: "ethics", note: "ERCIC reviews take months \u2014 you should have submitted well before this point. Check the timeline and requirements at maastrichtuniversity.nl/ethical-review-committee-inner-city-faculties-ercic. If you haven\u2019t submitted yet, do it NOW and inform your supervisor. Do not start data collection without approval." },
+  // ── Ethics & Pre-registration (earliest) ──
+  { id: "ethics_check", label: "Confirm ERCIC ethics approval is in hand", offsetDays: -56, relativeTo: "week", roles: ["phd"], optional: false, section: "ethics", note: "ERCIC reviews take months \u2014 you should have submitted well before this point. Check the timeline and requirements at maastrichtuniversity.nl/ethical-review-committee-inner-city-faculties-ercic. If you haven\u2019t submitted yet, do it NOW and inform your supervisor. Do not start data collection without approval." },
+  { id: "prereg", label: "Pre-register on OSF or AsPredicted", offsetDays: -49, relativeTo: "week", roles: ["phd"], optional: false, section: "ethics", note: "Must be done before data collection. Separates confirmatory from exploratory. Do this alongside or right after your ethics approval." },
+  { id: "supervisor_checkin", label: "Check in with supervisor \u2014 ethics and pre-registration confirmed", offsetDays: -42, relativeTo: "week", roles: ["master"], optional: false, section: "ethics", note: "Your supervisor handles formal ethics and pre-registration. Your job is to confirm it is done before you proceed." },
+  // ── Design & Planning ──
   { id: "power_analysis", label: "Power analysis \u2014 calculate minimum N per condition", offsetDays: -42, relativeTo: "week", roles: ["master","phd"], optional: true, section: "design", note: "Do this early. If your pool is fixed, report achieved power post-hoc." },
-  { id: "supervisor_checkin", label: "Check in with supervisor \u2014 ethics and pre-registration confirmed", offsetDays: -21, relativeTo: "week", roles: ["master"], optional: false, section: "ethics", note: "Your supervisor handles formal ethics and pre-registration. Your job is to confirm it is done." },
-  { id: "sona_upload", label: "Upload and finalize study on SONA", offsetDays: -7, relativeTo: "bp", roles: ["master","phd"], optional: false, section: "sona", note: "After the matchmaking is shared, upload your study to SONA: set timeslots, participants per slot, and session length. This must be done ~1 week before the period starts. Exact deadline varies \u2014 check the email from the SONA coordinator." },
-  { id: "sona_active", label: "SONA study must be active", offsetDays: 0, relativeTo: "bp", roles: ["master","phd"], optional: false, section: "sona", note: "Your study must be live and visible to students when the block period starts. If it is not active on day one, you lose participant slots." },
+  // ── Lab & Equipment (before SONA) ──
+  { id: "equipment_book", label: "Book lab (DEXLab / BEELab) and equipment via Resource Booker", offsetDays: -35, relativeTo: "week", roles: ["master","phd"], optional: false, section: "logistics", note: "Book before submitting your SONA request \u2014 you need to know your room and timeslots. Go to resourcebooker.maastrichtuniversity.nl. If you don\u2019t have access, ask your supervisor to book it for you." },
+  // ── SONA (relative to BP start) ──
+  { id: "sona_request", label: "Submit SONA participant request form", offsetDays: -28, relativeTo: "bp", roles: ["master","phd"], optional: false, section: "sona", note: "The SONA coordinator sends a request form ~4 weeks before the block period. Fill it in with your estimated N per condition and session length. Miss this and you wait an entire period. Exact dates vary \u2014 check with the SONA coordinator (tijana.lovrinovic@maastrichtuniversity.nl)." },
+  // ── Materials & Testing ──
   { id: "stimuli_pretest", label: "Pretest stimuli with 3\u20135 people", offsetDays: -14, relativeTo: "week", roles: ["master","phd"], optional: false, section: "materials", note: "Is your manipulation actually manipulating what you think it is?" },
-  { id: "equipment_book", label: "Book equipment and rooms via Resource Booker", offsetDays: -14, relativeTo: "week", roles: ["master","phd"], optional: false, section: "logistics", note: "Go to resourcebooker.maastrichtuniversity.nl to reserve DEXLab rooms (i1.008 or i1.013 for combined sessions) and equipment. If you don\u2019t have access, ask your supervisor to book it for you." },
-  { id: "prereg", label: "Pre-register on OSF or AsPredicted", offsetDays: -7, relativeTo: "week", roles: ["phd"], optional: false, section: "ethics", note: "Before data collection starts, not after. Separates confirmatory from exploratory." },
+  { id: "sona_upload", label: "Upload and finalize study on SONA", offsetDays: -7, relativeTo: "bp", roles: ["master","phd"], optional: false, section: "sona", note: "After the matchmaking is shared, upload your study to SONA: set timeslots, participants per slot, and session length. Must be done ~1 week before the period starts. Exact deadline varies \u2014 check the email from the SONA coordinator." },
   { id: "pilot", label: "Complete full pilot test (dry run with a friend)", offsetDays: -7, relativeTo: "week", roles: ["master","phd"], optional: false, section: "materials", note: "Every tech demo fails the first time. Do not let that be with a real participant." },
   { id: "inform_team", label: "Post planning in Experiment Teams chat", offsetDays: -7, relativeTo: "week", roles: ["master","phd"], optional: false, section: "coordination", note: "Dates, rooms, timeslots, conditions. So others can plan around you." },
   { id: "qualtrics_final", label: "Qualtrics survey and manipulations finalized", offsetDays: -3, relativeTo: "week", roles: ["master","phd"], optional: false, section: "materials", note: "End-to-end test, randomization confirmed, all conditions working." },
+  // ── Go time ──
+  { id: "sona_active", label: "SONA study must be active", offsetDays: 0, relativeTo: "bp", roles: ["master","phd"], optional: false, section: "sona", note: "Your study must be live and visible to students when the block period starts. If it is not active on day one, you lose participant slots." },
   { id: "data_collection", label: "Data collection starts", offsetDays: 0, relativeTo: "week", roles: ["master","phd"], optional: false, section: "collection", note: "Your chosen data collection week begins. SONA slots open. Go." },
 ];
 
@@ -1282,21 +1323,41 @@ function renderTimeline(milestones, holidays, today) {
 
   // Merge milestones and holidays into one sorted list
   const items = [
-    ...milestones.map(m => ({ date: m.date, label: m.label, type: 'milestone', past: m.date < today })),
-    ...holidays.map(h => ({ date: h.date, label: h.label, type: 'holiday', past: h.date < today })),
+    ...milestones.map(m => ({ date: m.date, label: m.label, type: 'milestone', id: m.id, checked: state.checkedItems.includes(m.id) })),
+    ...holidays.map(h => ({ date: h.date, label: h.label, type: 'holiday' })),
   ].sort((a, b) => a.date - b.date);
 
+  let todayInserted = false;
+
   items.forEach(item => {
+    // Insert today marker before the first future item
+    if (!todayInserted && item.date >= today) {
+      todayInserted = true;
+      const todayDiv = document.createElement('div');
+      todayDiv.className = 'tl-today';
+      todayDiv.innerHTML = `<span class="tl-today-badge">Today \u2014 ${formatDateShort(today)}</span>`;
+      list.appendChild(todayDiv);
+    }
+
     const div = document.createElement('div');
-    const isPast = item.past;
+    const isPast = item.date < today;
     const isHoliday = item.type === 'holiday';
-    div.className = `tl-item${isPast ? ' past' : ''}${isHoliday ? ' holiday-item' : ''}`;
+    const isOverdue = isPast && !isHoliday && !item.checked;
+    div.className = `tl-item${isOverdue ? ' overdue' : (isPast ? ' past' : '')}${isHoliday ? ' holiday-item' : ''}`;
     div.innerHTML = `
-      <div class="tl-dot${isPast ? ' past' : ''}${isHoliday ? ' holiday' : ''}"></div>
+      <div class="tl-dot${isOverdue ? '' : (isPast ? ' past' : '')}${isHoliday ? ' holiday' : ''}"></div>
       <span class="tl-date">${formatDateShort(item.date)}</span>
-      <span class="tl-label">${item.label}</span>`;
+      <span class="tl-label">${item.label}${isOverdue ? ' \u2014 OVERDUE' : ''}</span>`;
     list.appendChild(div);
   });
+
+  // If all items are past, insert today at the end
+  if (!todayInserted) {
+    const todayDiv = document.createElement('div');
+    todayDiv.className = 'tl-today';
+    todayDiv.innerHTML = `<span class="tl-today-badge">Today \u2014 ${formatDateShort(today)}</span>`;
+    list.appendChild(todayDiv);
+  }
 }
 
 function renderMilestoneTable(milestones, today) {
