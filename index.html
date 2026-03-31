@@ -656,11 +656,11 @@ select { cursor: pointer; }
     <div class="card">
       <div class="form-row">
         <label for="name-input">Your name (optional &mdash; personalizes output)</label>
-        <input type="text" id="name-input" placeholder="e.g. Alex">
+        <input type="text" id="name-input" placeholder="e.g. Jane Doe">
       </div>
       <div class="form-row">
         <label for="title-input">Study title / nickname (optional)</label>
-        <input type="text" id="title-input" placeholder="e.g. Future Self AR Study">
+        <input type="text" id="title-input" placeholder="e.g. Cool new tech experiment at DEXLab">
       </div>
       <div style="margin-top:1rem;">
         <button class="btn btn-primary" onclick="generatePlan()">Generate My Plan &rarr;</button>
@@ -1389,6 +1389,7 @@ function startOver() {
 }
 
 function resetState() {
+  if (!confirm('This will permanently delete your plan and all checked items. Make sure you\'ve saved your link (Copy Link) if you want to keep it.\n\nReset everything?')) return;
   state = { version: 1, role: null, name: "", studyTitle: "", bpStart: null, bpWeeks: 8, checkedItems: [], lastUpdated: null };
   try { localStorage.removeItem("dexlab_planner_state"); } catch (e) {}
   history.replaceState(null, '', window.location.pathname);
