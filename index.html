@@ -1216,9 +1216,22 @@ function copyProgressSummary() {
 
 // ── ICS Calendar Export ──
 function downloadICS() {
+  // Prompt for name/title if not set
+  if (!state.name) {
+    const name = prompt('Enter your name (for calendar events):');
+    if (name === null) return; // cancelled
+    state.name = name.trim();
+    saveState();
+  }
+  if (!state.studyTitle) {
+    const title = prompt('Enter your study title / nickname (for calendar events):');
+    if (title === null) return;
+    state.studyTitle = title.trim();
+    saveState();
+  }
   const computed = computeMilestones();
   const displayName = state.name || 'Student';
-  const studyLabel = state.studyTitle ? ` — ${state.studyTitle}` : '';
+  const studyLabel = state.studyTitle ? ` \u2014 ${state.studyTitle}` : '';
   const now = new Date();
   const stamp = toICSDate(now);
 
