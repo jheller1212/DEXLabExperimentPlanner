@@ -695,7 +695,7 @@ select { cursor: pointer; }
     </div>
   </div>
 
-  <!-- Screen 4: Name -->
+  <!-- Screen 4: Name + Lab Calculator -->
   <div class="screen" id="screen-name">
     <div class="card">
       <div class="form-row">
@@ -706,9 +706,70 @@ select { cursor: pointer; }
         <label for="title-input">Study title / nickname (optional)</label>
         <input type="text" id="title-input" placeholder="e.g. Cool new tech experiment at DEXLab">
       </div>
-      <div style="margin-top:1rem;">
-        <button class="btn btn-primary" onclick="generatePlan()">Generate My Plan &rarr;</button>
+    </div>
+
+    <!-- Lab Time Calculator -->
+    <div class="checklist-section collapsed" id="lab-calc-section">
+      <button class="checklist-section-header" onclick="this.parentElement.classList.toggle('collapsed')">
+        <span>Lab Time Calculator <span class="checklist-section-count">optional</span></span>
+        <span class="chevron">&#9660;</span>
+      </button>
+      <div class="checklist-section-body">
+        <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:1rem;line-height:1.5;">
+          Not sure how many lab days you need? Fill in your study details below and the tool will estimate the number of sessions and days you need to book the lab for. All fields are optional.
+        </p>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+          <div class="form-row">
+            <label for="calc-conditions">Number of conditions</label>
+            <input type="number" id="calc-conditions" min="1" max="20" value="2" onchange="updateCalc()">
+          </div>
+          <div class="form-row">
+            <label for="calc-design">Study design</label>
+            <select id="calc-design" onchange="updateCalc()">
+              <option value="between" selected>Between-subject</option>
+              <option value="within">Within-subject</option>
+              <option value="mixed">Mixed</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="calc-n-per-condition">Participants per condition</label>
+            <input type="number" id="calc-n-per-condition" min="1" max="500" value="30" onchange="updateCalc()">
+          </div>
+          <div class="form-row">
+            <label for="calc-session-duration">Session duration (minutes)</label>
+            <input type="number" id="calc-session-duration" min="5" max="240" value="60" onchange="updateCalc()">
+          </div>
+          <div class="form-row">
+            <label for="calc-per-timeslot">Participants per timeslot</label>
+            <input type="number" id="calc-per-timeslot" min="1" max="50" value="1" onchange="updateCalc()">
+          </div>
+          <div class="form-row">
+            <label for="calc-buffer">Buffer between sessions (min)</label>
+            <input type="number" id="calc-buffer" min="0" max="30" value="5" onchange="updateCalc()">
+          </div>
+          <div class="form-row">
+            <label for="calc-lab-start">Lab available from</label>
+            <input type="text" id="calc-lab-start" value="09:00" onchange="updateCalc()">
+          </div>
+          <div class="form-row">
+            <label for="calc-lab-end">Lab available until</label>
+            <input type="text" id="calc-lab-end" value="17:00" onchange="updateCalc()">
+          </div>
+          <div class="form-row" style="grid-column:1/-1;">
+            <label for="calc-lunch">Lunch break (minutes, e.g. 30&ndash;60)</label>
+            <input type="number" id="calc-lunch" min="0" max="120" value="30" onchange="updateCalc()">
+          </div>
+        </div>
+
+        <!-- Calculator Result -->
+        <div id="calc-result" style="margin-top:1rem;padding:1rem;background:var(--accent-light);border:1px solid var(--border);border-radius:8px;display:none;">
+        </div>
       </div>
+    </div>
+
+    <div class="card" style="text-align:center;padding:1rem;">
+      <button class="btn btn-primary" onclick="generatePlan()">Generate My Plan &rarr;</button>
     </div>
   </div>
 
@@ -744,6 +805,12 @@ select { cursor: pointer; }
         <thead><tr><th>Milestone</th><th>Deadline</th><th>Status</th></tr></thead>
         <tbody id="milestone-tbody"></tbody>
       </table>
+    </div>
+
+    <!-- Lab summary (if calculator was used) -->
+    <div class="card" id="plan-lab-summary" style="display:none;">
+      <p class="section-title">Lab Booking Summary</p>
+      <div id="plan-lab-content"></div>
     </div>
 
     <!-- 5c: Checklist -->
@@ -920,6 +987,64 @@ function computeMilestones() {
 }
 
 // ── Toast ──
+// ── Lab Time Calculator ──
+function updateCalc() {
+  const conditions = parseInt(document.getElementById('calc-conditions').value) || 2;
+  const design = document.getElementById('calc-design').value;
+  const nPerCondition = parseInt(document.getElementById('calc-n-per-condition').value) || 30;
+  const sessionMin = parseInt(document.getElementById('calc-session-duration').value) || 60;
+  const perTimeslot = parseInt(document.getElementById('calc-per-timeslot').value) || 1;
+  const buffer = parseInt(document.getElementById('calc-buffer').value) || 0;
+  const lunch = parseInt(document.getElementById('calc-lunch').value) || 0;
+
+  // Parse lab hours
+  const startParts = (document.getElementById('calc-lab-start').value || '09:00').split(':').map(Number);
+  const endParts = (document.getElementById('calc-lab-end').value || '17:00').split(':').map(Number);
+  const labMinutes = ((endParts[0] || 17) * 60 + (endParts[1] || 0)) - ((startParts[0] || 9) * 60 + (startParts[1] || 0));
+  const usableMinutes = labMinutes - lunch;
+
+  // Total participants
+  let totalN;
+  let designLabel;
+  if (design === 'within') {
+    totalN = nPerCondition;
+    designLabel = `Within-subject: each participant completes all ${conditions} conditions`;
+  } else if (design === 'mixed') {
+    totalN = nPerCondition * conditions;
+    designLabel = `Mixed design: ${nPerCondition} participants \u00D7 ${conditions} groups (check your specific design)`;
+  } else {
+    totalN = nPerCondition * conditions;
+    designLabel = `Between-subject: ${nPerCondition} participants \u00D7 ${conditions} conditions`;
+  }
+
+  // Sessions and days
+  const slotDuration = sessionMin + buffer;
+  const slotsPerDay = Math.floor(usableMinutes / slotDuration);
+  const participantsPerDay = slotsPerDay * perTimeslot;
+  const totalDays = participantsPerDay > 0 ? Math.ceil(totalN / participantsPerDay) : '?';
+  const totalSessions = perTimeslot > 1 ? Math.ceil(totalN / perTimeslot) : totalN;
+
+  // Save to state for plan
+  state.labCalc = {
+    totalN, totalDays, participantsPerDay, slotsPerDay,
+    sessionMin, conditions, design, perTimeslot
+  };
+
+  const result = document.getElementById('calc-result');
+  result.style.display = 'block';
+  result.innerHTML = `
+    <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.5rem;">${designLabel}</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem 1.5rem;font-size:0.9rem;">
+      <div><strong>Total participants needed</strong></div><div class="mono">${totalN}</div>
+      <div><strong>Usable lab time per day</strong></div><div class="mono">${Math.floor(usableMinutes / 60)}h ${usableMinutes % 60}m</div>
+      <div><strong>Timeslots per day</strong></div><div class="mono">${slotsPerDay} slots \u00D7 ${perTimeslot} participant${perTimeslot > 1 ? 's' : ''} = ${participantsPerDay}/day</div>
+      <div><strong>Total lab days needed</strong></div><div class="mono" style="font-weight:700;color:var(--accent-dark);">${totalDays} day${totalDays !== 1 ? 's' : ''}</div>
+    </div>
+    <p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.75rem;line-height:1.5;">
+      \u2192 Book the lab and equipment for at least <strong>${totalDays} day${totalDays !== 1 ? 's' : ''}</strong>. Consider adding 1\u20132 extra days for no-shows and technical issues. Each session is ${sessionMin} min${buffer > 0 ? ` + ${buffer} min buffer` : ''} = ${slotDuration} min per slot.
+    </p>`;
+}
+
 function showToast(msg) {
   const el = document.getElementById('toast');
   el.textContent = msg;
@@ -1325,6 +1450,24 @@ function renderPlan() {
   renderTimeline(computed, holidaysInRange, today);
   renderMilestoneTable(computed, today);
   renderChecklist(computed, today);
+
+  // Lab summary
+  const labSummary = document.getElementById('plan-lab-summary');
+  const labContent = document.getElementById('plan-lab-content');
+  if (state.labCalc && state.labCalc.totalN) {
+    const lc = state.labCalc;
+    labSummary.style.display = 'block';
+    labContent.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem 1.5rem;font-size:0.85rem;">
+        <div>Total participants</div><div class="mono"><strong>${lc.totalN}</strong></div>
+        <div>Design</div><div class="mono">${lc.design === 'within' ? 'Within-subject' : lc.design === 'mixed' ? 'Mixed' : 'Between-subject'} (${lc.conditions} conditions)</div>
+        <div>Participants per day</div><div class="mono">${lc.participantsPerDay}</div>
+        <div>Lab days needed</div><div class="mono" style="font-weight:700;color:var(--accent-dark);">${lc.totalDays} day${lc.totalDays !== 1 ? 's' : ''}</div>
+      </div>
+      <p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem;">Book the lab and equipment for at least ${lc.totalDays} day${lc.totalDays !== 1 ? 's' : ''}. Consider adding 1\u20132 extra days for no-shows.</p>`;
+  } else {
+    labSummary.style.display = 'none';
+  }
 
   document.getElementById('print-footer').textContent = `Generated by DEXLab Experiment Planner \u00B7 dexlab.nl \u00B7 ${formatDate(today)}`;
 }
