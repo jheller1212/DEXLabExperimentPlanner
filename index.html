@@ -720,30 +720,16 @@ select { cursor: pointer; }
       </div>
       <div id="holiday-warning-container"></div>
     </div>
-  </div>
-
-  <!-- Screen 4: Name + Lab Calculator -->
-  <div class="screen" id="screen-name">
-    <div class="card">
-      <div class="form-row">
-        <label for="name-input">Your name (optional &mdash; personalizes output)</label>
-        <input type="text" id="name-input" placeholder="e.g. Jane Doe">
-      </div>
-      <div class="form-row">
-        <label for="title-input">Study title / nickname (optional)</label>
-        <input type="text" id="title-input" placeholder="e.g. Cool new tech experiment at DEXLab">
-      </div>
-    </div>
 
     <!-- Lab Time Calculator -->
     <div class="checklist-section collapsed" id="lab-calc-section">
       <button class="checklist-section-header" onclick="this.parentElement.classList.toggle('collapsed')">
-        <span>Lab Time Calculator <span class="checklist-section-count">optional</span></span>
+        <span>Lab Time Calculator <span class="checklist-section-count">recommended</span></span>
         <span class="chevron">&#9660;</span>
       </button>
       <div class="checklist-section-body">
         <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:1rem;line-height:1.5;">
-          Not sure how many lab days you need? Fill in your study details below and the tool will estimate the number of sessions and days you need to book the lab for. All fields are optional.
+          How many participants do you need? How many lab days should you book? Fill this in <strong>before</strong> requesting participants on SONA and booking the lab &mdash; the results feed into your plan.
         </p>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
@@ -792,6 +778,20 @@ select { cursor: pointer; }
         <!-- Calculator Result -->
         <div id="calc-result" style="margin-top:1rem;padding:1rem;background:var(--accent-light);border:1px solid var(--border);border-radius:8px;display:none;">
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 4: Name -->
+  <div class="screen" id="screen-name">
+    <div class="card">
+      <div class="form-row">
+        <label for="name-input">Your name (optional &mdash; personalizes output)</label>
+        <input type="text" id="name-input" placeholder="e.g. Jane Doe">
+      </div>
+      <div class="form-row">
+        <label for="title-input">Study title / nickname (optional)</label>
+        <input type="text" id="title-input" placeholder="e.g. Cool new tech experiment at DEXLab">
       </div>
     </div>
 
@@ -1005,12 +1005,25 @@ function computeMilestones() {
   const bpEnd = addDays(bpStart, state.bpWeeks * 7 - 1);
   const holidaySet = buildHolidaySet(addDays(bpStart, -60), bpEnd);
   const roleMilestones = MILESTONES.filter(m => m.roles.includes(state.role));
-  return roleMilestones.map(m => {
+  const result = roleMilestones.map(m => {
     const anchor = (m.relativeTo === 'bp') ? bpStart : weekStart;
     let date = addDays(anchor, m.offsetDays);
     if (m.id !== 'data_collection') date = nextWorkingDay(date, holidaySet);
+    // Enrich data_collection label with end date if calculator was used
+    if (m.id === 'data_collection' && state.labCalc && state.labCalc.totalDays) {
+      const days = state.labCalc.totalDays;
+      // Compute end date by counting working days forward
+      let endDate = new Date(date);
+      let remaining = days - 1;
+      while (remaining > 0) {
+        endDate = addDays(endDate, 1);
+        if (endDate.getDay() !== 0 && endDate.getDay() !== 6 && !holidaySet.has(endDate.toDateString())) remaining--;
+      }
+      return { ...m, date, label: `Data collection: ${formatDateShort(date)} \u2192 ${formatDateShort(endDate)} (${days} lab day${days > 1 ? 's' : ''})`, endDate };
+    }
     return { ...m, date };
   }).sort((a, b) => a.date - b.date);
+  return result;
 }
 
 // ── Toast ──
@@ -1108,7 +1121,7 @@ const MILESTONES = [
   { id: "inform_team", label: "Post planning in Experiment Teams chat", offsetDays: -35, relativeTo: "week", roles: ["master","phd"], optional: false, section: "phase1_before_sona", note: "Share your planned dates, rooms, timeslots, and conditions before requesting SONA participants. This helps align with other researchers on DEXLab booking times and equipment availability." },
   // ── Phase 4: Go time ──
   { id: "equipment_prep", label: "Prepare equipment \u2014 charge devices, check software updates", offsetDays: -1, relativeTo: "week", roles: ["master","phd"], optional: false, section: "phase4_go", note: "The day before data collection: charge all devices (tablets, laptops, eye trackers, etc.), verify that all software is installed and up to date, test your full setup one more time. Do not discover a mandatory update 5 minutes before your first participant." },
-  { id: "data_collection", label: "Data collection starts", offsetDays: 0, relativeTo: "week", roles: ["master","phd"], optional: false, section: "phase4_go", keyDate: true, note: "Your chosen data collection week begins. SONA participant slots open earlier (when requested by the SONA coordinator) so students can sign up in advance." },
+  { id: "data_collection", label: "Data collection starts", offsetDays: 0, relativeTo: "week", roles: ["master","phd"], optional: false, section: "phase4_go", keyDate: true, note: "Your chosen data collection week begins. SONA participant slots open earlier (when requested by the SONA coordinator) so students can sign up in advance.", dynamic: true },
 ];
 
 const SECTION_LABELS = {
@@ -1648,7 +1661,7 @@ function renderChecklist(milestones, today) {
         <div>
           <label for="check-${m.id}" class="check-item-label${checked ? ' checked' : ''}">${m.label}</label>
           <div class="check-item-date">Due: ${formatDate(m.date)}</div>
-          ${m.note ? `<div class="check-item-note">${m.note}</div>` : ''}
+          ${m.note ? `<div class="check-item-note">${m.note}${m.id === 'equipment_book' && state.labCalc && state.labCalc.totalDays ? ` Based on your calculator estimate, book for at least <strong>${state.labCalc.totalDays} lab day${state.labCalc.totalDays > 1 ? 's' : ''}</strong> (+ 1\u20132 buffer days for no-shows).` : ''}</div>` : ''}
         </div>`;
       body.appendChild(item);
     });
