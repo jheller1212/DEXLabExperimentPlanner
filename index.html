@@ -51,7 +51,7 @@ h1, h2, h3 { font-family: 'Fraunces', serif; font-weight: 700; color: var(--navy
 
 /* ── Layout ── */
 .container {
-  max-width: 820px;
+  max-width: 960px;
   margin: 0 auto;
   padding: 2rem 1.5rem 4rem;
 }
@@ -860,6 +860,21 @@ function daysBetween(a, b) {
   return Math.round((b - a) / 86400000);
 }
 
+// Compute milestone dates for current state
+function computeMilestones() {
+  const bpStart = parseDate(state.bpStart);
+  const weekStart = parseDate(state.weekStart || state.bpStart);
+  const bpEnd = addDays(bpStart, state.bpWeeks * 7 - 1);
+  const holidaySet = buildHolidaySet(addDays(bpStart, -60), bpEnd);
+  const roleMilestones = MILESTONES.filter(m => m.roles.includes(state.role));
+  return roleMilestones.map(m => {
+    const anchor = (m.relativeTo === 'bp') ? bpStart : weekStart;
+    let date = addDays(anchor, m.offsetDays);
+    if (m.id !== 'data_collection') date = nextWorkingDay(date, holidaySet);
+    return { ...m, date };
+  }).sort((a, b) => a.date - b.date);
+}
+
 // ── Toast ──
 function showToast(msg) {
   const el = document.getElementById('toast');
@@ -869,19 +884,21 @@ function showToast(msg) {
 }
 
 // ── Milestones ──
+// relativeTo: "bp" = offset from BP start date, "week" (default) = offset from chosen data collection week
 const MILESTONES = [
-  { id: "power_analysis", label: "Power analysis \u2014 calculate minimum N per condition", offsetDays: -42, roles: ["master","phd"], optional: true, section: "design", note: "Do this early. If your pool is fixed, report achieved power post-hoc." },
-  { id: "sona_request", label: "Request participant pool from SONA coordinator", offsetDays: -28, roles: ["master","phd"], optional: false, section: "sona", note: "Submit your request ~4 weeks before your data collection week. Include a rough N per condition. Miss this deadline and you may have to wait an entire block period." },
-  { id: "ethics_check", label: "Confirm ERCIC ethics approval is in hand", offsetDays: -42, roles: ["phd"], optional: false, section: "ethics", note: "ERCIC reviews take months — you should have submitted well before this point. Check the timeline and requirements at maastrichtuniversity.nl/ethical-review-committee-inner-city-faculties-ercic. If you haven't submitted yet, do it NOW and inform your supervisor. Do not start data collection without approval." },
-  { id: "supervisor_checkin", label: "Check in with supervisor \u2014 ethics and pre-registration confirmed", offsetDays: -21, roles: ["master"], optional: false, section: "ethics", note: "Your supervisor handles formal ethics and pre-registration. Your job is to confirm it is done." },
-  { id: "stimuli_pretest", label: "Pretest stimuli with 3\u20135 people", offsetDays: -14, roles: ["master","phd"], optional: false, section: "materials", note: "Is your manipulation actually manipulating what you think it is?" },
-  { id: "equipment_book", label: "Book equipment and rooms via Resource Booker", offsetDays: -14, roles: ["master","phd"], optional: false, section: "logistics", note: "Go to resourcebooker.maastrichtuniversity.nl to reserve DEXLab rooms (i1.008 or i1.013 for combined sessions) and equipment. If you don't have access, ask your supervisor to book it for you." },
-  { id: "prereg", label: "Pre-register on OSF or AsPredicted", offsetDays: -7, roles: ["phd"], optional: false, section: "ethics", note: "Before data collection starts, not after. Separates confirmatory from exploratory." },
-  { id: "sona_finalize", label: "Finalize SONA \u2014 timeslots, participants per slot, session length", offsetDays: -7, roles: ["master","phd"], optional: false, section: "sona", note: "Once you have your participant pool assigned, finalize your SONA study: set timeslots, participants per slot, and session length. Must be live at least 1 week before data collection starts." },
-  { id: "pilot", label: "Complete full pilot test (dry run with a friend)", offsetDays: -7, roles: ["master","phd"], optional: false, section: "materials", note: "Every tech demo fails the first time. Do not let that be with a real participant." },
-  { id: "inform_team", label: "Post planning in Experiment Teams chat", offsetDays: -7, roles: ["master","phd"], optional: false, section: "coordination", note: "Dates, rooms, timeslots, conditions. So others can plan around you." },
-  { id: "qualtrics_final", label: "Qualtrics survey and manipulations finalized", offsetDays: -3, roles: ["master","phd"], optional: false, section: "materials", note: "End-to-end test, randomization confirmed, all conditions working." },
-  { id: "data_collection", label: "Data collection starts", offsetDays: 0, roles: ["master","phd"], optional: false, section: "collection", note: "Your chosen data collection week begins. SONA slots open. Go." },
+  { id: "sona_request", label: "Submit SONA participant request form", offsetDays: -56, relativeTo: "bp", roles: ["master","phd"], optional: false, section: "sona", note: "The SONA coordinator sends out a request form ~8 weeks before the block period. Fill it in with your estimated N per condition and session length. Miss this and you may have to wait an entire period." },
+  { id: "ethics_check", label: "Confirm ERCIC ethics approval is in hand", offsetDays: -42, relativeTo: "week", roles: ["phd"], optional: false, section: "ethics", note: "ERCIC reviews take months \u2014 you should have submitted well before this point. Check the timeline and requirements at maastrichtuniversity.nl/ethical-review-committee-inner-city-faculties-ercic. If you haven\u2019t submitted yet, do it NOW and inform your supervisor. Do not start data collection without approval." },
+  { id: "power_analysis", label: "Power analysis \u2014 calculate minimum N per condition", offsetDays: -42, relativeTo: "week", roles: ["master","phd"], optional: true, section: "design", note: "Do this early. If your pool is fixed, report achieved power post-hoc." },
+  { id: "supervisor_checkin", label: "Check in with supervisor \u2014 ethics and pre-registration confirmed", offsetDays: -21, relativeTo: "week", roles: ["master"], optional: false, section: "ethics", note: "Your supervisor handles formal ethics and pre-registration. Your job is to confirm it is done." },
+  { id: "sona_upload", label: "Upload and finalize study on SONA", offsetDays: -19, relativeTo: "bp", roles: ["master","phd"], optional: false, section: "sona", note: "After the matchmaking is shared (~5 weeks before BP), upload your study to SONA: set timeslots, participants per slot, and session length. The SONA coordinator will confirm when your study must be live." },
+  { id: "sona_active", label: "SONA study must be active", offsetDays: -14, relativeTo: "bp", roles: ["master","phd"], optional: false, section: "sona", note: "Your study must be live and visible to students at least 2 weeks before the block period starts. Check with the SONA coordinator for the exact date." },
+  { id: "stimuli_pretest", label: "Pretest stimuli with 3\u20135 people", offsetDays: -14, relativeTo: "week", roles: ["master","phd"], optional: false, section: "materials", note: "Is your manipulation actually manipulating what you think it is?" },
+  { id: "equipment_book", label: "Book equipment and rooms via Resource Booker", offsetDays: -14, relativeTo: "week", roles: ["master","phd"], optional: false, section: "logistics", note: "Go to resourcebooker.maastrichtuniversity.nl to reserve DEXLab rooms (i1.008 or i1.013 for combined sessions) and equipment. If you don\u2019t have access, ask your supervisor to book it for you." },
+  { id: "prereg", label: "Pre-register on OSF or AsPredicted", offsetDays: -7, relativeTo: "week", roles: ["phd"], optional: false, section: "ethics", note: "Before data collection starts, not after. Separates confirmatory from exploratory." },
+  { id: "pilot", label: "Complete full pilot test (dry run with a friend)", offsetDays: -7, relativeTo: "week", roles: ["master","phd"], optional: false, section: "materials", note: "Every tech demo fails the first time. Do not let that be with a real participant." },
+  { id: "inform_team", label: "Post planning in Experiment Teams chat", offsetDays: -7, relativeTo: "week", roles: ["master","phd"], optional: false, section: "coordination", note: "Dates, rooms, timeslots, conditions. So others can plan around you." },
+  { id: "qualtrics_final", label: "Qualtrics survey and manipulations finalized", offsetDays: -3, relativeTo: "week", roles: ["master","phd"], optional: false, section: "materials", note: "End-to-end test, randomization confirmed, all conditions working." },
+  { id: "data_collection", label: "Data collection starts", offsetDays: 0, relativeTo: "week", roles: ["master","phd"], optional: false, section: "collection", note: "Your chosen data collection week begins. SONA slots open. Go." },
 ];
 
 const SECTION_LABELS = {
@@ -900,7 +917,8 @@ let state = {
   role: null,
   name: "",
   studyTitle: "",
-  bpStart: null,
+  bpStart: null,    // BP start date (period start)
+  weekStart: null,   // chosen data collection week start
   bpWeeks: 8,
   checkedItems: [],
   lastUpdated: null,
@@ -911,11 +929,12 @@ let hasLocalStorage = true;
 // ── Shareable URL ──
 function encodeState() {
   const payload = {
-    v: 1,
+    v: 2,
     r: state.role,
     n: state.name,
     t: state.studyTitle,
     s: state.bpStart,
+    ws: state.weekStart,
     w: state.bpWeeks,
     c: state.checkedItems,
   };
@@ -926,11 +945,12 @@ function decodeState(hash) {
   try {
     const json = atob(hash);
     const p = JSON.parse(json);
-    if (p.v === 1 && p.r && p.s) {
+    if ((p.v === 1 || p.v === 2) && p.r && p.s) {
       state.role = p.r;
       state.name = p.n || "";
       state.studyTitle = p.t || "";
       state.bpStart = p.s;
+      state.weekStart = p.ws || p.s; // v1 compat: weekStart = bpStart
       state.bpWeeks = p.w || 8;
       state.checkedItems = p.c || [];
       return true;
@@ -960,13 +980,7 @@ function copyProgressSummary() {
   const bpStart = parseDate(state.bpStart);
   const bpEnd = addDays(bpStart, state.bpWeeks * 7 - 1);
   const today = new Date(); today.setHours(0,0,0,0);
-  const holidaySet = buildHolidaySet(addDays(bpStart, -60), bpEnd);
-  const roleMilestones = MILESTONES.filter(m => m.roles.includes(state.role));
-  const computed = roleMilestones.map(m => {
-    let date = addDays(bpStart, m.offsetDays);
-    if (m.id !== 'data_collection') date = nextWorkingDay(date, holidaySet);
-    return { ...m, date };
-  }).sort((a, b) => a.date - b.date);
+  const computed = computeMilestones();
 
   const total = computed.length;
   const done = computed.filter(m => state.checkedItems.includes(m.id)).length;
@@ -1015,16 +1029,7 @@ function copyProgressSummary() {
 
 // ── ICS Calendar Export ──
 function downloadICS() {
-  const bpStart = parseDate(state.bpStart);
-  const bpEnd = addDays(bpStart, state.bpWeeks * 7 - 1);
-  const holidaySet = buildHolidaySet(addDays(bpStart, -60), bpEnd);
-  const roleMilestones = MILESTONES.filter(m => m.roles.includes(state.role));
-  const computed = roleMilestones.map(m => {
-    let date = addDays(bpStart, m.offsetDays);
-    if (m.id !== 'data_collection') date = nextWorkingDay(date, holidaySet);
-    return { ...m, date };
-  }).sort((a, b) => a.date - b.date);
-
+  const computed = computeMilestones();
   const displayName = state.name || 'Student';
   const studyLabel = state.studyTitle ? ` — ${state.studyTitle}` : '';
   const now = new Date();
@@ -1152,37 +1157,40 @@ function populateBPDropdown() {
   sel.appendChild(custom);
 }
 
+let selectedBPIndex = null;
+
 function onBPSelect() {
   const sel = document.getElementById('bp-select');
   const val = sel.value;
   const weekRow = document.getElementById('week-select-row');
   if (val === '' || val === 'custom') {
     weekRow.style.display = 'none';
+    selectedBPIndex = null;
     document.getElementById('date-input').value = '';
     return;
   }
-  // Populate week picker for this BP
-  const bp = CONFIG.blockPeriods[parseInt(val)];
+  selectedBPIndex = parseInt(val);
+  const bp = CONFIG.blockPeriods[selectedBPIndex];
+  state.bpStart = bp.start;
   state.bpWeeks = bp.weeks;
   const weekSel = document.getElementById('week-select');
   weekSel.innerHTML = '<option value="">Choose a week\u2026</option>';
   for (let w = 1; w <= bp.weeks; w++) {
-    const weekStart = addDays(parseDate(bp.start), (w - 1) * 7);
-    const weekEnd = addDays(weekStart, 4); // Mon-Fri
+    const ws = addDays(parseDate(bp.start), (w - 1) * 7);
+    const we = addDays(ws, 4);
     const opt = document.createElement('option');
-    opt.value = toISO(weekStart);
-    opt.textContent = `Week ${w}: ${formatDateShort(weekStart)} \u2013 ${formatDateShort(weekEnd)}`;
+    opt.value = toISO(ws);
+    opt.textContent = `Week ${w}: ${formatDateShort(ws)} \u2013 ${formatDateShort(we)}`;
     weekSel.appendChild(opt);
   }
   weekRow.style.display = 'block';
-  // Clear downstream
   document.getElementById('date-input').value = '';
 }
 
 function onWeekSelect() {
   const val = document.getElementById('week-select').value;
   if (!val) return;
-  state.bpStart = val;
+  state.weekStart = val;
   document.getElementById('date-input').value = val;
   showConfirmation();
 }
@@ -1190,13 +1198,17 @@ function onWeekSelect() {
 function onDateInput() {
   const val = document.getElementById('date-input').value;
   if (!val) return;
-  state.bpStart = val;
+  state.weekStart = val;
+  // If no BP selected, treat custom date as both bpStart and weekStart
+  if (!state.bpStart) state.bpStart = val;
   const sel = document.getElementById('bp-select');
   let matched = false;
   CONFIG.blockPeriods.forEach((bp, i) => {
-    if (bp.start === val) { sel.value = i; state.bpWeeks = bp.weeks; matched = true; }
+    if (bp.start === val) { sel.value = i; state.bpStart = bp.start; state.bpWeeks = bp.weeks; matched = true; }
   });
-  if (!matched) { sel.value = 'custom'; state.bpWeeks = 8; }
+  if (!matched && !selectedBPIndex && selectedBPIndex !== 0) {
+    sel.value = 'custom'; state.bpWeeks = 8; state.bpStart = val;
+  }
   document.getElementById('week-select-row').style.display = 'none';
   showConfirmation();
 }
@@ -1249,18 +1261,11 @@ function renderPlan() {
   const bpStart = parseDate(state.bpStart);
   const bpEnd = addDays(bpStart, state.bpWeeks * 7 - 1);
   const today = new Date(); today.setHours(0,0,0,0);
-  const holidaySet = buildHolidaySet(addDays(bpStart, -60), bpEnd);
   const displayName = state.name || 'Your';
   const title = state.studyTitle ? `${displayName}${state.name ? '\u2019s' : ''} Plan: ${state.studyTitle}` : `${displayName}${state.name ? '\u2019s' : ''} Experiment Plan`;
   document.getElementById('plan-title').textContent = title;
 
-  const roleMilestones = MILESTONES.filter(m => m.roles.includes(state.role));
-  const computed = roleMilestones.map(m => {
-    let date = addDays(bpStart, m.offsetDays);
-    if (m.id !== 'data_collection') date = nextWorkingDay(date, holidaySet);
-    return { ...m, date };
-  }).sort((a, b) => a.date - b.date);
-
+  const computed = computeMilestones();
   const holidaysInRange = getHolidaysInRange(bpStart, bpEnd);
 
   renderTimeline(computed, holidaysInRange, today);
@@ -1365,17 +1370,8 @@ function toggleCheck(id) {
   if (idx === -1) state.checkedItems.push(id);
   else state.checkedItems.splice(idx, 1);
   saveState();
-  const bpStart = parseDate(state.bpStart);
-  const bpEnd = addDays(bpStart, state.bpWeeks * 7 - 1);
   const today = new Date(); today.setHours(0,0,0,0);
-  const holidaySet = buildHolidaySet(addDays(bpStart, -60), bpEnd);
-  const roleMilestones = MILESTONES.filter(m => m.roles.includes(state.role));
-  const computed = roleMilestones.map(m => {
-    let date = addDays(bpStart, m.offsetDays);
-    if (m.id !== 'data_collection') date = nextWorkingDay(date, holidaySet);
-    return { ...m, date };
-  }).sort((a, b) => a.date - b.date);
-  renderChecklist(computed, today);
+  renderChecklist(computeMilestones(), today);
 }
 
 function updateProgress(checked, total) {
@@ -1390,7 +1386,7 @@ function startOver() {
 
 function resetState() {
   if (!confirm('This will permanently delete your plan and all checked items. Make sure you\'ve saved your link (Copy Link) if you want to keep it.\n\nReset everything?')) return;
-  state = { version: 1, role: null, name: "", studyTitle: "", bpStart: null, bpWeeks: 8, checkedItems: [], lastUpdated: null };
+  state = { version: 1, role: null, name: "", studyTitle: "", bpStart: null, weekStart: null, bpWeeks: 8, checkedItems: [], lastUpdated: null };
   try { localStorage.removeItem("dexlab_planner_state"); } catch (e) {}
   history.replaceState(null, '', window.location.pathname);
   document.body.className = '';
