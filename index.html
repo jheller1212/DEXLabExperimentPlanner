@@ -265,6 +265,15 @@ select { cursor: pointer; }
   opacity: 1;
 }
 
+/* ── Bookmark reminder ── */
+.bookmark-reminder {
+  background: var(--dex-blue-light);
+  border: 1px solid var(--dex-blue);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+
 /* ── Progress bar ── */
 .progress-bar-container {
   background: var(--surface-alt);
@@ -586,7 +595,7 @@ select { cursor: pointer; }
   .checklist-section { break-inside: avoid; }
   .screen:not(.active) { display: none !important; }
   #screen-role, #screen-date, #screen-confirm, #screen-name { display: none !important; }
-  .plan-actions, .change-role-link, .btn, .progress-bar-container, .share-box { display: none !important; }
+  .plan-actions, .change-role-link, .btn, .progress-bar-container, .share-box, .bookmark-reminder { display: none !important; }
   .checklist-section.collapsed .checklist-section-body { display: block !important; }
   .checklist-section .chevron { display: none !important; }
   h1, h2, h3 { color: #000; }
@@ -1434,8 +1443,33 @@ function generatePlan() {
   state.name = document.getElementById('name-input').value.trim();
   state.studyTitle = document.getElementById('title-input').value.trim();
   saveState();
+  // Update URL so bookmarking works immediately
+  history.replaceState(null, '', '#' + encodeState());
   renderPlan();
   showScreen('screen-plan');
+  // Show bookmark reminder
+  showBookmarkReminder();
+  // Enable leave warning
+  window.onbeforeunload = function() { return true; };
+}
+
+function showBookmarkReminder() {
+  const existing = document.getElementById('bookmark-reminder');
+  if (existing) existing.remove();
+  const div = document.createElement('div');
+  div.id = 'bookmark-reminder';
+  div.className = 'bookmark-reminder';
+  div.innerHTML = `
+    <div style="display:flex;align-items:flex-start;gap:0.75rem;">
+      <div style="flex:1;">
+        <strong>Bookmark this page to save your plan</strong>
+        <p style="font-size:0.8rem;color:var(--text-muted);margin-top:0.2rem;">Press <kbd style="background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:0.1rem 0.35rem;font-size:0.75rem;">Ctrl+D</kbd> (or <kbd style="background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:0.1rem 0.35rem;font-size:0.75rem;">\u2318+D</kbd> on Mac) to bookmark, or click Copy Link to save the URL elsewhere.</p>
+      </div>
+      <button class="btn btn-sm btn-primary" onclick="copyShareLink();this.parentElement.parentElement.remove();">Copy Link</button>
+      <button class="btn btn-sm btn-ghost" onclick="this.parentElement.parentElement.remove();" style="padding:0.4rem 0.6rem;">\u2715</button>
+    </div>`;
+  const planScreen = document.getElementById('screen-plan');
+  planScreen.insertBefore(div, planScreen.querySelector('.progress-bar-container'));
 }
 
 function renderPlan() {
@@ -1613,6 +1647,7 @@ function startOver() {
 
 function resetState() {
   if (!confirm('This will permanently delete your plan and all checked items. Make sure you\'ve saved your link (Copy Link) if you want to keep it.\n\nReset everything?')) return;
+  window.onbeforeunload = null;
   state = { version: 1, role: null, name: "", studyTitle: "", bpStart: null, weekStart: null, bpWeeks: 8, checkedItems: [], lastUpdated: null };
   try { localStorage.removeItem("dexlab_planner_state"); } catch (e) {}
   history.replaceState(null, '', window.location.pathname);
