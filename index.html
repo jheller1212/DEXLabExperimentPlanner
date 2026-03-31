@@ -500,6 +500,13 @@ select { cursor: pointer; }
   color: var(--accent-dark);
   margin-top: 0.1rem;
 }
+.check-item.key-date-item {
+  background: var(--accent-light);
+  border-radius: 6px;
+  padding: 0.6rem 0.65rem;
+  margin: 0.3rem -0.25rem;
+}
+.check-item.key-date-item .check-item-label { font-weight: 700; color: var(--accent-dark); }
 
 /* ── Plan header ── */
 .plan-header {
@@ -1055,35 +1062,30 @@ function showToast(msg) {
 // ── Milestones ──
 // relativeTo: "bp" = offset from BP start date, "week" (default) = offset from chosen data collection week
 const MILESTONES = [
-  // ── Ethics & Pre-registration (earliest) ──
-  { id: "ethics_check", label: "Confirm ERCIC ethics approval is in hand", offsetDays: -56, relativeTo: "week", roles: ["phd"], optional: false, section: "ethics", note: "ERCIC reviews take months \u2014 you should have submitted well before this point. Check the timeline and requirements at maastrichtuniversity.nl/ethical-review-committee-inner-city-faculties-ercic. If you haven\u2019t submitted yet, do it NOW and inform your supervisor. Do not start data collection without approval." },
-  { id: "prereg", label: "Pre-register on OSF or AsPredicted", offsetDays: -49, relativeTo: "week", roles: ["phd"], optional: false, section: "ethics", note: "Must be done before data collection. Separates confirmatory from exploratory. Do this alongside or right after your ethics approval." },
-  { id: "supervisor_checkin", label: "Check in with supervisor \u2014 ethics and pre-registration confirmed", offsetDays: -42, relativeTo: "week", roles: ["master"], optional: false, section: "ethics", note: "Your supervisor handles formal ethics and pre-registration. Your job is to confirm it is done before you proceed." },
-  // ── Design & Planning ──
-  { id: "power_analysis", label: "Power analysis \u2014 calculate minimum N per condition", offsetDays: -42, relativeTo: "week", roles: ["master","phd"], optional: true, section: "design", note: "Do this early. If your pool is fixed, report achieved power post-hoc." },
-  // ── Lab & Equipment (before SONA) ──
-  { id: "equipment_book", label: "Book lab (DEXLab / BEELab) and equipment via Resource Booker", offsetDays: -35, relativeTo: "week", roles: ["master","phd"], optional: false, section: "logistics", note: "Book before submitting your SONA request \u2014 you need to know your room and timeslots. Go to resourcebooker.maastrichtuniversity.nl. If you don\u2019t have access, ask your supervisor to book it for you." },
-  // ── SONA (relative to BP start) ──
-  { id: "sona_request", label: "Submit SONA participant request form", offsetDays: -38, relativeTo: "bp", roles: ["master","phd"], optional: false, section: "sona", note: "The SONA coordinator sends a request form ~5\u20136 weeks before the block period. Fill it in with your estimated N per condition and session length. Miss this and you wait an entire period. Exact dates vary per period \u2014 check with the SONA coordinator." },
-  // ── Materials & Testing ──
-  { id: "stimuli_pretest", label: "Pretest stimuli with 3\u20135 people", offsetDays: -14, relativeTo: "week", roles: ["master","phd"], optional: false, section: "materials", note: "Is your manipulation actually manipulating what you think it is?" },
-  { id: "sona_upload", label: "Upload and finalize study on SONA", offsetDays: -5, relativeTo: "bp", roles: ["master","phd"], optional: false, section: "sona", note: "After the matchmaking is shared, upload your study to SONA: set timeslots, participants per slot, and session length. Must be done ~5 days before the period starts. Exact deadline varies \u2014 check the email from the SONA coordinator." },
-  { id: "pilot", label: "Complete full pilot test (dry run with a friend)", offsetDays: -7, relativeTo: "week", roles: ["master","phd"], optional: false, section: "materials", note: "Every tech demo fails the first time. Do not let that be with a real participant." },
-  { id: "inform_team", label: "Post planning in Experiment Teams chat", offsetDays: -7, relativeTo: "week", roles: ["master","phd"], optional: false, section: "coordination", note: "Dates, rooms, timeslots, conditions. So others can plan around you." },
-  { id: "qualtrics_final", label: "Qualtrics survey and manipulations finalized", offsetDays: -3, relativeTo: "week", roles: ["master","phd"], optional: false, section: "materials", note: "End-to-end test, randomization confirmed, all conditions working." },
-  // ── Go time ──
-  { id: "sona_active", label: "SONA study must be active", offsetDays: 0, relativeTo: "bp", roles: ["master","phd"], optional: false, section: "sona", keyDate: true, note: "Your study must be live and visible to students when the block period starts. If it is not active on day one, you lose participant slots." },
-  { id: "data_collection", label: "Data collection starts", offsetDays: 0, relativeTo: "week", roles: ["master","phd"], optional: false, section: "collection", keyDate: true, note: "Your chosen data collection week begins. SONA slots open. Go." },
+  // ── Phase 1: Before requesting participants ──
+  { id: "ethics_check", label: "Confirm ERCIC ethics approval is in hand", offsetDays: -56, relativeTo: "week", roles: ["phd"], optional: false, section: "phase1_before_sona", note: "ERCIC reviews take months \u2014 you should have submitted well before this point. Check the timeline and requirements at maastrichtuniversity.nl/ethical-review-committee-inner-city-faculties-ercic. If you haven\u2019t submitted yet, do it NOW and inform your supervisor. Do not start data collection without approval." },
+  { id: "prereg", label: "Pre-register on OSF or AsPredicted", offsetDays: -49, relativeTo: "week", roles: ["phd"], optional: false, section: "phase1_before_sona", note: "Must be done before data collection. Separates confirmatory from exploratory. Do this alongside or right after your ethics approval." },
+  { id: "supervisor_checkin", label: "Check in with supervisor \u2014 ethics and pre-registration confirmed", offsetDays: -42, relativeTo: "week", roles: ["master"], optional: false, section: "phase1_before_sona", note: "Your supervisor handles formal ethics and pre-registration. Your job is to confirm it is done before you proceed." },
+  { id: "power_analysis", label: "Power analysis \u2014 calculate minimum N per condition", offsetDays: -42, relativeTo: "week", roles: ["master","phd"], optional: true, section: "phase1_before_sona", note: "Do this early. If your pool is fixed, report achieved power post-hoc." },
+  { id: "equipment_book", label: "Book lab (DEXLab / BEELab) and equipment via Resource Booker", offsetDays: -35, relativeTo: "week", roles: ["master","phd"], optional: false, section: "phase1_before_sona", note: "Book before submitting your SONA request \u2014 you need to know your room and timeslots. Go to resourcebooker.maastrichtuniversity.nl. If you don\u2019t have access, ask your supervisor to book it for you." },
+  // ── Phase 2: Requesting participants & SONA setup ──
+  { id: "sona_request", label: "Submit SONA participant request form", offsetDays: -38, relativeTo: "bp", roles: ["master","phd"], optional: false, section: "phase2_sona", note: "The SONA coordinator sends a request form ~5\u20136 weeks before the block period. Fill it in with your estimated N per condition and session length. Miss this and you wait an entire period. Exact dates vary per period \u2014 check with the SONA coordinator." },
+  { id: "sona_upload", label: "Upload and finalize study on SONA", offsetDays: -5, relativeTo: "bp", roles: ["master","phd"], optional: false, section: "phase2_sona", note: "After the matchmaking is shared, upload your study to SONA: set timeslots, participants per slot, and session length. Must be done ~5 days before the period starts. Exact deadline varies \u2014 check the email from the SONA coordinator." },
+  { id: "sona_active", label: "SONA study must be active", offsetDays: 0, relativeTo: "bp", roles: ["master","phd"], optional: false, section: "phase2_sona", keyDate: true, note: "Your study must be live and visible to students when the block period starts. If it is not active on day one, you lose participant slots." },
+  // ── Phase 3: Before the experiment ──
+  { id: "stimuli_pretest", label: "Pretest stimuli with 3\u20135 people", offsetDays: -14, relativeTo: "week", roles: ["master","phd"], optional: false, section: "phase3_before_experiment", note: "Is your manipulation actually manipulating what you think it is?" },
+  { id: "pilot", label: "Complete full pilot test (dry run with a friend)", offsetDays: -7, relativeTo: "week", roles: ["master","phd"], optional: false, section: "phase3_before_experiment", note: "Every tech demo fails the first time. Do not let that be with a real participant." },
+  { id: "qualtrics_final", label: "Qualtrics survey and manipulations finalized", offsetDays: -3, relativeTo: "week", roles: ["master","phd"], optional: false, section: "phase3_before_experiment", note: "End-to-end test, randomization confirmed, all conditions working." },
+  { id: "inform_team", label: "Post planning in Experiment Teams chat", offsetDays: -35, relativeTo: "week", roles: ["master","phd"], optional: false, section: "phase1_before_sona", note: "Share your planned dates, rooms, timeslots, and conditions before requesting SONA participants. This helps align with other researchers on DEXLab booking times and equipment availability." },
+  // ── Phase 4: Go time ──
+  { id: "data_collection", label: "Data collection starts", offsetDays: 0, relativeTo: "week", roles: ["master","phd"], optional: false, section: "phase4_go", keyDate: true, note: "Your chosen data collection week begins. SONA participant slots open earlier (when requested by the SONA coordinator) so students can sign up in advance." },
 ];
 
 const SECTION_LABELS = {
-  design: "Study Design",
-  sona: "SONA / Participant Pool",
-  ethics: "Ethics & Pre-registration",
-  materials: "Materials & Testing",
-  logistics: "Logistics & Rooms",
-  coordination: "Team Coordination",
-  collection: "Data Collection",
+  phase1_before_sona: "Phase 1: Before Requesting Participants",
+  phase2_sona: "Phase 2: SONA Registration & Setup",
+  phase3_before_experiment: "Phase 3: Before the Experiment",
+  phase4_go: "Phase 4: Data Collection",
 };
 
 // ── App State ──
@@ -1540,6 +1542,7 @@ function renderChecklist(milestones, today) {
   const container = document.getElementById('checklist-container');
   container.innerHTML = '';
 
+  const sectionOrder = ['phase1_before_sona', 'phase2_sona', 'phase3_before_experiment', 'phase4_go'];
   const sections = {};
   milestones.forEach(m => {
     if (!sections[m.section]) sections[m.section] = [];
@@ -1549,7 +1552,8 @@ function renderChecklist(milestones, today) {
   const totalItems = milestones.length;
   let checkedCount = 0;
 
-  Object.entries(sections).forEach(([sectionKey, items]) => {
+  sectionOrder.filter(key => sections[key]).forEach(sectionKey => {
+    const items = sections[sectionKey];
     const div = document.createElement('div');
     div.className = 'checklist-section';
 
@@ -1568,7 +1572,7 @@ function renderChecklist(milestones, today) {
     items.forEach(m => {
       const checked = state.checkedItems.includes(m.id);
       const item = document.createElement('div');
-      item.className = 'check-item';
+      item.className = `check-item${m.keyDate ? ' key-date-item' : ''}`;
       item.innerHTML = `
         <input type="checkbox" id="check-${m.id}" ${checked ? 'checked' : ''} onchange="toggleCheck('${m.id}')">
         <div>
