@@ -598,7 +598,7 @@ select { cursor: pointer; }
   .card { break-inside: avoid; }
   .screen:not(.active) { display: none !important; }
   #screen-role, #screen-date, #screen-confirm, #screen-name { display: none !important; }
-  .plan-actions, .change-role-link, .btn, .progress-bar-container, .share-box, .bookmark-reminder { display: none !important; }
+  .plan-actions, .change-role-link, .btn, .progress-bar-container, .share-box, .bookmark-reminder, #plan-dates-edit, #edit-dates-btn, #dates-changed-banner { display: none !important; }
   .checklist-section.collapsed .checklist-section-body { display: block !important; }
   .checklist-section .chevron { display: none !important; }
   h1, h2, h3 { color: #000; }
@@ -829,6 +829,34 @@ select { cursor: pointer; }
 
     <!-- Progress -->
     <div class="progress-bar-container"><div class="progress-bar" id="progress-bar"></div></div>
+
+    <!-- Date summary (editable) -->
+    <div class="card" id="plan-dates-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+        <p class="section-title" style="margin:0;">Key Dates</p>
+        <button class="btn btn-sm btn-ghost" id="edit-dates-btn" onclick="toggleDateEdit()">Edit</button>
+      </div>
+      <div id="plan-dates-display"></div>
+      <div id="plan-dates-edit" style="display:none;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-top:0.75rem;">
+          <div class="form-row">
+            <label for="edit-bp-start" style="font-size:0.8rem;">Block period start</label>
+            <input type="date" id="edit-bp-start" onchange="onDateEditChange()">
+          </div>
+          <div class="form-row">
+            <label for="edit-week-start" style="font-size:0.8rem;">Data collection week</label>
+            <input type="date" id="edit-week-start" onchange="onDateEditChange()">
+          </div>
+          <div class="form-row" id="edit-thesis-row" style="display:none;">
+            <label for="edit-thesis-deadline" style="font-size:0.8rem;">Thesis submission deadline</label>
+            <input type="date" id="edit-thesis-deadline" onchange="onDateEditChange()">
+          </div>
+        </div>
+      </div>
+      <div id="dates-changed-banner" style="display:none;margin-top:0.75rem;padding:0.6rem 0.85rem;background:var(--lab-orange-light);border:1px solid rgba(232,99,43,0.25);border-radius:8px;font-size:0.8rem;color:var(--lab-orange);">
+        Dates updated — your plan has been recalculated. <a href="javascript:downloadICS()" style="color:var(--lab-orange);font-weight:600;">Re-download your calendar</a> to keep it in sync.
+      </div>
+    </div>
 
     <!-- 5a: Timeline -->
     <div class="card">
@@ -1519,6 +1547,54 @@ function adjustWeeks(delta) {
   showConfirmation();
 }
 
+// ── Inline Date Editing ──
+function toggleDateEdit() {
+  const display = document.getElementById('plan-dates-display');
+  const edit = document.getElementById('plan-dates-edit');
+  const btn = document.getElementById('edit-dates-btn');
+  const isEditing = edit.style.display !== 'none';
+  if (isEditing) {
+    edit.style.display = 'none';
+    btn.textContent = 'Edit';
+  } else {
+    document.getElementById('edit-bp-start').value = state.bpStart || '';
+    document.getElementById('edit-week-start').value = state.weekStart || state.bpStart || '';
+    document.getElementById('edit-thesis-deadline').value = state.thesisDeadline || '';
+    document.getElementById('edit-thesis-row').style.display = state.role === 'master' ? 'block' : 'none';
+    edit.style.display = 'block';
+    btn.textContent = 'Done';
+  }
+}
+
+function onDateEditChange() {
+  const newBP = document.getElementById('edit-bp-start').value;
+  const newWeek = document.getElementById('edit-week-start').value;
+  const newThesis = document.getElementById('edit-thesis-deadline').value;
+  if (!newBP) return;
+  state.bpStart = newBP;
+  state.weekStart = newWeek || newBP;
+  state.thesisDeadline = newThesis || null;
+  saveState();
+  renderPlan();
+  document.getElementById('dates-changed-banner').style.display = 'block';
+}
+
+function renderDatesDisplay() {
+  const bpStart = parseDate(state.bpStart);
+  const bpEnd = addDays(bpStart, state.bpWeeks * 7 - 1);
+  const weekStart = parseDate(state.weekStart || state.bpStart);
+  let html = `<div style="display:grid;grid-template-columns:auto 1fr;gap:0.25rem 1rem;font-size:0.85rem;">`;
+  html += `<span style="color:var(--text-muted);">Block period</span><span class="mono">${formatDate(bpStart)} → ${formatDate(bpEnd)}</span>`;
+  if (state.weekStart && state.weekStart !== state.bpStart) {
+    html += `<span style="color:var(--text-muted);">Data collection</span><span class="mono">${formatDate(weekStart)}</span>`;
+  }
+  if (state.thesisDeadline) {
+    html += `<span style="color:var(--text-muted);">Thesis deadline</span><span class="mono" style="font-weight:600;color:var(--accent-dark);">${formatDate(parseDate(state.thesisDeadline))}</span>`;
+  }
+  html += `</div>`;
+  document.getElementById('plan-dates-display').innerHTML = html;
+}
+
 // ── Screen 5: Plan Generation ──
 function generatePlan() {
   state.name = document.getElementById('name-input').value.trim();
@@ -1569,6 +1645,7 @@ function renderPlan() {
   const holidayEnd = (thesisDate && thesisDate > bpEnd) ? thesisDate : bpEnd;
   const holidaysInRange = getHolidaysInRange(bpStart, holidayEnd);
 
+  renderDatesDisplay();
   renderTimeline(computed, holidaysInRange, today);
   renderMilestoneTable(computed, today);
   renderChecklist(computed, today);
@@ -1735,7 +1812,7 @@ function startOver() {
 function resetState() {
   if (!confirm('This will permanently delete your plan and all checked items. Make sure you\'ve saved your link (Copy Link) if you want to keep it.\n\nReset everything?')) return;
   window.onbeforeunload = null;
-  state = { version: 1, role: null, name: "", studyTitle: "", bpStart: null, weekStart: null, bpWeeks: 8, checkedItems: [], lastUpdated: null };
+  state = { version: 1, role: null, name: "", studyTitle: "", bpStart: null, weekStart: null, bpWeeks: 8, thesisDeadline: null, checkedItems: [], lastUpdated: null };
   try { localStorage.removeItem("dexlab_planner_state"); } catch (e) {}
   history.replaceState(null, '', window.location.pathname);
   document.body.className = '';
