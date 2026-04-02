@@ -795,6 +795,17 @@ select { cursor: pointer; }
       </div>
     </div>
 
+    <!-- Thesis deadline (master only) -->
+    <div class="card" id="thesis-deadline-card" style="display:none;">
+      <div class="form-row">
+        <label for="thesis-deadline-input">When is your thesis submission deadline?</label>
+        <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.5rem;line-height:1.5;">
+          This adds milestones for data analysis, writing, supervisor feedback, and final submission so you can plan the full arc from experiment to hand-in.
+        </p>
+        <input type="date" id="thesis-deadline-input">
+      </div>
+    </div>
+
     <div class="card" style="text-align:center;padding:1rem;">
       <button class="btn btn-primary" onclick="generatePlan()">Generate My Plan &rarr;</button>
     </div>
@@ -1003,10 +1014,16 @@ function computeMilestones() {
   const bpStart = parseDate(state.bpStart);
   const weekStart = parseDate(state.weekStart || state.bpStart);
   const bpEnd = addDays(bpStart, state.bpWeeks * 7 - 1);
-  const holidaySet = buildHolidaySet(addDays(bpStart, -60), bpEnd);
-  const roleMilestones = MILESTONES.filter(m => m.roles.includes(state.role));
+  const rangeEnd = (thesisDate && thesisDate > bpEnd) ? thesisDate : bpEnd;
+  const holidaySet = buildHolidaySet(addDays(bpStart, -60), rangeEnd);
+  const thesisDate = state.thesisDeadline ? parseDate(state.thesisDeadline) : null;
+  const roleMilestones = MILESTONES.filter(m => {
+    if (!m.roles.includes(state.role)) return false;
+    if (m.relativeTo === 'thesis' && !thesisDate) return false;
+    return true;
+  });
   const result = roleMilestones.map(m => {
-    const anchor = (m.relativeTo === 'bp') ? bpStart : weekStart;
+    const anchor = m.relativeTo === 'thesis' ? thesisDate : (m.relativeTo === 'bp') ? bpStart : weekStart;
     let date = addDays(anchor, m.offsetDays);
     if (m.id !== 'data_collection') date = nextWorkingDay(date, holidaySet);
     // Enrich data_collection label with end date if calculator was used
@@ -1122,6 +1139,14 @@ const MILESTONES = [
   // ── Phase 4: Go time ──
   { id: "equipment_prep", label: "Prepare equipment \u2014 charge devices, check software updates", offsetDays: -1, relativeTo: "week", roles: ["master","phd"], optional: false, section: "phase4_go", note: "The day before data collection: charge all devices (tablets, laptops, eye trackers, etc.), verify that all software is installed and up to date, test your full setup one more time. Do not discover a mandatory update 5 minutes before your first participant." },
   { id: "data_collection", label: "Data collection starts", offsetDays: 0, relativeTo: "week", roles: ["master","phd"], optional: false, section: "phase4_go", keyDate: true, note: "Your chosen data collection week begins. SONA participant slots open earlier (when requested by the SONA coordinator) so students can sign up in advance.", dynamic: true },
+  // ── Phase 5: After data collection (master thesis) ──
+  { id: "data_cleaning", label: "Data cleaning and preparation", offsetDays: -56, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", note: "Export data, check for exclusions, clean variables, and prepare your analysis dataset. Do this before diving into results — a clean dataset saves hours of debugging later." },
+  { id: "analysis_complete", label: "Data analysis complete", offsetDays: -42, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", note: "Run your pre-registered analyses and any exploratory analyses. Document your steps so you can write the results section directly from your output." },
+  { id: "first_draft", label: "First full draft to supervisor", offsetDays: -28, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", keyDate: true, note: "Submit a complete first draft — intro, method, results, and discussion. It does not need to be perfect, but it needs to be complete. Your supervisor needs enough to give meaningful feedback." },
+  { id: "supervisor_feedback", label: "Receive supervisor feedback", offsetDays: -18, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", note: "Expect ~7–10 days for your supervisor to review. Use this time to polish figures, check references, and proofread. If you haven't heard back, send a reminder." },
+  { id: "revision_complete", label: "Revisions complete — final draft ready", offsetDays: -7, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", note: "Incorporate all supervisor feedback. This is your last chance to improve content. After this, only formatting and final checks remain." },
+  { id: "final_check", label: "Final formatting, references, and plagiarism check", offsetDays: -3, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", note: "Check formatting requirements, run a plagiarism self-check, verify all references are complete, and ensure figures/tables are numbered correctly." },
+  { id: "thesis_submission", label: "Thesis submission deadline", offsetDays: 0, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", keyDate: true, note: "Your thesis submission deadline. Make sure you know the exact submission procedure — some programmes require both a digital upload and a physical copy." },
 ];
 
 const SECTION_LABELS = {
@@ -1129,6 +1154,7 @@ const SECTION_LABELS = {
   phase2_sona: "Phase 2: SONA Registration & Setup",
   phase3_before_experiment: "Phase 3: Before the Experiment",
   phase4_go: "Phase 4: Data Collection",
+  phase5_thesis: "Phase 5: Analysis, Writing & Submission",
 };
 
 // ── App State ──
@@ -1140,6 +1166,7 @@ let state = {
   bpStart: null,    // BP start date (period start)
   weekStart: null,   // chosen data collection week start
   bpWeeks: 8,
+  thesisDeadline: null,
   checkedItems: [],
   lastUpdated: null,
 };
@@ -1149,13 +1176,14 @@ let hasLocalStorage = true;
 // ── Shareable URL ──
 function encodeState() {
   const payload = {
-    v: 2,
+    v: 3,
     r: state.role,
     n: state.name,
     t: state.studyTitle,
     s: state.bpStart,
     ws: state.weekStart,
     w: state.bpWeeks,
+    td: state.thesisDeadline,
     c: state.checkedItems,
   };
   return btoa(JSON.stringify(payload));
@@ -1165,13 +1193,14 @@ function decodeState(hash) {
   try {
     const json = atob(hash);
     const p = JSON.parse(json);
-    if ((p.v === 1 || p.v === 2) && p.r && p.s) {
+    if ((p.v === 1 || p.v === 2 || p.v === 3) && p.r && p.s) {
       state.role = p.r;
       state.name = p.n || "";
       state.studyTitle = p.t || "";
       state.bpStart = p.s;
       state.weekStart = p.ws || p.s; // v1 compat: weekStart = bpStart
       state.bpWeeks = p.w || 8;
+      state.thesisDeadline = p.td || null;
       state.checkedItems = p.c || [];
       return true;
     }
@@ -1477,6 +1506,10 @@ function showConfirmation() {
   showScreensUpTo('screen-name');
   document.getElementById('name-input').value = state.name || '';
   document.getElementById('title-input').value = state.studyTitle || '';
+  // Show thesis deadline input for master students
+  const thesisCard = document.getElementById('thesis-deadline-card');
+  thesisCard.style.display = state.role === 'master' ? 'block' : 'none';
+  if (state.thesisDeadline) document.getElementById('thesis-deadline-input').value = state.thesisDeadline;
   saveState();
 }
 
@@ -1489,6 +1522,8 @@ function adjustWeeks(delta) {
 function generatePlan() {
   state.name = document.getElementById('name-input').value.trim();
   state.studyTitle = document.getElementById('title-input').value.trim();
+  const thesisInput = document.getElementById('thesis-deadline-input').value;
+  state.thesisDeadline = thesisInput || null;
   saveState();
   // Update URL so bookmarking works immediately
   history.replaceState(null, '', '#' + encodeState());
@@ -1529,7 +1564,9 @@ function renderPlan() {
   document.getElementById('plan-title').textContent = title;
 
   const computed = computeMilestones();
-  const holidaysInRange = getHolidaysInRange(bpStart, bpEnd);
+  const thesisDate = state.thesisDeadline ? parseDate(state.thesisDeadline) : null;
+  const holidayEnd = (thesisDate && thesisDate > bpEnd) ? thesisDate : bpEnd;
+  const holidaysInRange = getHolidaysInRange(bpStart, holidayEnd);
 
   renderTimeline(computed, holidaysInRange, today);
   renderMilestoneTable(computed, today);
@@ -1624,7 +1661,7 @@ function renderChecklist(milestones, today) {
   const container = document.getElementById('checklist-container');
   container.innerHTML = '';
 
-  const sectionOrder = ['phase1_before_sona', 'phase2_sona', 'phase3_before_experiment', 'phase4_go'];
+  const sectionOrder = ['phase1_before_sona', 'phase2_sona', 'phase3_before_experiment', 'phase4_go', 'phase5_thesis'];
   const sections = {};
   milestones.forEach(m => {
     if (!sections[m.section]) sections[m.section] = [];
