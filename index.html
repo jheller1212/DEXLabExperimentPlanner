@@ -598,7 +598,7 @@ select { cursor: pointer; }
   .card { break-inside: avoid; }
   .screen:not(.active) { display: none !important; }
   #screen-role, #screen-date, #screen-confirm, #screen-name { display: none !important; }
-  .plan-actions, .change-role-link, .btn, .progress-bar-container, .share-box, .bookmark-reminder, #plan-dates-edit, #edit-dates-btn, #dates-changed-banner { display: none !important; }
+  .plan-actions, .change-role-link, .btn, .progress-bar-container, .share-box, .bookmark-reminder, #plan-dates-edit, #edit-dates-btn, #dates-changed-banner, #supervisor-panel { display: none !important; }
   .checklist-section.collapsed .checklist-section-body { display: block !important; }
   .checklist-section .chevron { display: none !important; }
   h1, h2, h3 { color: #000; }
@@ -793,6 +793,11 @@ select { cursor: pointer; }
         <label for="title-input">Study title / nickname (optional)</label>
         <input type="text" id="title-input" placeholder="e.g. Cool new tech experiment at DEXLab">
       </div>
+      <div class="form-row">
+        <label for="supervisor-email-input">Supervisor email (optional)</label>
+        <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.35rem;">Adds a button to send your supervisor a progress update with one click.</p>
+        <input type="email" id="supervisor-email-input" placeholder="e.g. m.supervisor@maastrichtuniversity.nl">
+      </div>
     </div>
 
     <!-- Thesis deadline (master only) -->
@@ -820,7 +825,8 @@ select { cursor: pointer; }
       </div>
       <div class="plan-actions">
         <button class="btn btn-sm btn-primary" onclick="copyShareLink()">Copy Link</button>
-        <button class="btn btn-sm btn-orange" onclick="copyProgressSummary()">Copy Progress</button>
+        <button class="btn btn-sm btn-orange" id="supervisor-update-btn" onclick="toggleSupervisorUpdate()" style="display:none;">Update Supervisor</button>
+        <button class="btn btn-sm btn-ghost" onclick="copyProgressSummary()">Copy Progress</button>
         <button class="btn btn-sm btn-ghost" onclick="downloadICS()">Add to Calendar</button>
         <button class="btn btn-sm btn-ghost" onclick="window.print()">Print / PDF</button>
         <button class="btn btn-sm btn-ghost" onclick="resetState()">Reset</button>
@@ -829,6 +835,23 @@ select { cursor: pointer; }
 
     <!-- Progress -->
     <div class="progress-bar-container"><div class="progress-bar" id="progress-bar"></div></div>
+
+    <!-- Supervisor update panel -->
+    <div class="card" id="supervisor-panel" style="display:none;">
+      <p class="section-title" style="margin-bottom:0.5rem;">Send Update to Supervisor</p>
+      <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.75rem;line-height:1.5;">
+        Your progress summary and plan link will be included automatically. Add a personal note below if you'd like.
+      </p>
+      <div class="form-row">
+        <label for="supervisor-note" style="font-size:0.8rem;">Note (optional)</label>
+        <textarea id="supervisor-note" rows="3" placeholder="e.g. I finished data collection — could we schedule a meeting to discuss the results?" style="width:100%;padding:0.6rem 0.75rem;background:var(--surface-alt);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-family:'DM Sans',sans-serif;font-size:0.85rem;resize:vertical;"></textarea>
+      </div>
+      <div style="display:flex;gap:0.5rem;margin-top:0.75rem;">
+        <button class="btn btn-sm btn-primary" onclick="sendSupervisorEmail()">Open in Email</button>
+        <button class="btn btn-sm btn-ghost" onclick="copySupervisorUpdate()">Copy to Clipboard</button>
+        <button class="btn btn-sm btn-ghost" onclick="toggleSupervisorUpdate()">Cancel</button>
+      </div>
+    </div>
 
     <!-- Date summary (editable) -->
     <div class="card" id="plan-dates-card">
@@ -1196,6 +1219,7 @@ let state = {
   weekStart: null,   // chosen data collection week start
   bpWeeks: 8,
   thesisDeadline: null,
+  supervisorEmail: "",
   checkedItems: [],
   lastUpdated: null,
 };
@@ -1205,7 +1229,7 @@ let hasLocalStorage = true;
 // ── Shareable URL ──
 function encodeState() {
   const payload = {
-    v: 3,
+    v: 4,
     r: state.role,
     n: state.name,
     t: state.studyTitle,
@@ -1213,6 +1237,7 @@ function encodeState() {
     ws: state.weekStart,
     w: state.bpWeeks,
     td: state.thesisDeadline,
+    se: state.supervisorEmail,
     c: state.checkedItems,
   };
   return btoa(JSON.stringify(payload));
@@ -1222,7 +1247,7 @@ function decodeState(hash) {
   try {
     const json = atob(hash);
     const p = JSON.parse(json);
-    if ((p.v === 1 || p.v === 2 || p.v === 3) && p.r && p.s) {
+    if ((p.v === 1 || p.v === 2 || p.v === 3 || p.v === 4) && p.r && p.s) {
       state.role = p.r;
       state.name = p.n || "";
       state.studyTitle = p.t || "";
@@ -1230,6 +1255,7 @@ function decodeState(hash) {
       state.weekStart = p.ws || p.s; // v1 compat: weekStart = bpStart
       state.bpWeeks = p.w || 8;
       state.thesisDeadline = p.td || null;
+      state.supervisorEmail = p.se || "";
       state.checkedItems = p.c || [];
       return true;
     }
@@ -1302,6 +1328,78 @@ function copyProgressSummary() {
     showToast('Progress summary copied! Paste it into Teams or email.');
   }).catch(() => {
     prompt('Copy this progress summary:', text);
+  });
+}
+
+// ── Supervisor Update ──
+function buildSupervisorBody() {
+  const bpStart = parseDate(state.bpStart);
+  const bpEnd = addDays(bpStart, state.bpWeeks * 7 - 1);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const computed = computeMilestones();
+
+  const total = computed.length;
+  const done = computed.filter(m => state.checkedItems.includes(m.id)).length;
+  const pct = Math.round((done / total) * 100);
+  const displayName = state.name || 'Student';
+  const titleLine = state.studyTitle ? ` \u2014 ${state.studyTitle}` : '';
+
+  const overdue = computed.filter(m => !state.checkedItems.includes(m.id) && daysBetween(today, m.date) < 0);
+  const upcoming = computed.filter(m => !state.checkedItems.includes(m.id) && daysBetween(today, m.date) >= 0 && daysBetween(today, m.date) <= 14);
+
+  let lines = [];
+  const note = document.getElementById('supervisor-note').value.trim();
+  if (note) {
+    lines.push(note);
+    lines.push('');
+    lines.push('---');
+    lines.push('');
+  }
+
+  lines.push(`Progress: ${done}/${total} milestones complete (${pct}%)`);
+  lines.push(`Data collection: ${formatDate(bpStart)} \u2192 ${formatDate(bpEnd)}`);
+  if (state.thesisDeadline) lines.push(`Thesis deadline: ${formatDate(parseDate(state.thesisDeadline))}`);
+  lines.push('');
+
+  if (overdue.length > 0) {
+    lines.push('OVERDUE:');
+    overdue.forEach(m => lines.push(`  \u2717 ${m.label} (was due ${formatDate(m.date)})`));
+    lines.push('');
+  }
+  if (upcoming.length > 0) {
+    lines.push('COMING UP (next 2 weeks):');
+    upcoming.forEach(m => lines.push(`  \u25CB ${m.label} (${formatDate(m.date)})`));
+    lines.push('');
+  }
+
+  lines.push(`View full plan: ${getShareURL()}`);
+  lines.push('');
+  lines.push(`\u2014 Sent via DEXLab Experiment Planner`);
+
+  return { displayName, titleLine, body: lines.join('\n') };
+}
+
+function toggleSupervisorUpdate() {
+  const panel = document.getElementById('supervisor-panel');
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+}
+
+function sendSupervisorEmail() {
+  const { displayName, titleLine, body } = buildSupervisorBody();
+  const subject = `Experiment progress update: ${displayName}${titleLine}`;
+  const mailto = `mailto:${encodeURIComponent(state.supervisorEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.open(mailto, '_blank');
+  document.getElementById('supervisor-panel').style.display = 'none';
+  showToast('Email draft opened \u2014 review and send.');
+}
+
+function copySupervisorUpdate() {
+  const { body } = buildSupervisorBody();
+  navigator.clipboard.writeText(body).then(() => {
+    showToast('Update copied \u2014 paste it into Teams, email, or chat.');
+    document.getElementById('supervisor-panel').style.display = 'none';
+  }).catch(() => {
+    prompt('Copy this update:', body);
   });
 }
 
@@ -1535,6 +1633,7 @@ function showConfirmation() {
   showScreensUpTo('screen-name');
   document.getElementById('name-input').value = state.name || '';
   document.getElementById('title-input').value = state.studyTitle || '';
+  document.getElementById('supervisor-email-input').value = state.supervisorEmail || '';
   // Show thesis deadline input for master students
   const thesisCard = document.getElementById('thesis-deadline-card');
   thesisCard.style.display = state.role === 'master' ? 'block' : 'none';
@@ -1601,6 +1700,7 @@ function generatePlan() {
   state.studyTitle = document.getElementById('title-input').value.trim();
   const thesisInput = document.getElementById('thesis-deadline-input').value;
   state.thesisDeadline = thesisInput || null;
+  state.supervisorEmail = document.getElementById('supervisor-email-input').value.trim();
   saveState();
   // Update URL so bookmarking works immediately
   history.replaceState(null, '', '#' + encodeState());
@@ -1646,6 +1746,8 @@ function renderPlan() {
   const holidaysInRange = getHolidaysInRange(bpStart, holidayEnd);
 
   renderDatesDisplay();
+  // Show supervisor button if email is set
+  document.getElementById('supervisor-update-btn').style.display = state.supervisorEmail ? 'inline-flex' : 'none';
   renderTimeline(computed, holidaysInRange, today);
   renderMilestoneTable(computed, today);
   renderChecklist(computed, today);
@@ -1812,7 +1914,7 @@ function startOver() {
 function resetState() {
   if (!confirm('This will permanently delete your plan and all checked items. Make sure you\'ve saved your link (Copy Link) if you want to keep it.\n\nReset everything?')) return;
   window.onbeforeunload = null;
-  state = { version: 1, role: null, name: "", studyTitle: "", bpStart: null, weekStart: null, bpWeeks: 8, thesisDeadline: null, checkedItems: [], lastUpdated: null };
+  state = { version: 1, role: null, name: "", studyTitle: "", bpStart: null, weekStart: null, bpWeeks: 8, thesisDeadline: null, supervisorEmail: "", checkedItems: [], lastUpdated: null };
   try { localStorage.removeItem("dexlab_planner_state"); } catch (e) {}
   history.replaceState(null, '', window.location.pathname);
   document.body.className = '';
