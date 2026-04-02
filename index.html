@@ -358,6 +358,9 @@ select { cursor: pointer; }
 .tl-item.key-date .tl-dot { background: var(--accent); width: 16px; height: 16px; }
 .tl-item.key-date .tl-label { font-weight: 700; color: var(--accent-dark); }
 .tl-item.key-date .tl-date { color: var(--accent-dark); font-weight: 600; }
+.tl-item.lab-day .tl-dot { background: var(--dex-blue); width: 8px; height: 8px; top: 0.65rem; left: calc(-2rem + 2px); }
+.tl-item.lab-day .tl-label { font-size: 0.78rem; color: var(--text-muted); }
+.tl-item.lab-day .tl-date { font-size: 0.72rem; }
 
 /* Today marker in timeline */
 .tl-today {
@@ -1036,6 +1039,14 @@ function nextWorkingDay(date, holidaySet) {
   return d;
 }
 
+function prevWorkingDay(date, holidaySet) {
+  let d = new Date(date);
+  while (d.getDay() === 0 || d.getDay() === 6 || holidaySet.has(d.toDateString())) {
+    d = addDays(d, -1);
+  }
+  return d;
+}
+
 function buildHolidaySet(startDate, endDate) {
   const holidays = getHolidaysInRange(addDays(startDate, -60), addDays(endDate, 30));
   return new Set(holidays.map(h => h.date.toDateString()));
@@ -1076,7 +1087,12 @@ function computeMilestones() {
   const result = roleMilestones.map(m => {
     const anchor = m.relativeTo === 'thesis' ? thesisDate : (m.relativeTo === 'bp') ? bpStart : weekStart;
     let date = addDays(anchor, m.offsetDays);
-    if (m.id !== 'data_collection') date = nextWorkingDay(date, holidaySet);
+    if (m.id === 'equipment_prep') {
+      // Must be at least 1 working day before data collection
+      date = prevWorkingDay(addDays(weekStart, -1), holidaySet);
+    } else if (m.id !== 'data_collection') {
+      date = nextWorkingDay(date, holidaySet);
+    }
     // Enrich data_collection label with end date if calculator was used
     if (m.id === 'data_collection' && state.labCalc && state.labCalc.totalDays) {
       const days = state.labCalc.totalDays;
@@ -1091,7 +1107,34 @@ function computeMilestones() {
     }
     const label = (state.role === 'master' && m.masterLabel) ? m.masterLabel : m.label;
     return { ...m, date, label };
-  }).sort((a, b) => a.date - b.date);
+  });
+
+  // Add individual experiment day milestones
+  const dataCollectionItem = result.find(m => m.id === 'data_collection');
+  if (dataCollectionItem) {
+    const totalDays = (state.labCalc && state.labCalc.totalDays) ? state.labCalc.totalDays : (state.manualLabDays || 0);
+    if (totalDays > 0) {
+      const ppd = (state.labCalc && state.labCalc.participantsPerDay) ? state.labCalc.participantsPerDay : null;
+      let d = new Date(dataCollectionItem.date);
+      for (let day = 1; day <= totalDays; day++) {
+        d = nextWorkingDay(d, holidaySet);
+        const ppdLabel = ppd ? ` \u2014 ${ppd} participant${ppd > 1 ? 's' : ''} scheduled` : '';
+        result.push({
+          id: `lab_day_${day}`,
+          label: `Lab day ${day}/${totalDays}${ppdLabel}`,
+          date: new Date(d),
+          section: 'phase4_go',
+          optional: false,
+          roles: ['master', 'phd'],
+          note: `Experiment day ${day} of ${totalDays}.${ppd ? ` ${ppd} participants scheduled.` : ''} Check equipment, arrive early, follow your protocol.`,
+          labDay: true,
+        });
+        d = addDays(d, 1);
+      }
+    }
+  }
+
+  result.sort((a, b) => a.date - b.date);
   return result;
 }
 
@@ -1220,6 +1263,7 @@ let state = {
   bpWeeks: 8,
   thesisDeadline: null,
   supervisorEmail: "",
+  manualLabDays: 0,
   checkedItems: [],
   lastUpdated: null,
 };
@@ -1229,7 +1273,7 @@ let hasLocalStorage = true;
 // ── Shareable URL ──
 function encodeState() {
   const payload = {
-    v: 4,
+    v: 5,
     r: state.role,
     n: state.name,
     t: state.studyTitle,
@@ -1238,6 +1282,7 @@ function encodeState() {
     w: state.bpWeeks,
     td: state.thesisDeadline,
     se: state.supervisorEmail,
+    ml: state.manualLabDays,
     c: state.checkedItems,
   };
   return btoa(JSON.stringify(payload));
@@ -1247,7 +1292,7 @@ function decodeState(hash) {
   try {
     const json = atob(hash);
     const p = JSON.parse(json);
-    if ((p.v === 1 || p.v === 2 || p.v === 3 || p.v === 4) && p.r && p.s) {
+    if ((p.v === 1 || p.v === 2 || p.v === 3 || p.v === 4 || p.v === 5) && p.r && p.s) {
       state.role = p.r;
       state.name = p.n || "";
       state.studyTitle = p.t || "";
@@ -1256,6 +1301,7 @@ function decodeState(hash) {
       state.bpWeeks = p.w || 8;
       state.thesisDeadline = p.td || null;
       state.supervisorEmail = p.se || "";
+      state.manualLabDays = p.ml || 0;
       state.checkedItems = p.c || [];
       return true;
     }
@@ -1682,8 +1728,10 @@ function renderDatesDisplay() {
   const bpStart = parseDate(state.bpStart);
   const bpEnd = addDays(bpStart, state.bpWeeks * 7 - 1);
   const weekStart = parseDate(state.weekStart || state.bpStart);
+  const hasCalc = state.labCalc && state.labCalc.totalDays;
+  const labDays = hasCalc ? state.labCalc.totalDays : state.manualLabDays;
   let html = `<div style="display:grid;grid-template-columns:auto 1fr;gap:0.25rem 1rem;font-size:0.85rem;">`;
-  html += `<span style="color:var(--text-muted);">Block period</span><span class="mono">${formatDate(bpStart)} → ${formatDate(bpEnd)}</span>`;
+  html += `<span style="color:var(--text-muted);">Block period</span><span class="mono">${formatDate(bpStart)} \u2192 ${formatDate(bpEnd)}</span>`;
   if (state.weekStart && state.weekStart !== state.bpStart) {
     html += `<span style="color:var(--text-muted);">Data collection</span><span class="mono">${formatDate(weekStart)}</span>`;
   }
@@ -1691,7 +1739,22 @@ function renderDatesDisplay() {
     html += `<span style="color:var(--text-muted);">Thesis deadline</span><span class="mono" style="font-weight:600;color:var(--accent-dark);">${formatDate(parseDate(state.thesisDeadline))}</span>`;
   }
   html += `</div>`;
+  // Show lab days input if calculator wasn't used
+  if (!hasCalc) {
+    html += `<div style="margin-top:0.75rem;display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;">`;
+    html += `<label for="manual-lab-days" style="color:var(--text-muted);margin:0;font-size:0.85rem;">Lab days:</label>`;
+    html += `<input type="number" id="manual-lab-days" min="0" max="30" value="${state.manualLabDays || ''}" placeholder="e.g. 5" style="width:5rem;padding:0.3rem 0.5rem;font-size:0.85rem;" onchange="onManualLabDaysChange()">`;
+    html += `<span style="color:var(--text-muted);font-size:0.8rem;">Adds individual experiment days to your timeline</span>`;
+    html += `</div>`;
+  }
   document.getElementById('plan-dates-display').innerHTML = html;
+}
+
+function onManualLabDaysChange() {
+  const val = parseInt(document.getElementById('manual-lab-days').value) || 0;
+  state.manualLabDays = Math.max(0, Math.min(30, val));
+  saveState();
+  renderPlan();
 }
 
 // ── Screen 5: Plan Generation ──
@@ -1780,7 +1843,7 @@ function renderTimeline(milestones, holidays, today) {
 
   // Merge milestones and holidays into one sorted list
   const items = [
-    ...milestones.map(m => ({ date: m.date, label: m.label, type: 'milestone', id: m.id, checked: state.checkedItems.includes(m.id), keyDate: m.keyDate })),
+    ...milestones.map(m => ({ date: m.date, label: m.label, type: 'milestone', id: m.id, checked: state.checkedItems.includes(m.id), keyDate: m.keyDate, labDay: m.labDay })),
     ...holidays.map(h => ({ date: h.date, label: h.label, type: 'holiday' })),
   ].sort((a, b) => a.date - b.date);
 
@@ -1801,7 +1864,8 @@ function renderTimeline(milestones, holidays, today) {
     const isHoliday = item.type === 'holiday';
     const isOverdue = isPast && !isHoliday && !item.checked;
     const isKey = item.keyDate && !isPast;
-    div.className = `tl-item${isKey ? ' key-date' : (isOverdue ? ' overdue' : (isPast ? ' past' : ''))}${isHoliday ? ' holiday-item' : ''}`;
+    const isLabDay = item.labDay;
+    div.className = `tl-item${isLabDay ? ' lab-day' : ''}${isKey ? ' key-date' : (isOverdue ? ' overdue' : (isPast ? ' past' : ''))}${isHoliday ? ' holiday-item' : ''}`;
     div.innerHTML = `
       <div class="tl-dot${isOverdue ? '' : (isPast ? ' past' : '')}${isHoliday ? ' holiday' : ''}"></div>
       <span class="tl-date">${formatDateShort(item.date)}</span>
@@ -1914,7 +1978,7 @@ function startOver() {
 function resetState() {
   if (!confirm('This will permanently delete your plan and all checked items. Make sure you\'ve saved your link (Copy Link) if you want to keep it.\n\nReset everything?')) return;
   window.onbeforeunload = null;
-  state = { version: 1, role: null, name: "", studyTitle: "", bpStart: null, weekStart: null, bpWeeks: 8, thesisDeadline: null, supervisorEmail: "", checkedItems: [], lastUpdated: null };
+  state = { version: 1, role: null, name: "", studyTitle: "", bpStart: null, weekStart: null, bpWeeks: 8, thesisDeadline: null, supervisorEmail: "", manualLabDays: 0, checkedItems: [], lastUpdated: null };
   try { localStorage.removeItem("dexlab_planner_state"); } catch (e) {}
   history.replaceState(null, '', window.location.pathname);
   document.body.className = '';
