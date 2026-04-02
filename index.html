@@ -1038,7 +1038,8 @@ function computeMilestones() {
       }
       return { ...m, date, label: `Data collection: ${formatDateShort(date)} \u2192 ${formatDateShort(endDate)} (${days} lab day${days > 1 ? 's' : ''})`, endDate };
     }
-    return { ...m, date };
+    const label = (state.role === 'master' && m.masterLabel) ? m.masterLabel : m.label;
+    return { ...m, date, label };
   }).sort((a, b) => a.date - b.date);
   return result;
 }
@@ -1128,9 +1129,9 @@ const MILESTONES = [
   { id: "power_analysis", label: "Power analysis \u2014 calculate minimum N per condition", offsetDays: -56, relativeTo: "week", roles: ["master","phd"], optional: true, section: "phase1_before_sona", note: "Do this before pre-registration \u2014 your pre-reg should include your target N. If your pool is fixed, report achieved power post-hoc." },
   { id: "equipment_book", label: "Book lab (DEXLab / BEELab) and equipment via Resource Booker", offsetDays: -35, relativeTo: "week", roles: ["master","phd"], optional: false, section: "phase1_before_sona", note: "Book before submitting your SONA request \u2014 you need to know your room and timeslots. Go to resourcebooker.maastrichtuniversity.nl. If you don\u2019t have access, ask your supervisor to book it for you." },
   // ── Phase 2: Requesting participants & SONA setup ──
-  { id: "sona_request", label: "Submit SONA participant request form", offsetDays: -38, relativeTo: "bp", roles: ["master","phd"], optional: false, section: "phase2_sona", note: "The SONA coordinator sends a request form ~5\u20136 weeks before the block period. Fill it in with your estimated N per condition and session length. Miss this and you wait an entire period. Exact dates vary per period \u2014 check with the SONA coordinator." },
-  { id: "sona_upload", label: "Upload and finalize study on SONA", offsetDays: -5, relativeTo: "bp", roles: ["master","phd"], optional: false, section: "phase2_sona", note: "After the matchmaking is shared, upload your study to SONA: set timeslots, participants per slot, and session length. Must be done ~5 days before the period starts. Exact deadline varies \u2014 check the email from the SONA coordinator." },
-  { id: "sona_active", label: "SONA study must be active", offsetDays: 0, relativeTo: "bp", roles: ["master","phd"], optional: false, section: "phase2_sona", keyDate: true, note: "Your study must be live and visible to students when the block period starts. If it is not active on day one, you lose participant slots." },
+  { id: "sona_request", label: "Submit SONA participant request form", masterLabel: "Submit SONA participant request form (ask your supervisor to do this)", offsetDays: -38, relativeTo: "bp", roles: ["master","phd"], optional: false, section: "phase2_sona", note: "The SONA coordinator sends a request form ~5\u20136 weeks before the block period. Fill it in with your estimated N per condition and session length. Miss this and you wait an entire period. Exact dates vary per period \u2014 check with the SONA coordinator." },
+  { id: "sona_upload", label: "Upload and finalize study on SONA", masterLabel: "Upload and finalize study on SONA (ask your supervisor to do this)", offsetDays: -5, relativeTo: "bp", roles: ["master","phd"], optional: false, section: "phase2_sona", note: "After the matchmaking is shared, upload your study to SONA: set timeslots, participants per slot, and session length. Must be done ~5 days before the period starts. Exact deadline varies \u2014 check the email from the SONA coordinator." },
+  { id: "sona_active", label: "SONA study must be active", masterLabel: "SONA study must be active (ask your supervisor to confirm)", offsetDays: 0, relativeTo: "bp", roles: ["master","phd"], optional: false, section: "phase2_sona", keyDate: true, note: "Your study must be live and visible to students when the block period starts. If it is not active on day one, you lose participant slots." },
   // ── Phase 3: Before the experiment ──
   { id: "stimuli_pretest", label: "Pretest stimuli with 3\u20135 people", offsetDays: -14, relativeTo: "week", roles: ["master","phd"], optional: false, section: "phase3_before_experiment", note: "Is your manipulation actually manipulating what you think it is?" },
   { id: "pilot", label: "Complete full pilot test (dry run with a friend)", offsetDays: -7, relativeTo: "week", roles: ["master","phd"], optional: false, section: "phase3_before_experiment", note: "Every tech demo fails the first time. Do not let that be with a real participant." },
