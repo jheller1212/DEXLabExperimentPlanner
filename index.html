@@ -725,9 +725,9 @@ select { cursor: pointer; }
     </div>
 
     <!-- Lab Time Calculator -->
-    <div class="checklist-section collapsed" id="lab-calc-section">
+    <div class="checklist-section" id="lab-calc-section">
       <button class="checklist-section-header" onclick="this.parentElement.classList.toggle('collapsed')">
-        <span>Lab Time Calculator <span class="checklist-section-count">recommended</span></span>
+        <span>Lab Time Calculator <span class="checklist-section-count">fill in before generating</span></span>
         <span class="chevron">&#9660;</span>
       </button>
       <div class="checklist-section-body">
@@ -1904,6 +1904,13 @@ function generatePlan() {
   state.thesisDeadline = thesisInput || null;
   state.collectionWeeks = parseInt(document.getElementById('collection-weeks-input').value) || 1;
   state.supervisorEmail = document.getElementById('supervisor-email-input').value.trim();
+  // Remind user to fill in lab calculator if they haven't
+  if (!state.labCalc) {
+    if (!confirm('You haven\u2019t filled in the Lab Time Calculator yet. It helps determine how many lab days you need and generates a timetable for your experiment.\n\nGenerate the plan anyway?')) {
+      document.getElementById('lab-calc-section').scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
+  }
   saveState();
   // Update URL so bookmarking works immediately
   history.replaceState(null, '', '#' + encodeState());
