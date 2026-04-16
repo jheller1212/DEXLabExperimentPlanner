@@ -1110,7 +1110,7 @@ function getEaster(year) {
 
 function getEasterHolidays(year) {
   const easter = getEaster(year);
-  const add = (d, n) => new Date(d.getTime() + n * 86400000);
+  const add = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
   return [
     { date: add(easter, -2), label: "Good Friday" },
     { date: add(easter, 1), label: "Easter Monday" },
@@ -1142,7 +1142,7 @@ function parseDate(str) {
 }
 
 function addDays(date, n) {
-  return new Date(date.getTime() + n * 86400000);
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate() + n);
 }
 
 function nextWorkingDay(date, holidaySet) {
