@@ -758,11 +758,11 @@ select { cursor: pointer; }
           </div>
           <div class="form-row">
             <label for="calc-n-per-condition">Participants per condition</label>
-            <input type="number" id="calc-n-per-condition" min="1" max="500" value="30" onchange="updateCalc()">
+            <input type="number" id="calc-n-per-condition" min="1" max="500" value="50" onchange="updateCalc()">
           </div>
           <div class="form-row">
             <label for="calc-session-duration">Session duration (minutes)</label>
-            <input type="number" id="calc-session-duration" min="5" max="240" value="60" onchange="updateCalc()">
+            <input type="number" id="calc-session-duration" min="5" max="240" value="30" onchange="updateCalc()">
           </div>
           <div class="form-row">
             <label for="calc-per-timeslot">Participants per timeslot</label>
@@ -1205,8 +1205,8 @@ function buildDaySlots(startMin, endMin, lunchStartMin, lunchDuration, slotDurat
 function updateCalc() {
   const conditions = parseInt(document.getElementById('calc-conditions').value) || 2;
   const design = document.getElementById('calc-design').value;
-  const nPerCondition = parseInt(document.getElementById('calc-n-per-condition').value) || 30;
-  const sessionMin = parseInt(document.getElementById('calc-session-duration').value) || 60;
+  const nPerCondition = parseInt(document.getElementById('calc-n-per-condition').value) || 50;
+  const sessionMin = parseInt(document.getElementById('calc-session-duration').value) || 30;
   const perTimeslot = parseInt(document.getElementById('calc-per-timeslot').value) || 1;
   const bufferEl = document.getElementById('calc-buffer');
   const buffer = bufferEl.value === '' ? 0 : (parseInt(bufferEl.value) || 0);
