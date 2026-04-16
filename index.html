@@ -461,6 +461,14 @@ select { cursor: pointer; }
   color: var(--text-muted);
   margin-left: 0.5rem;
 }
+#lab-calc-section {
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+#lab-calc-section .checklist-section-header {
+  background: var(--accent-light);
+  color: var(--accent-dark);
+}
 
 /* ── Checkbox items ── */
 .check-item {
@@ -1822,6 +1830,8 @@ function showConfirmation() {
   if (state.thesisDeadline) document.getElementById('thesis-deadline-input').value = state.thesisDeadline;
   document.getElementById('collection-weeks-input').value = state.collectionWeeks || 1;
   saveState();
+  // Run calculator so results and timetable are shown immediately
+  updateCalc();
 }
 
 function adjustWeeks(delta) {
