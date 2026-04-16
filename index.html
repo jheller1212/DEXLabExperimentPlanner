@@ -2291,7 +2291,11 @@ function resetState() {
 
     // Check URL hash first (shared link takes priority)
     const hash = window.location.hash.slice(1);
-    if (hash && decodeState(hash)) {
+    if (hash && !decodeState(hash)) {
+      showToast("Couldn\u2019t restore plan from this link \u2014 starting fresh.");
+      history.replaceState(null, '', window.location.pathname);
+    }
+    if (hash && state.role && state.bpStart) {
       selectRole(state.role);
       document.getElementById('date-input').value = state.bpStart;
       const sel = document.getElementById('bp-select');
