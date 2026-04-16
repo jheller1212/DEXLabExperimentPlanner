@@ -470,8 +470,10 @@ select { cursor: pointer; }
   color: var(--text-muted);
   font-size: 0.75rem;
 }
-.checklist-section.collapsed .chevron { transform: rotate(-90deg); }
-.checklist-section.collapsed .checklist-section-body { display: none; }
+.checklist-section:not([open]) .chevron { transform: rotate(-90deg); }
+.checklist-section-header::-webkit-details-marker,
+.checklist-section-header::marker { display: none; content: ''; }
+.checklist-section-header { list-style: none; }
 .checklist-section-body { padding: 0.5rem 1rem 0.75rem; }
 .checklist-section-count {
   font-family: 'DM Mono', monospace;
@@ -666,7 +668,8 @@ select { cursor: pointer; }
   .screen:not(.active) { display: none !important; }
   #screen-role, #screen-date, #screen-confirm, #screen-name { display: none !important; }
   .plan-actions, .change-role-link, .btn, .progress-bar-container, .share-box, .bookmark-reminder, #plan-dates-edit, #edit-dates-btn, #dates-changed-banner, #supervisor-panel { display: none !important; }
-  .checklist-section.collapsed .checklist-section-body { display: block !important; }
+  .checklist-section .checklist-section-body { display: block !important; }
+  .checklist-section { display: block !important; }
   .checklist-section .chevron { display: none !important; }
   h1, h2, h3 { color: #000; }
   .milestone-table th { color: #666; }
@@ -801,11 +804,11 @@ select { cursor: pointer; }
     </div>
 
     <!-- Lab Time Calculator -->
-    <div class="checklist-section" id="lab-calc-section">
-      <button class="checklist-section-header" onclick="this.parentElement.classList.toggle('collapsed')">
+    <details class="checklist-section" id="lab-calc-section" open>
+      <summary class="checklist-section-header">
         <span>Lab Time Calculator <span class="checklist-section-count">fill in before generating</span></span>
         <span class="chevron">&#9660;</span>
-      </button>
+      </summary>
       <div class="checklist-section-body">
         <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:1rem;line-height:1.5;">
           How many participants do you need? How many lab days should you book? Fill this in <strong>before</strong> requesting participants on SONA and booking the lab &mdash; the results feed into your plan.
@@ -862,7 +865,7 @@ select { cursor: pointer; }
         <div id="calc-result" style="margin-top:1rem;padding:1rem;background:var(--accent-light);border:1px solid var(--border);border-radius:8px;display:none;">
         </div>
       </div>
-    </div>
+    </details>
   </div>
 
   <!-- Screen 4: Name -->
@@ -2152,22 +2155,23 @@ function renderChecklist(milestones, today) {
 
   sectionOrder.filter(key => sections[key]).forEach(sectionKey => {
     const items = sections[sectionKey];
-    const div = document.createElement('div');
-    div.className = 'checklist-section';
+    const details = document.createElement('details');
+    details.className = 'checklist-section';
+    details.open = true;
 
     const sectionChecked = items.filter(m => state.checkedItems.includes(m.id)).length;
     checkedCount += sectionChecked;
 
     const bodyId = `section-${sectionKey}`;
-    div.innerHTML = `
-      <button class="checklist-section-header" aria-expanded="true" aria-controls="${bodyId}" onclick="this.setAttribute('aria-expanded',this.parentElement.classList.toggle('collapsed')?'false':'true')">
+    details.innerHTML = `
+      <summary class="checklist-section-header">
         <span>${SECTION_LABELS[sectionKey] || sectionKey}<span class="checklist-section-count">${sectionChecked}/${items.length}</span></span>
         <span class="chevron">\u25BC</span>
-      </button>
-      <div class="checklist-section-body" id="${bodyId}" role="region"></div>`;
-    container.appendChild(div);
+      </summary>
+      <div class="checklist-section-body" id="${bodyId}"></div>`;
+    container.appendChild(details);
 
-    const body = div.querySelector('.checklist-section-body');
+    const body = details.querySelector('.checklist-section-body');
     items.forEach(m => {
       const checked = state.checkedItems.includes(m.id);
       const item = document.createElement('div');
@@ -2255,7 +2259,7 @@ function editSetup() {
       document.getElementById('calc-n-per-condition').value = npc;
     }
     // Expand the calculator section and recompute
-    document.getElementById('lab-calc-section').classList.remove('collapsed');
+    document.getElementById('lab-calc-section').open = true;
     updateCalc();
   }
   if (state.bpStart) showConfirmation();
