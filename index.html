@@ -1357,23 +1357,41 @@ let hasLocalStorage = true;
 
 // ── Shareable URL ──
 function encodeState() {
-  const payload = {
-    v: 5,
-    r: state.role,
-    n: state.name,
-    t: state.studyTitle,
-    s: state.bpStart,
-    ws: state.weekStart,
-    w: state.bpWeeks,
-    td: state.thesisDeadline,
-    se: state.supervisorEmail,
-    ml: state.manualLabDays,
-    c: state.checkedItems,
-  };
-  return btoa(JSON.stringify(payload));
+  const params = new URLSearchParams();
+  params.set('r', state.role);
+  if (state.name) params.set('n', state.name);
+  if (state.studyTitle) params.set('t', state.studyTitle);
+  params.set('s', state.bpStart);
+  if (state.weekStart && state.weekStart !== state.bpStart) params.set('ws', state.weekStart);
+  if (state.bpWeeks !== 8) params.set('w', state.bpWeeks);
+  if (state.thesisDeadline) params.set('td', state.thesisDeadline);
+  if (state.supervisorEmail) params.set('se', state.supervisorEmail);
+  if (state.manualLabDays) params.set('ml', state.manualLabDays);
+  if (state.checkedItems.length) params.set('c', state.checkedItems.join(','));
+  return params.toString();
 }
 
 function decodeState(hash) {
+  // Try new URL-param format first
+  if (hash.includes('r=') && hash.includes('s=')) {
+    try {
+      const p = new URLSearchParams(hash);
+      if (p.get('r') && p.get('s')) {
+        state.role = p.get('r');
+        state.name = p.get('n') || "";
+        state.studyTitle = p.get('t') || "";
+        state.bpStart = p.get('s');
+        state.weekStart = p.get('ws') || p.get('s');
+        state.bpWeeks = parseInt(p.get('w')) || 8;
+        state.thesisDeadline = p.get('td') || null;
+        state.supervisorEmail = p.get('se') || "";
+        state.manualLabDays = parseInt(p.get('ml')) || 0;
+        state.checkedItems = p.get('c') ? p.get('c').split(',') : [];
+        return true;
+      }
+    } catch (e) {}
+  }
+  // Fallback: legacy base64 JSON format
   try {
     const json = atob(hash);
     const p = JSON.parse(json);
@@ -1382,7 +1400,7 @@ function decodeState(hash) {
       state.name = p.n || "";
       state.studyTitle = p.t || "";
       state.bpStart = p.s;
-      state.weekStart = p.ws || p.s; // v1 compat: weekStart = bpStart
+      state.weekStart = p.ws || p.s;
       state.bpWeeks = p.w || 8;
       state.thesisDeadline = p.td || null;
       state.supervisorEmail = p.se || "";
