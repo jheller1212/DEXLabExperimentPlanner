@@ -761,8 +761,8 @@ select { cursor: pointer; }
             <input type="number" id="calc-per-timeslot" min="1" max="50" value="1" onchange="updateCalc()">
           </div>
           <div class="form-row">
-            <label for="calc-buffer">Buffer between sessions (min)</label>
-            <input type="number" id="calc-buffer" min="0" max="30" value="5" onchange="updateCalc()">
+            <label for="calc-buffer" style="display:flex;align-items:center;gap:0.3rem;">Buffer between sessions (min) <span title="Only set this above 0 if you need substantial time between timeslots, e.g. to reset equipment or clean the lab." style="cursor:help;display:inline-flex;align-items:center;justify-content:center;width:1rem;height:1rem;border-radius:50%;background:var(--border);color:var(--text-muted);font-size:0.65rem;font-weight:700;line-height:1;">?</span></label>
+            <input type="number" id="calc-buffer" min="0" max="30" value="0" onchange="updateCalc()">
           </div>
           <div class="form-row">
             <label for="calc-lab-start">Lab available from</label>
@@ -772,9 +772,13 @@ select { cursor: pointer; }
             <label for="calc-lab-end">Lab available until</label>
             <input type="text" id="calc-lab-end" value="17:00" onchange="updateCalc()">
           </div>
-          <div class="form-row" style="grid-column:1/-1;">
-            <label for="calc-lunch">Lunch break (minutes, e.g. 30&ndash;60)</label>
+          <div class="form-row">
+            <label for="calc-lunch">Lunch break (minutes)</label>
             <input type="number" id="calc-lunch" min="0" max="120" value="30" onchange="updateCalc()">
+          </div>
+          <div class="form-row">
+            <label for="calc-lunch-start">Lunch starts at</label>
+            <input type="text" id="calc-lunch-start" value="12:00" onchange="updateCalc()">
           </div>
         </div>
 
@@ -1091,9 +1095,9 @@ function computeMilestones() {
   const bpStart = parseDate(state.bpStart);
   const weekStart = parseDate(state.weekStart || state.bpStart);
   const bpEnd = addDays(bpStart, state.bpWeeks * 7 - 1);
+  const thesisDate = state.thesisDeadline ? parseDate(state.thesisDeadline) : null;
   const rangeEnd = (thesisDate && thesisDate > bpEnd) ? thesisDate : bpEnd;
   const holidaySet = buildHolidaySet(addDays(bpStart, -60), rangeEnd);
-  const thesisDate = state.thesisDeadline ? parseDate(state.thesisDeadline) : null;
   const roleMilestones = MILESTONES.filter(m => {
     if (!m.roles.includes(state.role)) return false;
     if (m.relativeTo === 'thesis' && !thesisDate) return false;
@@ -1155,14 +1159,42 @@ function computeMilestones() {
 
 // ── Toast ──
 // ── Lab Time Calculator ──
+function fmtTime(totalMin) {
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+}
+
+function buildDaySlots(startMin, endMin, lunchStartMin, lunchDuration, slotDuration) {
+  // Build slots around the lunch break
+  const slots = [];
+  let cursor = startMin;
+  while (cursor + slotDuration <= endMin) {
+    const slotEnd = cursor + slotDuration;
+    // Does this slot overlap with lunch?
+    if (lunchDuration > 0 && cursor < lunchStartMin + lunchDuration && slotEnd > lunchStartMin) {
+      // Skip to after lunch
+      cursor = lunchStartMin + lunchDuration;
+      continue;
+    }
+    slots.push({ start: cursor, end: cursor + slotDuration });
+    cursor = slotEnd;
+  }
+  return slots;
+}
+
 function updateCalc() {
   const conditions = parseInt(document.getElementById('calc-conditions').value) || 2;
   const design = document.getElementById('calc-design').value;
   const nPerCondition = parseInt(document.getElementById('calc-n-per-condition').value) || 30;
   const sessionMin = parseInt(document.getElementById('calc-session-duration').value) || 60;
   const perTimeslot = parseInt(document.getElementById('calc-per-timeslot').value) || 1;
-  const buffer = parseInt(document.getElementById('calc-buffer').value) || 0;
+  const bufferEl = document.getElementById('calc-buffer');
+  const buffer = bufferEl.value === '' ? 0 : (parseInt(bufferEl.value) || 0);
   const lunch = parseInt(document.getElementById('calc-lunch').value) || 0;
+  const lunchStartVal = document.getElementById('calc-lunch-start').value || '12:00';
+  const lunchStartMatch = lunchStartVal.match(/^(\d{1,2}):(\d{2})$/);
+  const lunchStartMin = lunchStartMatch ? (parseInt(lunchStartMatch[1]) * 60 + parseInt(lunchStartMatch[2])) : 720;
 
   // Parse lab hours
   const startVal = document.getElementById('calc-lab-start').value || '09:00';
@@ -1177,7 +1209,6 @@ function updateCalc() {
     document.getElementById('calc-result').innerHTML = '<p style="color:var(--danger);font-size:0.85rem;">Lab end time must be after start time. Use HH:MM format (e.g. 09:00).</p>';
     return;
   }
-  const usableMinutes = labMinutes - lunch;
 
   // Total participants
   let totalN;
@@ -1193,18 +1224,57 @@ function updateCalc() {
     designLabel = `Between-subject: ${nPerCondition} participants \u00D7 ${conditions} conditions`;
   }
 
-  // Sessions and days
+  // Build timeslots around lunch break
   const slotDuration = sessionMin + buffer;
-  const slotsPerDay = Math.floor(usableMinutes / slotDuration);
+  const daySlots = buildDaySlots(startMin, endMin, lunchStartMin, lunch, slotDuration);
+  const slotsPerDay = daySlots.length;
   const participantsPerDay = slotsPerDay * perTimeslot;
   const totalDays = participantsPerDay > 0 ? Math.ceil(totalN / participantsPerDay) : '?';
-  const totalSessions = perTimeslot > 1 ? Math.ceil(totalN / perTimeslot) : totalN;
+  const usableMinutes = labMinutes - lunch;
 
   // Save to state for plan
   state.labCalc = {
     totalN, totalDays, participantsPerDay, slotsPerDay,
-    sessionMin, conditions, design, perTimeslot
+    sessionMin, conditions, design, perTimeslot, daySlots, buffer,
+    startMin, endMin, lunchStartMin, lunch
   };
+
+  // Build timetable for each lab day
+  let timetableHTML = '';
+  if (slotsPerDay > 0 && totalDays !== '?' && state.weekStart) {
+    const collectionStart = parseDate(state.weekStart);
+    const holidaySet = buildHolidaySet(addDays(collectionStart, -7), addDays(collectionStart, totalDays * 3));
+    let participantsRemaining = totalN;
+    let dayRows = '';
+    let d = new Date(collectionStart);
+    for (let day = 1; day <= totalDays && participantsRemaining > 0; day++) {
+      d = nextWorkingDay(d, holidaySet);
+      const dayParticipants = Math.min(participantsRemaining, participantsPerDay);
+      const daySlotsNeeded = Math.ceil(dayParticipants / perTimeslot);
+      let slotLabels = '';
+      for (let s = 0; s < daySlotsNeeded; s++) {
+        const slot = daySlots[s];
+        const pInSlot = Math.min(perTimeslot, participantsRemaining - s * perTimeslot);
+        slotLabels += `<span class="mono" style="display:inline-block;background:var(--surface-alt);border:1px solid var(--border);border-radius:4px;padding:0.15rem 0.4rem;margin:0.15rem 0.2rem;font-size:0.75rem;white-space:nowrap;">${fmtTime(slot.start)}\u2013${fmtTime(slot.start + sessionMin)}${perTimeslot > 1 ? ' (' + pInSlot + 'p)' : ''}</span>`;
+      }
+      dayRows += `<tr><td style="white-space:nowrap;vertical-align:top;padding:0.35rem 0.75rem 0.35rem 0;font-size:0.8rem;border-bottom:1px solid var(--border-light);"><strong>Day ${day}</strong><br><span class="mono" style="font-size:0.75rem;color:var(--text-muted);">${formatDateShort(d)}</span></td><td style="padding:0.35rem 0;border-bottom:1px solid var(--border-light);line-height:1.8;">${slotLabels}</td><td class="mono" style="vertical-align:top;padding:0.35rem 0 0.35rem 0.75rem;font-size:0.8rem;border-bottom:1px solid var(--border-light);white-space:nowrap;">${dayParticipants} participant${dayParticipants !== 1 ? 's' : ''}</td></tr>`;
+      participantsRemaining -= dayParticipants;
+      d = addDays(d, 1);
+    }
+    timetableHTML = `
+      <div style="margin-top:1rem;">
+        <button onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('.chev').textContent=this.nextElementSibling.style.display==='none'?'\u25B6':'\u25BC';" style="background:none;border:none;cursor:pointer;font-size:0.85rem;font-weight:600;color:var(--accent-dark);font-family:'DM Sans',sans-serif;padding:0;display:flex;align-items:center;gap:0.4rem;">
+          <span class="chev" style="font-size:0.7rem;">\u25B6</span> Timetable overview
+        </button>
+        <div style="display:none;margin-top:0.5rem;overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
+            <thead><tr><th style="text-align:left;padding:0.35rem 0.75rem 0.35rem 0;border-bottom:2px solid var(--border);font-size:0.8rem;">Day</th><th style="text-align:left;padding:0.35rem 0;border-bottom:2px solid var(--border);font-size:0.8rem;">Timeslots</th><th style="text-align:left;padding:0.35rem 0 0.35rem 0.75rem;border-bottom:2px solid var(--border);font-size:0.8rem;">Total</th></tr></thead>
+            <tbody>${dayRows}</tbody>
+          </table>
+          <p style="font-size:0.7rem;color:var(--text-muted);margin-top:0.5rem;">Lunch break: ${fmtTime(lunchStartMin)}\u2013${fmtTime(lunchStartMin + lunch)}. Weekends and public holidays are skipped.</p>
+        </div>
+      </div>`;
+  }
 
   const result = document.getElementById('calc-result');
   result.style.display = 'block';
@@ -1218,7 +1288,7 @@ function updateCalc() {
     </div>
     <p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.75rem;line-height:1.5;">
       \u2192 Book the lab and equipment for at least <strong>${totalDays} day${totalDays !== 1 ? 's' : ''}</strong>. Consider adding 1\u20132 extra days for no-shows and technical issues. Each session is ${sessionMin} min${buffer > 0 ? ` + ${buffer} min buffer` : ''} = ${slotDuration} min per slot.
-    </p>`;
+    </p>${timetableHTML}`;
 }
 
 function showToast(msg) {
