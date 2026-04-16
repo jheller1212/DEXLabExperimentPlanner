@@ -807,7 +807,7 @@ select { cursor: pointer; }
       </div>
     </div>
 
-    <!-- Thesis deadline (master only) -->
+    <!-- Thesis deadline and collection duration (master only) -->
     <div class="card" id="thesis-deadline-card" style="display:none;">
       <div class="form-row">
         <label for="thesis-deadline-input">When is your thesis submission deadline?</label>
@@ -815,6 +815,16 @@ select { cursor: pointer; }
           This adds milestones for data analysis, writing, supervisor feedback, and final submission so you can plan the full arc from experiment to hand-in.
         </p>
         <input type="date" id="thesis-deadline-input">
+      </div>
+      <div class="form-row" style="margin-top:0.75rem;">
+        <label for="collection-weeks-input">How long will data collection take?</label>
+        <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.35rem;line-height:1.5;">
+          Most students need 1&ndash;2 weeks. Post-collection milestones (analysis, writing) will adjust automatically.
+        </p>
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+          <input type="number" id="collection-weeks-input" min="1" max="6" value="1" style="width:5rem;">
+          <span style="font-size:0.85rem;color:var(--text-muted);">week(s)</span>
+        </div>
       </div>
     </div>
 
@@ -1098,13 +1108,16 @@ function computeMilestones() {
   const thesisDate = state.thesisDeadline ? parseDate(state.thesisDeadline) : null;
   const rangeEnd = (thesisDate && thesisDate > bpEnd) ? thesisDate : bpEnd;
   const holidaySet = buildHolidaySet(addDays(bpStart, -60), rangeEnd);
+  // Compute data collection end date
+  const collectionEndDate = addDays(weekStart, (state.collectionWeeks || 1) * 7 - 1);
+
   const roleMilestones = MILESTONES.filter(m => {
     if (!m.roles.includes(state.role)) return false;
     if (m.relativeTo === 'thesis' && !thesisDate) return false;
     return true;
   });
   const result = roleMilestones.map(m => {
-    const anchor = m.relativeTo === 'thesis' ? thesisDate : (m.relativeTo === 'bp') ? bpStart : weekStart;
+    const anchor = m.relativeTo === 'thesis' ? thesisDate : (m.relativeTo === 'collectionEnd') ? collectionEndDate : (m.relativeTo === 'bp') ? bpStart : weekStart;
     let date = addDays(anchor, m.offsetDays);
     if (m.id === 'equipment_prep') {
       // Must be at least 1 working day before data collection
@@ -1112,17 +1125,15 @@ function computeMilestones() {
     } else if (m.id !== 'data_collection') {
       date = nextWorkingDay(date, holidaySet);
     }
-    // Enrich data_collection label with end date if calculator was used
-    if (m.id === 'data_collection' && state.labCalc && state.labCalc.totalDays) {
-      const days = state.labCalc.totalDays;
-      // Compute end date by counting working days forward
-      let endDate = new Date(date);
-      let remaining = days - 1;
-      while (remaining > 0) {
-        endDate = addDays(endDate, 1);
-        if (endDate.getDay() !== 0 && endDate.getDay() !== 6 && !holidaySet.has(endDate.toDateString())) remaining--;
+    // Enrich data_collection label with collection period
+    if (m.id === 'data_collection') {
+      const cw = state.collectionWeeks || 1;
+      const endDate = new Date(collectionEndDate);
+      let extraLabel = `${cw} week${cw > 1 ? 's' : ''}`;
+      if (state.labCalc && state.labCalc.totalDays) {
+        extraLabel += `, ${state.labCalc.totalDays} lab day${state.labCalc.totalDays > 1 ? 's' : ''}`;
       }
-      return { ...m, date, label: `Data collection: ${formatDateShort(date)} \u2192 ${formatDateShort(endDate)} (${days} lab day${days > 1 ? 's' : ''})`, endDate };
+      return { ...m, date, label: `Data collection: ${formatDateShort(date)} \u2192 ${formatDateShort(endDate)} (${extraLabel})`, endDate };
     }
     const label = (state.role === 'master' && m.masterLabel) ? m.masterLabel : m.label;
     return { ...m, date, label };
@@ -1333,8 +1344,9 @@ const MILESTONES = [
   { id: "equipment_prep", label: "Prepare equipment \u2014 charge devices, check software updates", offsetDays: -1, relativeTo: "week", roles: ["master","phd"], optional: false, section: "phase4_go", note: "The day before data collection: charge all devices (tablets, laptops, eye trackers, etc.), verify that all software is installed and up to date, test your full setup one more time. Do not discover a mandatory update 5 minutes before your first participant." },
   { id: "data_collection", label: "Data collection starts", offsetDays: 0, relativeTo: "week", roles: ["master","phd"], optional: false, section: "phase4_go", keyDate: true, note: "Your chosen data collection week begins. SONA participant slots open earlier (when requested by the SONA coordinator) so students can sign up in advance.", dynamic: true },
   // ── Phase 5: After data collection (master thesis) ──
-  { id: "data_cleaning", label: "Data cleaning and preparation", offsetDays: -56, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", note: "Export data, check for exclusions, clean variables, and prepare your analysis dataset. Do this before diving into results — a clean dataset saves hours of debugging later." },
-  { id: "analysis_complete", label: "Data analysis complete", offsetDays: -42, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", note: "Run your pre-registered analyses and any exploratory analyses. Document your steps so you can write the results section directly from your output." },
+  { id: "prepare_measures", label: "Prepare variables, scales, and analysis plan", offsetDays: -7, relativeTo: "week", roles: ["master"], optional: false, section: "phase3_before_experiment", note: "Define your dependent and independent variables, finalize measurement scales, plan manipulation checks, and outline your analysis strategy. Having this ready before data collection means you can start analysis immediately once data is in." },
+  { id: "data_cleaning", label: "Data cleaning and preparation", offsetDays: 3, relativeTo: "collectionEnd", roles: ["master"], optional: false, section: "phase5_thesis", note: "Export data, check for exclusions, clean variables, and prepare your analysis dataset. Do this before diving into results \u2014 a clean dataset saves hours of debugging later." },
+  { id: "analysis_complete", label: "Data analysis complete", offsetDays: 14, relativeTo: "collectionEnd", roles: ["master"], optional: false, section: "phase5_thesis", note: "Run your pre-registered analyses and any exploratory analyses. Document your steps so you can write the results section directly from your output." },
   { id: "first_draft", label: "First full draft to supervisor", offsetDays: -28, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", keyDate: true, note: "Submit a complete first draft — intro, method, results, and discussion. It does not need to be perfect, but it needs to be complete. Your supervisor needs enough to give meaningful feedback." },
   { id: "supervisor_feedback", label: "Receive supervisor feedback", offsetDays: -18, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", note: "Expect ~7–10 days for your supervisor to review. Use this time to polish figures, check references, and proofread. If you haven't heard back, send a reminder." },
   { id: "revision_complete", label: "Revisions complete — final draft ready", offsetDays: -7, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", note: "Incorporate all supervisor feedback. This is your last chance to improve content. After this, only formatting and final checks remain." },
@@ -1362,6 +1374,7 @@ let state = {
   thesisDeadline: null,
   supervisorEmail: "",
   manualLabDays: 0,
+  collectionWeeks: 1,
   checkedItems: [],
   lastUpdated: null,
 };
@@ -1370,33 +1383,40 @@ let hasLocalStorage = true;
 
 // ── Shareable URL ──
 function encodeState() {
+  // Compact dates: strip common "202" prefix → e.g. "2026-05-11" → "6-05-11"
+  const compactDate = d => d ? d.replace(/^202/, '') : '';
   const params = new URLSearchParams();
-  params.set('r', state.role);
+  params.set('r', state.role === 'master' ? 'm' : 'p');
   if (state.name) params.set('n', state.name);
   if (state.studyTitle) params.set('t', state.studyTitle);
-  params.set('s', state.bpStart);
-  if (state.weekStart && state.weekStart !== state.bpStart) params.set('ws', state.weekStart);
+  params.set('s', compactDate(state.bpStart));
+  if (state.weekStart && state.weekStart !== state.bpStart) params.set('ws', compactDate(state.weekStart));
   if (state.bpWeeks !== 8) params.set('w', state.bpWeeks);
-  if (state.thesisDeadline) params.set('td', state.thesisDeadline);
-  if (state.supervisorEmail) params.set('se', state.supervisorEmail);
+  if (state.thesisDeadline) params.set('td', compactDate(state.thesisDeadline));
+  if (state.collectionWeeks && state.collectionWeeks !== 1) params.set('cw', state.collectionWeeks);
   if (state.manualLabDays) params.set('ml', state.manualLabDays);
-  if (state.checkedItems.length) params.set('c', state.checkedItems.join(','));
+  // Supervisor email and checked items are personal — saved in localStorage only
   return params.toString();
 }
 
 function decodeState(hash) {
-  // Try new URL-param format first
+  // Expand compact dates: "6-05-11" → "2026-05-11"
+  const expandDate = d => d ? (d.match(/^\d{4}/) ? d : '202' + d) : '';
+
+  // Try URL-param format first
   if (hash.includes('r=') && hash.includes('s=')) {
     try {
       const p = new URLSearchParams(hash);
       if (p.get('r') && p.get('s')) {
-        state.role = p.get('r');
+        const r = p.get('r');
+        state.role = (r === 'm' ? 'master' : r === 'p' ? 'phd' : r);
         state.name = p.get('n') || "";
         state.studyTitle = p.get('t') || "";
-        state.bpStart = p.get('s');
-        state.weekStart = p.get('ws') || p.get('s');
+        state.bpStart = expandDate(p.get('s'));
+        state.weekStart = expandDate(p.get('ws')) || state.bpStart;
         state.bpWeeks = parseInt(p.get('w')) || 8;
-        state.thesisDeadline = p.get('td') || null;
+        state.thesisDeadline = expandDate(p.get('td')) || null;
+        state.collectionWeeks = parseInt(p.get('cw')) || 1;
         state.supervisorEmail = p.get('se') || "";
         state.manualLabDays = parseInt(p.get('ml')) || 0;
         state.checkedItems = p.get('c') ? p.get('c').split(',') : [];
@@ -1800,6 +1820,7 @@ function showConfirmation() {
   const thesisCard = document.getElementById('thesis-deadline-card');
   thesisCard.style.display = state.role === 'master' ? 'block' : 'none';
   if (state.thesisDeadline) document.getElementById('thesis-deadline-input').value = state.thesisDeadline;
+  document.getElementById('collection-weeks-input').value = state.collectionWeeks || 1;
   saveState();
 }
 
@@ -1849,7 +1870,9 @@ function renderDatesDisplay() {
   let html = `<div style="display:grid;grid-template-columns:auto 1fr;gap:0.25rem 1rem;font-size:0.85rem;">`;
   html += `<span style="color:var(--text-muted);">Block period</span><span class="mono">${formatDate(bpStart)} \u2192 ${formatDate(bpEnd)}</span>`;
   if (state.weekStart && state.weekStart !== state.bpStart) {
-    html += `<span style="color:var(--text-muted);">Data collection</span><span class="mono">${formatDate(weekStart)}</span>`;
+    const cw = state.collectionWeeks || 1;
+    const collEnd = addDays(weekStart, cw * 7 - 1);
+    html += `<span style="color:var(--text-muted);">Data collection</span><span class="mono">${formatDate(weekStart)} \u2192 ${formatDate(collEnd)} (${cw} week${cw > 1 ? 's' : ''})</span>`;
   }
   if (state.thesisDeadline) {
     html += `<span style="color:var(--text-muted);">Thesis deadline</span><span class="mono" style="font-weight:600;color:var(--accent-dark);">${formatDate(parseDate(state.thesisDeadline))}</span>`;
@@ -1879,6 +1902,7 @@ function generatePlan() {
   state.studyTitle = document.getElementById('title-input').value.trim();
   const thesisInput = document.getElementById('thesis-deadline-input').value;
   state.thesisDeadline = thesisInput || null;
+  state.collectionWeeks = parseInt(document.getElementById('collection-weeks-input').value) || 1;
   state.supervisorEmail = document.getElementById('supervisor-email-input').value.trim();
   saveState();
   // Update URL so bookmarking works immediately
@@ -2098,6 +2122,7 @@ function editSetup() {
   document.getElementById('title-input').value = state.studyTitle || '';
   document.getElementById('supervisor-email-input').value = state.supervisorEmail || '';
   if (state.thesisDeadline) document.getElementById('thesis-deadline-input').value = state.thesisDeadline;
+  document.getElementById('collection-weeks-input').value = state.collectionWeeks || 1;
   // Restore lab calculator fields if data exists
   if (state.labCalc) {
     const lc = state.labCalc;
@@ -2126,7 +2151,7 @@ function editSetup() {
 function resetState() {
   if (!confirm('This will permanently delete your plan and all checked items. Make sure you\'ve saved your link (Copy Link) if you want to keep it.\n\nReset everything?')) return;
   window.onbeforeunload = null;
-  state = { version: 1, role: null, name: "", studyTitle: "", bpStart: null, weekStart: null, bpWeeks: 8, thesisDeadline: null, supervisorEmail: "", manualLabDays: 0, checkedItems: [], lastUpdated: null };
+  state = { version: 1, role: null, name: "", studyTitle: "", bpStart: null, weekStart: null, bpWeeks: 8, thesisDeadline: null, supervisorEmail: "", manualLabDays: 0, collectionWeeks: 1, checkedItems: [], lastUpdated: null };
   try { localStorage.removeItem("dexlab_planner_state"); } catch (e) {}
   history.replaceState(null, '', window.location.pathname);
   document.body.className = '';
