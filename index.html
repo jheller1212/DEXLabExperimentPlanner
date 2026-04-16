@@ -1499,11 +1499,11 @@ function decodeState(hash) {
         state.studyTitle = escapeHTML(p.get('t') || "");
         state.bpStart = expandDate(p.get('s'));
         state.weekStart = expandDate(p.get('ws')) || state.bpStart;
-        state.bpWeeks = parseInt(p.get('w')) || 8;
+        state.bpWeeks = Math.max(1, Math.min(52, parseInt(p.get('w')) || 8));
         state.thesisDeadline = expandDate(p.get('td')) || null;
-        state.collectionWeeks = parseInt(p.get('cw')) || 1;
+        state.collectionWeeks = Math.max(1, Math.min(6, parseInt(p.get('cw')) || 1));
         state.supervisorEmail = escapeHTML(p.get('se') || "");
-        state.manualLabDays = parseInt(p.get('ml')) || 0;
+        state.manualLabDays = Math.max(0, Math.min(30, parseInt(p.get('ml')) || 0));
         state.checkedItems = p.get('c') ? p.get('c').split(',') : [];
         return true;
       }
@@ -1519,10 +1519,10 @@ function decodeState(hash) {
       state.studyTitle = escapeHTML(p.t || "");
       state.bpStart = p.s;
       state.weekStart = p.ws || p.s;
-      state.bpWeeks = p.w || 8;
+      state.bpWeeks = Math.max(1, Math.min(52, p.w || 8));
       state.thesisDeadline = p.td || null;
       state.supervisorEmail = escapeHTML(p.se || "");
-      state.manualLabDays = p.ml || 0;
+      state.manualLabDays = Math.max(0, Math.min(30, p.ml || 0));
       state.checkedItems = p.c || [];
       return true;
     }
