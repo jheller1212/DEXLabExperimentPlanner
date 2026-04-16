@@ -665,6 +665,17 @@ select { cursor: pointer; }
   .tl-item { padding-left: 0; }
   .tl-date { min-width: 5.5rem; font-size: 0.7rem; }
   .tl-label { font-size: 0.78rem; }
+  /* Lab calculator: collapse 2-col grid to 1 column */
+  #lab-calc-section .checklist-section-body > div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
+  /* Date edit grid: collapse to 1 column */
+  #plan-dates-edit > div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
+  /* Milestone table: horizontal scroll */
+  .milestone-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  /* Share URL input overflow */
+  .share-url input { min-width: 0; font-size: 0.65rem; }
+  .share-url { flex-wrap: nowrap; overflow: hidden; }
+  /* Key dates display: collapse grid on mobile */
+  #plan-dates-display > div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
 }
 @media (min-width: 601px) and (max-width: 960px) {
   .container { max-width: 90%; }
