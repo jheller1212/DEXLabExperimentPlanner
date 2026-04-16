@@ -2150,16 +2150,39 @@ function renderChecklist(milestones, today) {
 
 function toggleCheck(id) {
   const idx = state.checkedItems.indexOf(id);
-  if (idx === -1) state.checkedItems.push(id);
+  const isNowChecked = idx === -1;
+  if (isNowChecked) state.checkedItems.push(id);
   else state.checkedItems.splice(idx, 1);
   saveState();
-  const today = new Date(); today.setHours(0,0,0,0);
+
+  // Update only the specific checkbox's visual state
+  const checkbox = document.getElementById('check-' + id);
+  if (checkbox) {
+    const label = checkbox.parentElement.querySelector('.check-item-label');
+    if (label) {
+      if (isNowChecked) label.classList.add('checked');
+      else label.classList.remove('checked');
+    }
+  }
+
+  // Update section counts
   const computed = computeMilestones();
-  const bpStart = parseDate(state.bpStart);
-  const bpEnd = addDays(bpStart, state.bpWeeks * 7 - 1);
-  renderTimeline(computed, getHolidaysInRange(bpStart, bpEnd), today);
-  renderMilestoneTable(computed, today);
-  renderChecklist(computed, today);
+  const sections = {};
+  computed.forEach(m => {
+    if (!sections[m.section]) sections[m.section] = [];
+    sections[m.section].push(m);
+  });
+  let totalChecked = 0;
+  Object.keys(sections).forEach(sectionKey => {
+    const items = sections[sectionKey];
+    const sectionChecked = items.filter(m => state.checkedItems.includes(m.id)).length;
+    totalChecked += sectionChecked;
+    const countEl = document.querySelector(`#section-${sectionKey}`)?.previousElementSibling?.querySelector('.checklist-section-count');
+    if (countEl) countEl.textContent = `${sectionChecked}/${items.length}`;
+  });
+
+  // Update progress bar
+  updateProgress(totalChecked, computed.length);
 }
 
 function updateProgress(checked, total) {
