@@ -2284,49 +2284,56 @@ function resetState() {
 
 // ── Init ──
 (function init() {
-  // Check localStorage
-  try { localStorage.setItem('_test', '1'); localStorage.removeItem('_test'); }
-  catch (e) { hasLocalStorage = false; document.getElementById('ls-notice').style.display = 'block'; }
+  try {
+    // Check localStorage
+    try { localStorage.setItem('_test', '1'); localStorage.removeItem('_test'); }
+    catch (e) { hasLocalStorage = false; document.getElementById('ls-notice').style.display = 'block'; }
 
-  // Check URL hash first (shared link takes priority)
-  const hash = window.location.hash.slice(1);
-  if (hash && decodeState(hash)) {
-    selectRole(state.role);
-    document.getElementById('date-input').value = state.bpStart;
-    const sel = document.getElementById('bp-select');
-    let matched = false;
-    CONFIG.blockPeriods.forEach((bp, i) => {
-      if (bp.start === state.bpStart) { sel.value = i; matched = true; }
-    });
-    if (!matched) sel.value = 'custom';
-    document.getElementById('name-input').value = state.name || '';
-    document.getElementById('title-input').value = state.studyTitle || '';
-    saveState(); // persist to localStorage too
-    renderPlan();
-    showScreen('screen-plan');
-    return;
-  }
-
-  // Otherwise load from localStorage
-  const hadState = loadState();
-  if (hadState && state.role && state.bpStart) {
-    selectRole(state.role);
-    document.getElementById('date-input').value = state.bpStart;
-    const sel = document.getElementById('bp-select');
-    let matched = false;
-    CONFIG.blockPeriods.forEach((bp, i) => {
-      if (bp.start === state.bpStart) { sel.value = i; matched = true; }
-    });
-    if (!matched) sel.value = 'custom';
-    showConfirmation();
-    if (state.name || state.studyTitle || state.checkedItems.length > 0) {
+    // Check URL hash first (shared link takes priority)
+    const hash = window.location.hash.slice(1);
+    if (hash && decodeState(hash)) {
+      selectRole(state.role);
+      document.getElementById('date-input').value = state.bpStart;
+      const sel = document.getElementById('bp-select');
+      let matched = false;
+      CONFIG.blockPeriods.forEach((bp, i) => {
+        if (bp.start === state.bpStart) { sel.value = i; matched = true; }
+      });
+      if (!matched) sel.value = 'custom';
       document.getElementById('name-input').value = state.name || '';
       document.getElementById('title-input').value = state.studyTitle || '';
+      saveState(); // persist to localStorage too
       renderPlan();
       showScreen('screen-plan');
+      return;
     }
-  } else if (hadState && state.role) {
-    selectRole(state.role);
+
+    // Otherwise load from localStorage
+    const hadState = loadState();
+    if (hadState && state.role && state.bpStart) {
+      selectRole(state.role);
+      document.getElementById('date-input').value = state.bpStart;
+      const sel = document.getElementById('bp-select');
+      let matched = false;
+      CONFIG.blockPeriods.forEach((bp, i) => {
+        if (bp.start === state.bpStart) { sel.value = i; matched = true; }
+      });
+      if (!matched) sel.value = 'custom';
+      showConfirmation();
+      if (state.name || state.studyTitle || state.checkedItems.length > 0) {
+        document.getElementById('name-input').value = state.name || '';
+        document.getElementById('title-input').value = state.studyTitle || '';
+        renderPlan();
+        showScreen('screen-plan');
+      }
+    } else if (hadState && state.role) {
+      selectRole(state.role);
+    }
+  } catch (err) {
+    console.error('Init failed — clearing corrupted state and starting fresh:', err);
+    try { localStorage.removeItem('dexlab_planner_state'); } catch (e) {}
+    state = { version: 1, role: null, name: "", studyTitle: "", bpStart: null, weekStart: null, bpWeeks: 8, thesisDeadline: null, supervisorEmail: "", manualLabDays: 0, collectionWeeks: 1, checkedItems: [], lastUpdated: null };
+    showScreen('screen-role');
   }
 })();
 </script>
