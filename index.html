@@ -1239,12 +1239,17 @@ function updateCalc() {
     startMin, endMin, lunchStartMin, lunch
   };
 
+  // Check if timetable is currently open before rebuilding
+  const ttBody = document.getElementById('timetable-body');
+  const timetableWasOpen = ttBody && ttBody.style.display !== 'none';
+
   // Build timetable for each lab day
   let timetableHTML = '';
   if (slotsPerDay > 0 && totalDays !== '?' && state.weekStart) {
     const collectionStart = parseDate(state.weekStart);
     const holidaySet = buildHolidaySet(addDays(collectionStart, -7), addDays(collectionStart, totalDays * 3));
     let participantsRemaining = totalN;
+    const lunchEnd = lunchStartMin + lunch;
     let dayRows = '';
     let d = new Date(collectionStart);
     for (let day = 1; day <= totalDays && participantsRemaining > 0; day++) {
@@ -1252,8 +1257,14 @@ function updateCalc() {
       const dayParticipants = Math.min(participantsRemaining, participantsPerDay);
       const daySlotsNeeded = Math.ceil(dayParticipants / perTimeslot);
       let slotLabels = '';
+      let lunchInserted = false;
       for (let s = 0; s < daySlotsNeeded; s++) {
         const slot = daySlots[s];
+        // Insert lunch break marker between morning and afternoon slots
+        if (lunch > 0 && !lunchInserted && slot.start >= lunchEnd) {
+          slotLabels += `<span style="display:inline-block;background:var(--lab-orange-light);border:1px solid rgba(232,99,43,0.2);border-radius:4px;padding:0.15rem 0.4rem;margin:0.15rem 0.2rem;font-size:0.7rem;white-space:nowrap;color:var(--lab-orange);">lunch ${fmtTime(lunchStartMin)}\u2013${fmtTime(lunchEnd)}</span>`;
+          lunchInserted = true;
+        }
         const pInSlot = Math.min(perTimeslot, participantsRemaining - s * perTimeslot);
         slotLabels += `<span class="mono" style="display:inline-block;background:var(--surface-alt);border:1px solid var(--border);border-radius:4px;padding:0.15rem 0.4rem;margin:0.15rem 0.2rem;font-size:0.75rem;white-space:nowrap;">${fmtTime(slot.start)}\u2013${fmtTime(slot.start + sessionMin)}${perTimeslot > 1 ? ' (' + pInSlot + 'p)' : ''}</span>`;
       }
@@ -1261,17 +1272,19 @@ function updateCalc() {
       participantsRemaining -= dayParticipants;
       d = addDays(d, 1);
     }
+    const ttOpen = timetableWasOpen ? 'block' : 'none';
+    const ttChev = timetableWasOpen ? '\u25BC' : '\u25B6';
     timetableHTML = `
       <div style="margin-top:1rem;">
-        <button onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('.chev').textContent=this.nextElementSibling.style.display==='none'?'\u25B6':'\u25BC';" style="background:none;border:none;cursor:pointer;font-size:0.85rem;font-weight:600;color:var(--accent-dark);font-family:'DM Sans',sans-serif;padding:0;display:flex;align-items:center;gap:0.4rem;">
-          <span class="chev" style="font-size:0.7rem;">\u25B6</span> Timetable overview
+        <button onclick="var b=document.getElementById('timetable-body');b.style.display=b.style.display==='none'?'block':'none';this.querySelector('.chev').textContent=b.style.display==='none'?'\u25B6':'\u25BC';" style="background:none;border:none;cursor:pointer;font-size:0.85rem;font-weight:600;color:var(--accent-dark);font-family:'DM Sans',sans-serif;padding:0;display:flex;align-items:center;gap:0.4rem;">
+          <span class="chev" style="font-size:0.7rem;">${ttChev}</span> Timetable overview
         </button>
-        <div style="display:none;margin-top:0.5rem;overflow-x:auto;">
+        <div id="timetable-body" style="display:${ttOpen};margin-top:0.5rem;overflow-x:auto;">
           <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
             <thead><tr><th style="text-align:left;padding:0.35rem 0.75rem 0.35rem 0;border-bottom:2px solid var(--border);font-size:0.8rem;">Day</th><th style="text-align:left;padding:0.35rem 0;border-bottom:2px solid var(--border);font-size:0.8rem;">Timeslots</th><th style="text-align:left;padding:0.35rem 0 0.35rem 0.75rem;border-bottom:2px solid var(--border);font-size:0.8rem;">Total</th></tr></thead>
             <tbody>${dayRows}</tbody>
           </table>
-          <p style="font-size:0.7rem;color:var(--text-muted);margin-top:0.5rem;">Lunch break: ${fmtTime(lunchStartMin)}\u2013${fmtTime(lunchStartMin + lunch)}. Weekends and public holidays are skipped.</p>
+          <p style="font-size:0.7rem;color:var(--text-muted);margin-top:0.5rem;">Weekends and public holidays are skipped.</p>
         </div>
       </div>`;
   }
@@ -1287,7 +1300,7 @@ function updateCalc() {
       <div><strong>Total lab days needed</strong></div><div class="mono" style="font-weight:700;color:var(--accent-dark);">${totalDays} day${totalDays !== 1 ? 's' : ''}</div>
     </div>
     <p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.75rem;line-height:1.5;">
-      \u2192 Book the lab and equipment for at least <strong>${totalDays} day${totalDays !== 1 ? 's' : ''}</strong>. Consider adding 1\u20132 extra days for no-shows and technical issues. Each session is ${sessionMin} min${buffer > 0 ? ` + ${buffer} min buffer` : ''} = ${slotDuration} min per slot.
+      \u2192 Book the lab and equipment for at least <strong>${totalDays} day${totalDays !== 1 ? 's' : ''}</strong>. Consider adding 1\u20132 extra days for no-shows and technical issues. Each session is ${sessionMin} min${buffer > 0 ? ` + ${buffer} min buffer` : ''} = ${slotDuration} min per slot. Coordinate with other researchers weeks in advance \u2014 the lab may already be booked by others planning experiments in the same period.
     </p>${timetableHTML}`;
 }
 
