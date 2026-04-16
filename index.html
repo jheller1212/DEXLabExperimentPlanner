@@ -828,7 +828,7 @@ select { cursor: pointer; }
     <div class="plan-header">
       <div>
         <h2 id="plan-title">Your Experiment Plan</h2>
-        <button class="change-role-link" onclick="startOver()">Start over</button>
+        <button class="change-role-link" onclick="editSetup()">Edit setup</button>
       </div>
       <div class="plan-actions">
         <button class="btn btn-sm btn-primary" onclick="copyShareLink()">Copy Link</button>
@@ -2078,8 +2078,36 @@ function updateProgress(checked, total) {
 }
 
 // ── Navigation ──
-function startOver() {
-  resetState();
+function editSetup() {
+  // Go back to setup screens, preserving all state
+  selectRole(state.role);
+  document.getElementById('name-input').value = state.name || '';
+  document.getElementById('title-input').value = state.studyTitle || '';
+  document.getElementById('supervisor-email-input').value = state.supervisorEmail || '';
+  if (state.thesisDeadline) document.getElementById('thesis-deadline-input').value = state.thesisDeadline;
+  // Restore lab calculator fields if data exists
+  if (state.labCalc) {
+    const lc = state.labCalc;
+    if (lc.conditions) document.getElementById('calc-conditions').value = lc.conditions;
+    if (lc.design) document.getElementById('calc-design').value = lc.design;
+    if (lc.sessionMin) document.getElementById('calc-session-duration').value = lc.sessionMin;
+    if (lc.perTimeslot) document.getElementById('calc-per-timeslot').value = lc.perTimeslot;
+    document.getElementById('calc-buffer').value = lc.buffer || 0;
+    if (lc.startMin != null) document.getElementById('calc-lab-start').value = fmtTime(lc.startMin);
+    if (lc.endMin != null) document.getElementById('calc-lab-end').value = fmtTime(lc.endMin);
+    if (lc.lunch != null) document.getElementById('calc-lunch').value = lc.lunch;
+    if (lc.lunchStartMin != null) document.getElementById('calc-lunch-start').value = fmtTime(lc.lunchStartMin);
+    // Re-derive n-per-condition from totalN and design
+    if (lc.totalN && lc.conditions) {
+      const npc = (lc.design === 'within') ? lc.totalN : Math.round(lc.totalN / lc.conditions);
+      document.getElementById('calc-n-per-condition').value = npc;
+    }
+    // Expand the calculator section and recompute
+    document.getElementById('lab-calc-section').classList.remove('collapsed');
+    updateCalc();
+  }
+  if (state.bpStart) showConfirmation();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function resetState() {
