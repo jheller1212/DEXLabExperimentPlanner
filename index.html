@@ -19,6 +19,23 @@ body {
   min-height: 100vh;
 }
 
+/* ── Skip link ── */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 0;
+  background: var(--navy, #1b2a4a);
+  color: #fff;
+  padding: 0.5rem 1rem;
+  z-index: 9999;
+  font-size: 0.9rem;
+  text-decoration: none;
+  border-radius: 0 0 8px 0;
+}
+.skip-link:focus {
+  top: 0;
+}
+
 /* ── Brand Colors (DEXLab) ── */
 :root {
   --dex-blue: #1a9bd7;
@@ -135,7 +152,7 @@ h1, h2, h3 { font-family: 'Fraunces', serif; font-weight: 700; color: var(--navy
 
 /* ── Form elements ── */
 label { display: block; font-weight: 500; margin-bottom: 0.35rem; font-size: 0.9rem; color: var(--navy); }
-select, input[type="date"], input[type="text"], input[type="number"], input[type="email"] {
+select, input[type="date"], input[type="text"], input[type="number"], input[type="email"], input[type="time"] {
   width: 100%;
   padding: 0.6rem 0.75rem;
   background: var(--surface-alt);
@@ -296,6 +313,7 @@ select { cursor: pointer; }
 .timeline-list {
   position: relative;
   padding: 0.25rem 0 0.25rem 2rem;
+  list-style: none;
 }
 .timeline-list::before {
   content: '';
@@ -654,6 +672,7 @@ select { cursor: pointer; }
 </style>
 </head>
 <body>
+<a href="#screen-role" class="skip-link">Skip to content</a>
 <div class="container">
 
   <!-- Header -->
@@ -723,9 +742,9 @@ select { cursor: pointer; }
       <div class="yn-group">
         <span style="font-size:0.85rem;">Adjust period length if needed:</span>
         <div class="stepper">
-          <button onclick="adjustWeeks(-1)">&minus;</button>
+          <button onclick="adjustWeeks(-1)" aria-label="Decrease weeks">&minus;</button>
           <span class="stepper-value" id="weeks-display"></span>
-          <button onclick="adjustWeeks(1)">+</button>
+          <button onclick="adjustWeeks(1)" aria-label="Increase weeks">+</button>
         </div>
         <span style="font-size:0.8rem;color:var(--text-muted);">weeks</span>
       </div>
@@ -746,7 +765,7 @@ select { cursor: pointer; }
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
           <div class="form-row">
             <label for="calc-conditions">Number of conditions</label>
-            <input type="number" id="calc-conditions" min="1" max="20" value="2" onchange="updateCalc()">
+            <input type="number" id="calc-conditions" min="1" max="20" value="2" inputmode="numeric" onchange="updateCalc()">
           </div>
           <div class="form-row">
             <label for="calc-design">Study design</label>
@@ -758,35 +777,35 @@ select { cursor: pointer; }
           </div>
           <div class="form-row">
             <label for="calc-n-per-condition">Participants per condition</label>
-            <input type="number" id="calc-n-per-condition" min="1" max="500" value="50" onchange="updateCalc()">
+            <input type="number" id="calc-n-per-condition" min="1" max="500" value="50" inputmode="numeric" onchange="updateCalc()">
           </div>
           <div class="form-row">
             <label for="calc-session-duration">Session duration (minutes)</label>
-            <input type="number" id="calc-session-duration" min="5" max="240" value="30" onchange="updateCalc()">
+            <input type="number" id="calc-session-duration" min="5" max="240" value="30" inputmode="numeric" onchange="updateCalc()">
           </div>
           <div class="form-row">
             <label for="calc-per-timeslot">Participants per timeslot</label>
-            <input type="number" id="calc-per-timeslot" min="1" max="50" value="1" onchange="updateCalc()">
+            <input type="number" id="calc-per-timeslot" min="1" max="50" value="1" inputmode="numeric" onchange="updateCalc()">
           </div>
           <div class="form-row">
             <label for="calc-buffer" style="display:flex;align-items:center;gap:0.3rem;">Buffer between sessions (min) <span title="Only set this above 0 if you need substantial time between timeslots, e.g. to reset equipment or clean the lab." style="cursor:help;display:inline-flex;align-items:center;justify-content:center;width:1rem;height:1rem;border-radius:50%;background:var(--border);color:var(--text-muted);font-size:0.65rem;font-weight:700;line-height:1;">?</span></label>
-            <input type="number" id="calc-buffer" min="0" max="30" value="0" onchange="updateCalc()">
+            <input type="number" id="calc-buffer" min="0" max="30" value="0" inputmode="numeric" onchange="updateCalc()">
           </div>
           <div class="form-row">
             <label for="calc-lab-start">Lab available from</label>
-            <input type="text" id="calc-lab-start" value="09:00" onchange="updateCalc()">
+            <input type="time" id="calc-lab-start" value="09:00" onchange="updateCalc()">
           </div>
           <div class="form-row">
             <label for="calc-lab-end">Lab available until</label>
-            <input type="text" id="calc-lab-end" value="17:00" onchange="updateCalc()">
+            <input type="time" id="calc-lab-end" value="17:00" onchange="updateCalc()">
           </div>
           <div class="form-row">
             <label for="calc-lunch">Lunch break (minutes)</label>
-            <input type="number" id="calc-lunch" min="0" max="120" value="30" onchange="updateCalc()">
+            <input type="number" id="calc-lunch" min="0" max="120" value="30" inputmode="numeric" onchange="updateCalc()">
           </div>
           <div class="form-row">
             <label for="calc-lunch-start">Lunch starts at</label>
-            <input type="text" id="calc-lunch-start" value="12:00" onchange="updateCalc()">
+            <input type="time" id="calc-lunch-start" value="12:00" onchange="updateCalc()">
           </div>
         </div>
 
@@ -830,7 +849,7 @@ select { cursor: pointer; }
           Most students need 1&ndash;2 weeks. Post-collection milestones (analysis, writing) will adjust automatically.
         </p>
         <div style="display:flex;align-items:center;gap:0.5rem;">
-          <input type="number" id="collection-weeks-input" min="1" max="6" value="1" style="width:5rem;">
+          <input type="number" id="collection-weeks-input" min="1" max="6" value="1" inputmode="numeric" style="width:5rem;">
           <span style="font-size:0.85rem;color:var(--text-muted);">week(s)</span>
         </div>
       </div>
@@ -909,7 +928,7 @@ select { cursor: pointer; }
     <!-- 5a: Timeline -->
     <div class="card">
       <p class="section-title">Timeline</p>
-      <div class="timeline-list" id="timeline-list"></div>
+      <ol class="timeline-list" id="timeline-list"></ol>
     </div>
 
     <!-- 5b: Milestone table -->
@@ -2020,32 +2039,32 @@ function renderTimeline(milestones, holidays, today) {
     // Insert today marker before the first future item
     if (!todayInserted && item.date >= today) {
       todayInserted = true;
-      const todayDiv = document.createElement('div');
-      todayDiv.className = 'tl-today';
-      todayDiv.innerHTML = `<span class="tl-today-badge">Today \u2014 ${formatDateShort(today)}</span>`;
-      list.appendChild(todayDiv);
+      const todayLi = document.createElement('li');
+      todayLi.className = 'tl-today';
+      todayLi.innerHTML = `<span class="tl-today-badge">Today \u2014 ${formatDateShort(today)}</span>`;
+      list.appendChild(todayLi);
     }
 
-    const div = document.createElement('div');
+    const li = document.createElement('li');
     const isPast = item.date < today;
     const isHoliday = item.type === 'holiday';
     const isOverdue = isPast && !isHoliday && !item.checked;
     const isKey = item.keyDate && !isPast;
     const isLabDay = item.labDay;
-    div.className = `tl-item${isLabDay ? ' lab-day' : ''}${isKey ? ' key-date' : (isOverdue ? ' overdue' : (isPast ? ' past' : ''))}${isHoliday ? ' holiday-item' : ''}`;
-    div.innerHTML = `
+    li.className = `tl-item${isLabDay ? ' lab-day' : ''}${isKey ? ' key-date' : (isOverdue ? ' overdue' : (isPast ? ' past' : ''))}${isHoliday ? ' holiday-item' : ''}`;
+    li.innerHTML = `
       <div class="tl-dot${isOverdue ? '' : (isPast ? ' past' : '')}${isHoliday ? ' holiday' : ''}"></div>
       <span class="tl-date">${formatDateShort(item.date)}</span>
       <span class="tl-label">${item.label}${isOverdue ? ' \u2014 OVERDUE' : ''}</span>`;
-    list.appendChild(div);
+    list.appendChild(li);
   });
 
   // If all items are past, insert today at the end
   if (!todayInserted) {
-    const todayDiv = document.createElement('div');
-    todayDiv.className = 'tl-today';
-    todayDiv.innerHTML = `<span class="tl-today-badge">Today \u2014 ${formatDateShort(today)}</span>`;
-    list.appendChild(todayDiv);
+    const todayLi = document.createElement('li');
+    todayLi.className = 'tl-today';
+    todayLi.innerHTML = `<span class="tl-today-badge">Today \u2014 ${formatDateShort(today)}</span>`;
+    list.appendChild(todayLi);
   }
 }
 
@@ -2057,9 +2076,9 @@ function renderMilestoneTable(milestones, today) {
     const diff = daysBetween(today, m.date);
     let statusClass, statusText;
     if (diff < 0) { statusClass = 'status-past'; statusText = '\u2713 Past'; tr.className = 'past'; }
-    else if (diff === 0) { statusClass = 'status-today'; statusText = 'Today'; }
+    else if (diff === 0) { statusClass = 'status-today'; statusText = '\u25CF Today'; }
     else if (diff <= 7) { statusClass = 'status-urgent'; statusText = `\u26A0 ${diff} day${diff !== 1 ? 's' : ''}`; }
-    else { statusClass = 'status-ok'; statusText = `${diff} days`; }
+    else { statusClass = 'status-ok'; statusText = `\u2014 ${diff} days`; }
     tr.innerHTML = `
       <td>${m.label}${m.optional ? ' <span style="color:var(--text-muted);font-size:0.75rem;">(optional)</span>' : ''}</td>
       <td class="ms-date">${formatDate(m.date)}</td>
