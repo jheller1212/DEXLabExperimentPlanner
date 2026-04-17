@@ -1080,6 +1080,8 @@ body.dark .skip-link { background: #334155; }
         <button class="btn btn-sm btn-ghost" onclick="showGoogleCalPanel()">Google Calendar</button>
         <button class="btn btn-sm btn-ghost" onclick="window.print()">Print / PDF</button>
         <button class="btn btn-sm btn-ghost" onclick="resetState()">Reset</button>
+        <button class="btn btn-sm btn-ghost" onclick="openFeedback();return false;">Give Feedback</button>
+        <button class="btn btn-sm btn-ghost" onclick="replayTour()">Feature Tour</button>
       </div>
     </div>
 
@@ -1266,10 +1268,7 @@ body.dark .skip-link { background: #334155; }
       This is an internal DEXLab planning tool. No rights can be derived from the suggested deadlines. Always align with your supervisor on actual timelines and requirements.
     </div>
 
-    <!-- Feedback -->
-    <div style="margin-top:0.75rem;text-align:center;">
-      <a class="btn btn-sm btn-ghost" id="feedback-link" href="#" onclick="openFeedback();return false;" style="text-decoration:none;">Give Feedback</a>
-    </div>
+    <!-- Feedback (button moved to plan header) -->
 
     <!-- Completion prompt -->
     <div id="completion-prompt" style="display:none;margin-top:1rem;padding:1rem;background:var(--accent-light);border:1px solid var(--accent);border-radius:8px;text-align:center;">
@@ -1283,7 +1282,7 @@ body.dark .skip-link { background: #334155; }
 
     <!-- Print footer -->
     <div class="print-footer" id="print-footer"></div>
-    <div style="text-align:center;margin-top:1.5rem;"><a href="javascript:replayTour()" style="font-size:0.75rem;color:var(--text-muted);text-decoration:none;border-bottom:1px dashed var(--border);">Show feature tour</a></div>
+    <!-- Tour replay button moved to plan header -->
   </div>
 
 </div>
