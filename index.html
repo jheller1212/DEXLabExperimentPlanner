@@ -811,7 +811,7 @@ body.dark .skip-link { background: #334155; }
 .tour-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 3000; transition: opacity 0.2s; }
 .tour-highlight { position: relative; z-index: 3001; box-shadow: 0 0 0 4px var(--accent), 0 0 0 9999px rgba(0,0,0,0.45); border-radius: 8px; transition: box-shadow 0.3s; }
 .tour-tooltip {
-  position: absolute; z-index: 3002; background: var(--surface); border: 1px solid var(--border);
+  position: fixed; z-index: 3002; background: var(--surface); border: 1px solid var(--border);
   border-radius: 10px; padding: 1rem 1.15rem; max-width: 320px; width: max-content;
   box-shadow: 0 8px 30px rgba(0,0,0,0.18); font-size: 0.85rem; line-height: 1.5; color: var(--text-primary);
 }
@@ -3500,9 +3500,11 @@ function showTourStep(index) {
     return;
   }
 
-  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  // Scroll element into view instantly so getBoundingClientRect is accurate
+  el.scrollIntoView({ behavior: 'instant', block: 'center' });
 
-  setTimeout(function() {
+  // Small delay for repaint, then position tooltip using fixed coordinates
+  requestAnimationFrame(function() { requestAnimationFrame(function() {
     if (!_tourActive) return;
     el.classList.add('tour-highlight');
 
@@ -3520,24 +3522,32 @@ function showTourStep(index) {
       '</div>';
     document.body.appendChild(tooltip);
 
+    // Position using viewport-relative (fixed) coordinates
     var rect = el.getBoundingClientRect();
     var ttRect = tooltip.getBoundingClientRect();
-    var top = rect.bottom + window.scrollY + 12;
-    var left = rect.left + window.scrollX + (rect.width / 2) - (ttRect.width / 2);
+
+    // Default: below the element
+    var top = rect.bottom + 12;
+    var left = rect.left + (rect.width / 2) - (ttRect.width / 2);
+
+    // Clamp horizontally
     left = Math.max(8, Math.min(left, window.innerWidth - ttRect.width - 8));
-    // If tooltip would go below viewport, place above the element
-    if (rect.bottom + ttRect.height + 20 > window.innerHeight) {
-      top = rect.top + window.scrollY - ttRect.height - 12;
+
+    // If tooltip goes below viewport, place above the element
+    if (top + ttRect.height + 8 > window.innerHeight) {
+      top = rect.top - ttRect.height - 12;
     }
-    // Ensure tooltip never goes above the page
-    top = Math.max(window.scrollY + 8, top);
+    // If still off-screen (above viewport), just pin to bottom
+    if (top < 8) {
+      top = window.innerHeight - ttRect.height - 8;
+    }
+
     tooltip.style.top = top + 'px';
     tooltip.style.left = left + 'px';
-    // Scroll tooltip into view if needed
-    tooltip.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
     var nextBtn = tooltip.querySelector('.tour-btn-next') || tooltip.querySelector('.tour-btn-skip');
     if (nextBtn) nextBtn.focus();
-  }, 350);
+  }); });
 }
 
 document.addEventListener('keydown', function(e) {
