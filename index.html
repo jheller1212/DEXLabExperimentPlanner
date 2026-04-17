@@ -825,12 +825,22 @@ select { cursor: pointer; }
         <input type="date" id="thesis-deadline-input">
       </div>
       <div class="form-row" style="margin-top:0.75rem;">
-        <label for="collection-weeks-input">How long will data collection take?</label>
+        <label for="collection-days-input">How long will data collection take?</label>
         <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.35rem;line-height:1.5;">
-          Most students need 1&ndash;2 weeks. Post-collection milestones (analysis, writing) will adjust automatically.
+          Number of lab days. This autofills once you use the Lab Time Calculator above.
         </p>
         <div style="display:flex;align-items:center;gap:0.5rem;">
-          <input type="number" id="collection-weeks-input" min="1" max="6" value="1" style="width:5rem;">
+          <input type="number" id="collection-days-input" min="1" max="60" value="5" style="width:5rem;" onchange="onCollectionDaysChange()">
+          <span style="font-size:0.85rem;color:var(--text-muted);">day(s)</span>
+        </div>
+      </div>
+      <div class="form-row" style="margin-top:0.75rem;">
+        <label for="analysis-weeks-input">How long will data analysis take?</label>
+        <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.35rem;line-height:1.5;">
+          Analysis starts one day after data collection ends. Default is 1 week.
+        </p>
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+          <input type="number" id="analysis-weeks-input" min="1" max="12" value="1" style="width:5rem;">
           <span style="font-size:0.85rem;color:var(--text-muted);">week(s)</span>
         </div>
       </div>
@@ -1116,8 +1126,22 @@ function computeMilestones() {
   const thesisDate = state.thesisDeadline ? parseDate(state.thesisDeadline) : null;
   const rangeEnd = (thesisDate && thesisDate > bpEnd) ? thesisDate : bpEnd;
   const holidaySet = buildHolidaySet(addDays(bpStart, -60), rangeEnd);
-  // Compute data collection end date
-  const collectionEndDate = addDays(weekStart, (state.collectionWeeks || 1) * 7 - 1);
+  // Collection is measured in lab (working) days. Step through working days
+  // from weekStart to find the final collection day.
+  const collectionDays = Math.max(1, state.collectionDays || 5);
+  let lastCollectionDay = nextWorkingDay(weekStart, holidaySet);
+  {
+    let d = new Date(lastCollectionDay);
+    for (let i = 1; i < collectionDays; i++) {
+      d = nextWorkingDay(addDays(d, 1), holidaySet);
+    }
+    lastCollectionDay = d;
+  }
+  const collectionEndDate = lastCollectionDay;
+  // Analysis can only start one day after the last day of data collection.
+  const analysisWeeks = Math.max(1, state.analysisWeeks || 1);
+  const analysisStartDate = nextWorkingDay(addDays(collectionEndDate, 1), holidaySet);
+  const analysisEndDate = addDays(analysisStartDate, analysisWeeks * 7 - 1);
 
   const roleMilestones = MILESTONES.filter(m => {
     if (!m.roles.includes(state.role)) return false;
@@ -1130,17 +1154,18 @@ function computeMilestones() {
     if (m.id === 'equipment_prep') {
       // Must be at least 1 working day before data collection
       date = prevWorkingDay(addDays(weekStart, -1), holidaySet);
+    } else if (m.id === 'data_cleaning') {
+      date = analysisStartDate;
+    } else if (m.id === 'analysis_complete') {
+      date = analysisEndDate;
     } else if (m.id !== 'data_collection') {
       date = nextWorkingDay(date, holidaySet);
     }
     // Enrich data_collection label with collection period
     if (m.id === 'data_collection') {
-      const cw = state.collectionWeeks || 1;
       const endDate = new Date(collectionEndDate);
-      let extraLabel = `${cw} week${cw > 1 ? 's' : ''}`;
-      if (state.labCalc && state.labCalc.totalDays) {
-        extraLabel += `, ${state.labCalc.totalDays} lab day${state.labCalc.totalDays > 1 ? 's' : ''}`;
-      }
+      const cd = collectionDays;
+      const extraLabel = `${cd} lab day${cd !== 1 ? 's' : ''}`;
       return { ...m, date, label: `Data collection: ${formatDateShort(date)} \u2192 ${formatDateShort(endDate)} (${extraLabel})`, endDate };
     }
     const label = (state.role === 'master' && m.masterLabel) ? m.masterLabel : m.label;
@@ -1150,7 +1175,7 @@ function computeMilestones() {
   // Add individual experiment day milestones
   const dataCollectionItem = result.find(m => m.id === 'data_collection');
   if (dataCollectionItem) {
-    const totalDays = (state.labCalc && state.labCalc.totalDays) ? state.labCalc.totalDays : (state.manualLabDays || 0);
+    const totalDays = collectionDays;
     if (totalDays > 0) {
       const ppd = (state.labCalc && state.labCalc.participantsPerDay) ? state.labCalc.participantsPerDay : null;
       let d = new Date(dataCollectionItem.date);
@@ -1258,6 +1283,13 @@ function updateCalc() {
     startMin, endMin, lunchStartMin, lunch
   };
 
+  // Autofill the collection-days field with the calculator's recommended days.
+  if (typeof totalDays === 'number' && totalDays > 0) {
+    state.collectionDays = totalDays;
+    const cdInput = document.getElementById('collection-days-input');
+    if (cdInput) cdInput.value = totalDays;
+  }
+
   // Check if timetable is currently open before rebuilding
   const ttBody = document.getElementById('timetable-body');
   const timetableWasOpen = ttBody && ttBody.style.display !== 'none';
@@ -1353,8 +1385,8 @@ const MILESTONES = [
   { id: "data_collection", label: "Data collection starts", offsetDays: 0, relativeTo: "week", roles: ["master","phd"], optional: false, section: "phase4_go", keyDate: true, note: "Your chosen data collection week begins. SONA participant slots open earlier (when requested by the SONA coordinator) so students can sign up in advance.", dynamic: true },
   // ── Phase 5: After data collection (master thesis) ──
   { id: "prepare_measures", label: "Prepare variables, scales, and analysis plan", offsetDays: -7, relativeTo: "week", roles: ["master"], optional: false, section: "phase3_before_experiment", note: "Define your dependent and independent variables, finalize measurement scales, plan manipulation checks, and outline your analysis strategy. Having this ready before data collection means you can start analysis immediately once data is in." },
-  { id: "data_cleaning", label: "Data cleaning and preparation", offsetDays: 3, relativeTo: "collectionEnd", roles: ["master"], optional: false, section: "phase5_thesis", note: "Export data, check for exclusions, clean variables, and prepare your analysis dataset. Do this before diving into results \u2014 a clean dataset saves hours of debugging later." },
-  { id: "analysis_complete", label: "Data analysis complete", offsetDays: 14, relativeTo: "collectionEnd", roles: ["master"], optional: false, section: "phase5_thesis", note: "Run your pre-registered analyses and any exploratory analyses. Document your steps so you can write the results section directly from your output." },
+  { id: "data_cleaning", label: "Data analysis starts \u2014 cleaning and preparation", offsetDays: 1, relativeTo: "collectionEnd", roles: ["master"], optional: false, section: "phase5_thesis", note: "Analysis starts the day after data collection ends. Export data, check for exclusions, clean variables, and prepare your analysis dataset. A clean dataset saves hours of debugging later." },
+  { id: "analysis_complete", label: "Data analysis complete", offsetDays: 0, relativeTo: "collectionEnd", roles: ["master"], optional: false, section: "phase5_thesis", note: "End of your analysis window (set on the setup screen). Run your pre-registered analyses and any exploratory analyses. Document your steps so you can write the results section directly from your output." },
   { id: "first_draft", label: "First full draft to supervisor", offsetDays: -28, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", keyDate: true, note: "Submit a complete first draft — intro, method, results, and discussion. It does not need to be perfect, but it needs to be complete. Your supervisor needs enough to give meaningful feedback." },
   { id: "supervisor_feedback", label: "Receive supervisor feedback", offsetDays: -18, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", note: "Expect ~7–10 days for your supervisor to review. Use this time to polish figures, check references, and proofread. If you haven't heard back, send a reminder." },
   { id: "revision_complete", label: "Revisions complete — final draft ready", offsetDays: -7, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", note: "Incorporate all supervisor feedback. This is your last chance to improve content. After this, only formatting and final checks remain." },
@@ -1382,7 +1414,8 @@ let state = {
   thesisDeadline: null,
   supervisorEmail: "",
   manualLabDays: 0,
-  collectionWeeks: 1,
+  collectionDays: 5,
+  analysisWeeks: 1,
   checkedItems: [],
   lastUpdated: null,
 };
@@ -1401,7 +1434,8 @@ function encodeState() {
   if (state.weekStart && state.weekStart !== state.bpStart) params.set('ws', compactDate(state.weekStart));
   if (state.bpWeeks !== 8) params.set('w', state.bpWeeks);
   if (state.thesisDeadline) params.set('td', compactDate(state.thesisDeadline));
-  if (state.collectionWeeks && state.collectionWeeks !== 1) params.set('cw', state.collectionWeeks);
+  if (state.collectionDays && state.collectionDays !== 5) params.set('cd', state.collectionDays);
+  if (state.analysisWeeks && state.analysisWeeks !== 1) params.set('aw', state.analysisWeeks);
   if (state.manualLabDays) params.set('ml', state.manualLabDays);
   // Supervisor email and checked items are personal — saved in localStorage only
   return params.toString();
@@ -1424,7 +1458,15 @@ function decodeState(hash) {
         state.weekStart = expandDate(p.get('ws')) || state.bpStart;
         state.bpWeeks = parseInt(p.get('w')) || 8;
         state.thesisDeadline = expandDate(p.get('td')) || null;
-        state.collectionWeeks = parseInt(p.get('cw')) || 1;
+        if (p.get('cd')) {
+          state.collectionDays = parseInt(p.get('cd')) || 5;
+        } else if (p.get('cw')) {
+          // Legacy: cw was collection weeks. Convert to ~5 working days/week.
+          state.collectionDays = (parseInt(p.get('cw')) || 1) * 5;
+        } else {
+          state.collectionDays = 5;
+        }
+        state.analysisWeeks = parseInt(p.get('aw')) || 1;
         state.supervisorEmail = p.get('se') || "";
         state.manualLabDays = parseInt(p.get('ml')) || 0;
         state.checkedItems = p.get('c') ? p.get('c').split(',') : [];
@@ -1471,10 +1513,9 @@ function copyShareLink() {
 }
 
 function copyProgressSummary() {
-  const bpStart = parseDate(state.bpStart);
-  const bpEnd = addDays(bpStart, state.bpWeeks * 7 - 1);
   const today = new Date(); today.setHours(0,0,0,0);
   const computed = computeMilestones();
+  const dc = computed.find(m => m.id === 'data_collection');
 
   const total = computed.length;
   const done = computed.filter(m => state.checkedItems.includes(m.id)).length;
@@ -1486,7 +1527,7 @@ function copyProgressSummary() {
   lines.push(`DEXLab Experiment Planner \u2014 Progress Update`);
   lines.push(`${displayName}${titleLine}`);
   lines.push(`Role: ${state.role === 'phd' ? 'PhD Researcher' : 'Master Student'}`);
-  lines.push(`Data collection: ${formatDate(bpStart)} \u2192 ${formatDate(bpEnd)}`);
+  if (dc) lines.push(`Data collection: ${formatDate(dc.date)} \u2192 ${formatDate(dc.endDate)}`);
   lines.push(`Overall: ${done}/${total} milestones complete (${pct}%)`);
   lines.push('');
 
@@ -1523,10 +1564,9 @@ function copyProgressSummary() {
 
 // ── Supervisor Update ──
 function buildSupervisorBody() {
-  const bpStart = parseDate(state.bpStart);
-  const bpEnd = addDays(bpStart, state.bpWeeks * 7 - 1);
   const today = new Date(); today.setHours(0,0,0,0);
   const computed = computeMilestones();
+  const dc = computed.find(m => m.id === 'data_collection');
 
   const total = computed.length;
   const done = computed.filter(m => state.checkedItems.includes(m.id)).length;
@@ -1547,7 +1587,7 @@ function buildSupervisorBody() {
   }
 
   lines.push(`Progress: ${done}/${total} milestones complete (${pct}%)`);
-  lines.push(`Data collection: ${formatDate(bpStart)} \u2192 ${formatDate(bpEnd)}`);
+  if (dc) lines.push(`Data collection: ${formatDate(dc.date)} \u2192 ${formatDate(dc.endDate)}`);
   if (state.thesisDeadline) lines.push(`Thesis deadline: ${formatDate(parseDate(state.thesisDeadline))}`);
   lines.push('');
 
@@ -1828,10 +1868,17 @@ function showConfirmation() {
   const thesisCard = document.getElementById('thesis-deadline-card');
   thesisCard.style.display = state.role === 'master' ? 'block' : 'none';
   if (state.thesisDeadline) document.getElementById('thesis-deadline-input').value = state.thesisDeadline;
-  document.getElementById('collection-weeks-input').value = state.collectionWeeks || 1;
+  document.getElementById('collection-days-input').value = state.collectionDays || 5;
+  document.getElementById('analysis-weeks-input').value = state.analysisWeeks || 1;
   saveState();
   // Run calculator so results and timetable are shown immediately
   updateCalc();
+}
+
+function onCollectionDaysChange() {
+  const val = parseInt(document.getElementById('collection-days-input').value) || 1;
+  state.collectionDays = Math.max(1, Math.min(60, val));
+  saveState();
 }
 
 function adjustWeeks(delta) {
@@ -1875,27 +1922,19 @@ function renderDatesDisplay() {
   const bpStart = parseDate(state.bpStart);
   const bpEnd = addDays(bpStart, state.bpWeeks * 7 - 1);
   const weekStart = parseDate(state.weekStart || state.bpStart);
-  const hasCalc = state.labCalc && state.labCalc.totalDays;
-  const labDays = hasCalc ? state.labCalc.totalDays : state.manualLabDays;
+  const cd = state.collectionDays || 5;
+  // Use the milestone engine so the displayed end date matches the timeline.
+  const dc = computeMilestones().find(m => m.id === 'data_collection');
+  const collEnd = dc && dc.endDate ? dc.endDate : addDays(weekStart, cd - 1);
   let html = `<div style="display:grid;grid-template-columns:auto 1fr;gap:0.25rem 1rem;font-size:0.85rem;">`;
   html += `<span style="color:var(--text-muted);">Block period</span><span class="mono">${formatDate(bpStart)} \u2192 ${formatDate(bpEnd)}</span>`;
   if (state.weekStart && state.weekStart !== state.bpStart) {
-    const cw = state.collectionWeeks || 1;
-    const collEnd = addDays(weekStart, cw * 7 - 1);
-    html += `<span style="color:var(--text-muted);">Data collection</span><span class="mono">${formatDate(weekStart)} \u2192 ${formatDate(collEnd)} (${cw} week${cw > 1 ? 's' : ''})</span>`;
+    html += `<span style="color:var(--text-muted);">Data collection</span><span class="mono">${formatDate(weekStart)} \u2192 ${formatDate(collEnd)} (${cd} day${cd !== 1 ? 's' : ''})</span>`;
   }
   if (state.thesisDeadline) {
     html += `<span style="color:var(--text-muted);">Thesis deadline</span><span class="mono" style="font-weight:600;color:var(--accent-dark);">${formatDate(parseDate(state.thesisDeadline))}</span>`;
   }
   html += `</div>`;
-  // Show lab days input if calculator wasn't used
-  if (!hasCalc) {
-    html += `<div style="margin-top:0.75rem;display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;">`;
-    html += `<label for="manual-lab-days" style="color:var(--text-muted);margin:0;font-size:0.85rem;">Lab days:</label>`;
-    html += `<input type="number" id="manual-lab-days" min="0" max="30" value="${state.manualLabDays || ''}" placeholder="e.g. 5" style="width:5rem;padding:0.3rem 0.5rem;font-size:0.85rem;" onchange="onManualLabDaysChange()">`;
-    html += `<span style="color:var(--text-muted);font-size:0.8rem;">Adds individual experiment days to your timeline</span>`;
-    html += `</div>`;
-  }
   document.getElementById('plan-dates-display').innerHTML = html;
 }
 
@@ -1912,7 +1951,8 @@ function generatePlan() {
   state.studyTitle = document.getElementById('title-input').value.trim();
   const thesisInput = document.getElementById('thesis-deadline-input').value;
   state.thesisDeadline = thesisInput || null;
-  state.collectionWeeks = parseInt(document.getElementById('collection-weeks-input').value) || 1;
+  state.collectionDays = parseInt(document.getElementById('collection-days-input').value) || 5;
+  state.analysisWeeks = parseInt(document.getElementById('analysis-weeks-input').value) || 1;
   state.supervisorEmail = document.getElementById('supervisor-email-input').value.trim();
   // Remind user to fill in lab calculator if they haven't
   if (!state.labCalc) {
@@ -2139,7 +2179,8 @@ function editSetup() {
   document.getElementById('title-input').value = state.studyTitle || '';
   document.getElementById('supervisor-email-input').value = state.supervisorEmail || '';
   if (state.thesisDeadline) document.getElementById('thesis-deadline-input').value = state.thesisDeadline;
-  document.getElementById('collection-weeks-input').value = state.collectionWeeks || 1;
+  document.getElementById('collection-days-input').value = state.collectionDays || 5;
+  document.getElementById('analysis-weeks-input').value = state.analysisWeeks || 1;
   // Restore lab calculator fields if data exists
   if (state.labCalc) {
     const lc = state.labCalc;
@@ -2168,7 +2209,7 @@ function editSetup() {
 function resetState() {
   if (!confirm('This will permanently delete your plan and all checked items. Make sure you\'ve saved your link (Copy Link) if you want to keep it.\n\nReset everything?')) return;
   window.onbeforeunload = null;
-  state = { version: 1, role: null, name: "", studyTitle: "", bpStart: null, weekStart: null, bpWeeks: 8, thesisDeadline: null, supervisorEmail: "", manualLabDays: 0, collectionWeeks: 1, checkedItems: [], lastUpdated: null };
+  state = { version: 1, role: null, name: "", studyTitle: "", bpStart: null, weekStart: null, bpWeeks: 8, thesisDeadline: null, supervisorEmail: "", manualLabDays: 0, collectionDays: 5, analysisWeeks: 1, checkedItems: [], lastUpdated: null };
   try { localStorage.removeItem("dexlab_planner_state"); } catch (e) {}
   history.replaceState(null, '', window.location.pathname);
   document.body.className = '';
