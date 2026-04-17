@@ -1080,8 +1080,10 @@ body.dark .skip-link { background: #334155; }
         <button class="btn btn-sm btn-ghost" onclick="showGoogleCalPanel()">Google Calendar</button>
         <button class="btn btn-sm btn-ghost" onclick="window.print()">Print / PDF</button>
         <button class="btn btn-sm btn-ghost" onclick="resetState()">Reset</button>
-        <button class="btn btn-sm btn-ghost" onclick="openFeedback();return false;">Give Feedback</button>
-        <button class="btn btn-sm btn-ghost" onclick="replayTour()">Feature Tour</button>
+      </div>
+      <div style="display:flex;gap:0.5rem;margin-top:0.5rem;">
+        <button class="btn btn-sm" onclick="replayTour()" style="background:var(--accent-light);color:var(--accent-dark);border:1.5px solid var(--accent);font-weight:600;">Feature Tour</button>
+        <button class="btn btn-sm" onclick="openFeedback();return false;" style="background:var(--lab-orange-light);color:var(--lab-orange-dark);border:1.5px solid var(--lab-orange);font-weight:600;">Give Feedback</button>
       </div>
     </div>
 
@@ -3429,17 +3431,24 @@ function isTourDone() {
   try { return !!localStorage.getItem('dexlab_tour_done'); } catch(e) { return true; }
 }
 
-function startTour(force) {
+function startTour(force, fromIndex) {
   if (!force && isTourDone()) return;
-  if (_tourActive) return; // already running or paused — let advanceTourForScreen handle resume
+  if (!force && _tourActive) return; // already running or paused
+  endTour(true); // clean up any existing tour state without saving
   _tourActive = true;
-  _tourStepIndex = 0;
-  showTourStep(0);
+  _tourStepIndex = fromIndex || 0;
+  showTourStep(_tourStepIndex);
 }
 
 function replayTour() {
   try { localStorage.removeItem('dexlab_tour_done'); } catch(e) {}
-  startTour(true);
+  // Find the first tour step whose screen is currently active
+  var startIdx = 0;
+  for (var i = 0; i < TOUR_STEPS.length; i++) {
+    var scr = document.getElementById(TOUR_STEPS[i].screen);
+    if (scr && scr.classList.contains('active')) { startIdx = i; break; }
+  }
+  startTour(true, startIdx);
 }
 
 function cleanupTourUI() {
@@ -3531,10 +3540,12 @@ function advanceTourForScreen() {
   }
 }
 
-function endTour() {
+function endTour(skipSave) {
   cleanupTourUI();
   _tourActive = false;
-  try { localStorage.setItem('dexlab_tour_done', '1'); } catch(e) {}
+  if (!skipSave) {
+    try { localStorage.setItem('dexlab_tour_done', '1'); } catch(e) {}
+  }
 }
 
 // Auto-start tour for first-time visitors
