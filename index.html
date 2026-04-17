@@ -896,12 +896,22 @@ select { cursor: pointer; }
         <input type="date" id="thesis-deadline-input">
       </div>
       <div class="form-row" style="margin-top:0.75rem;">
-        <label for="collection-weeks-input">How long will data collection take?</label>
+        <label for="collection-days-input">How long will data collection take?</label>
         <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.35rem;line-height:1.5;">
-          Most students need 1&ndash;2 weeks. Post-collection milestones (analysis, writing) will adjust automatically.
+          Number of lab days. This autofills once you use the Lab Time Calculator above.
         </p>
         <div style="display:flex;align-items:center;gap:0.5rem;">
-          <input type="number" id="collection-weeks-input" min="1" max="6" value="1" inputmode="numeric" style="width:5rem;">
+          <input type="number" id="collection-days-input" min="1" max="60" value="5" inputmode="numeric" style="width:5rem;" onchange="onCollectionDaysChange()">
+          <span style="font-size:0.85rem;color:var(--text-muted);">day(s)</span>
+        </div>
+      </div>
+      <div class="form-row" style="margin-top:0.75rem;">
+        <label for="analysis-weeks-input">How long will data analysis take?</label>
+        <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.35rem;line-height:1.5;">
+          Analysis starts one day after data collection ends. Default is 1 week.
+        </p>
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+          <input type="number" id="analysis-weeks-input" min="1" max="12" value="1" inputmode="numeric" style="width:5rem;">
           <span style="font-size:0.85rem;color:var(--text-muted);">week(s)</span>
         </div>
       </div>
@@ -975,6 +985,16 @@ select { cursor: pointer; }
       <div id="dates-changed-banner" style="display:none;margin-top:0.75rem;padding:0.6rem 0.85rem;background:var(--lab-orange-light);border:1px solid rgba(232,99,43,0.25);border-radius:8px;font-size:0.8rem;color:var(--lab-orange);">
         Dates updated — your plan has been recalculated. <a href="javascript:downloadICS()" style="color:var(--lab-orange);font-weight:600;">Re-download your calendar</a> to keep it in sync.
       </div>
+      <div style="margin-top:0.75rem;display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center;">
+        <button class="btn btn-sm btn-ghost" onclick="shiftSchedule()" title="Shift data collection (and everything anchored to it) by N days">Shift schedule &hellip;</button>
+        <span style="font-size:0.75rem;color:var(--text-muted);">Behind schedule? Shift data collection by N days \u2014 downstream milestones move with it.</span>
+      </div>
+    </div>
+
+    <!-- Workload rollup -->
+    <div class="card" id="workload-card" style="display:none;">
+      <p class="section-title" style="margin-bottom:0.5rem;">Estimated Workload</p>
+      <div id="workload-content" style="font-size:0.85rem;"></div>
     </div>
 
     <!-- 5a: Timeline -->
@@ -1011,6 +1031,66 @@ select { cursor: pointer; }
         As a DEXLab TIP student, you can book the lab and equipment yourself.
       </p>
       <a class="btn btn-sm btn-primary" href="https://resourcebooker.maastrichtuniversity.nl/" target="_blank" rel="noopener" style="text-decoration:none;">Open Resource Booker &rarr;</a>
+    </div>
+
+    <!-- Custom milestones -->
+    <div class="card" id="custom-milestones-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+        <p class="section-title" style="margin:0;">Your Custom Milestones</p>
+        <button class="btn btn-sm btn-ghost" onclick="openCustomForm()">+ Add milestone</button>
+      </div>
+      <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.5rem;line-height:1.5;">
+        Add ad-hoc items (extra meetings, unplanned delays, supervisor calls, etc.). They appear in the timeline and checklist alongside the standard milestones.
+      </p>
+      <div id="custom-form" style="display:none;padding:0.75rem;background:var(--surface-alt);border:1px solid var(--border);border-radius:8px;margin-bottom:0.75rem;">
+        <input type="hidden" id="cm-edit-id" value="">
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:0.5rem;margin-bottom:0.5rem;">
+          <div class="form-row"><label for="cm-label" style="font-size:0.8rem;">Label</label>
+            <input type="text" id="cm-label" placeholder="e.g. Meeting with supervisor" maxlength="80">
+          </div>
+          <div class="form-row"><label for="cm-date" style="font-size:0.8rem;">Date</label>
+            <input type="date" id="cm-date">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem;margin-bottom:0.5rem;">
+          <div class="form-row"><label for="cm-section" style="font-size:0.8rem;">Phase</label>
+            <select id="cm-section">
+              <option value="phase1_before_sona">Phase 1 \u2014 Before SONA</option>
+              <option value="phase2_sona">Phase 2 \u2014 SONA setup</option>
+              <option value="phase3_before_experiment" selected>Phase 3 \u2014 Before experiment</option>
+              <option value="phase4_go">Phase 4 \u2014 Data collection</option>
+              <option value="phase5_thesis">Phase 5 \u2014 Analysis &amp; writing</option>
+            </select>
+          </div>
+          <div class="form-row"><label for="cm-duration" style="font-size:0.8rem;">Time needed (min)</label>
+            <input type="number" id="cm-duration" min="0" max="2400" placeholder="e.g. 60">
+          </div>
+          <div class="form-row" style="align-self:end;">
+            <span style="font-size:0.75rem;color:var(--text-muted);">Leave blank if unsure.</span>
+          </div>
+        </div>
+        <div class="form-row" style="margin-bottom:0.5rem;">
+          <label for="cm-note" style="font-size:0.8rem;">Note (optional)</label>
+          <textarea id="cm-note" rows="2" maxlength="300" style="width:100%;padding:0.5rem;background:white;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.85rem;resize:vertical;"></textarea>
+        </div>
+        <div style="display:flex;gap:0.5rem;">
+          <button class="btn btn-sm btn-primary" onclick="saveCustomMilestone()">Save</button>
+          <button class="btn btn-sm btn-ghost" onclick="closeCustomForm()">Cancel</button>
+        </div>
+      </div>
+      <div id="custom-list" style="font-size:0.85rem;"></div>
+    </div>
+
+    <!-- Hidden milestones -->
+    <div class="card" id="hidden-milestones-card" style="display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+        <p class="section-title" style="margin:0;">Hidden Milestones</p>
+        <button class="btn btn-sm btn-ghost" onclick="var b=document.getElementById('hidden-list');b.style.display=b.style.display==='none'?'block':'none';this.textContent=b.style.display==='none'?'Show':'Hide';">Show</button>
+      </div>
+      <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.5rem;line-height:1.5;">
+        These items won\u2019t appear in your timeline, checklist, or calendar until restored.
+      </p>
+      <div id="hidden-list" style="display:none;font-size:0.85rem;"></div>
     </div>
 
     <!-- 5c: Checklist -->
@@ -1185,6 +1265,23 @@ function daysBetween(a, b) {
   return Math.round((b - a) / 86400000);
 }
 
+function formatDuration(min) {
+  if (!min || min <= 0) return '';
+  if (min < 60) return `~${min} min`;
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return m === 0 ? `~${h}h` : `~${h}h ${m}m`;
+}
+
+// ISO Monday of the week containing d
+function isoWeekStart(d) {
+  const x = new Date(d);
+  x.setHours(0,0,0,0);
+  const day = (x.getDay() + 6) % 7; // Mon=0..Sun=6
+  x.setDate(x.getDate() - day);
+  return x;
+}
+
 // Compute milestone dates for current state
 function computeMilestones() {
   const bpStart = parseDate(state.bpStart);
@@ -1193,8 +1290,22 @@ function computeMilestones() {
   const thesisDate = state.thesisDeadline ? parseDate(state.thesisDeadline) : null;
   const rangeEnd = (thesisDate && thesisDate > bpEnd) ? thesisDate : bpEnd;
   const holidaySet = buildHolidaySet(addDays(bpStart, -60), rangeEnd);
-  // Compute data collection end date
-  const collectionEndDate = addDays(weekStart, (state.collectionWeeks || 1) * 7 - 1);
+  // Collection is measured in lab (working) days. Step through working days
+  // from weekStart to find the final collection day.
+  const collectionDays = Math.max(1, state.collectionDays || 5);
+  let lastCollectionDay = nextWorkingDay(weekStart, holidaySet);
+  {
+    let d = new Date(lastCollectionDay);
+    for (let i = 1; i < collectionDays; i++) {
+      d = nextWorkingDay(addDays(d, 1), holidaySet);
+    }
+    lastCollectionDay = d;
+  }
+  const collectionEndDate = lastCollectionDay;
+  // Analysis can only start one day after the last day of data collection.
+  const analysisWeeks = Math.max(1, state.analysisWeeks || 1);
+  const analysisStartDate = nextWorkingDay(addDays(collectionEndDate, 1), holidaySet);
+  const analysisEndDate = addDays(analysisStartDate, analysisWeeks * 7 - 1);
 
   const roleMilestones = MILESTONES.filter(m => {
     if (!m.roles.includes(state.role)) return false;
@@ -1207,17 +1318,18 @@ function computeMilestones() {
     if (m.id === 'equipment_prep') {
       // Must be at least 1 working day before data collection
       date = prevWorkingDay(addDays(weekStart, -1), holidaySet);
+    } else if (m.id === 'data_cleaning') {
+      date = analysisStartDate;
+    } else if (m.id === 'analysis_complete') {
+      date = analysisEndDate;
     } else if (m.id !== 'data_collection') {
       date = nextWorkingDay(date, holidaySet);
     }
     // Enrich data_collection label with collection period
     if (m.id === 'data_collection') {
-      const cw = state.collectionWeeks || 1;
       const endDate = new Date(collectionEndDate);
-      let extraLabel = `${cw} week${cw > 1 ? 's' : ''}`;
-      if (state.labCalc && state.labCalc.totalDays) {
-        extraLabel += `, ${state.labCalc.totalDays} lab day${state.labCalc.totalDays > 1 ? 's' : ''}`;
-      }
+      const cd = collectionDays;
+      const extraLabel = `${cd} lab day${cd !== 1 ? 's' : ''}`;
       return { ...m, date, label: `Data collection: ${formatDateShort(date)} \u2192 ${formatDateShort(endDate)} (${extraLabel})`, endDate };
     }
     const label = (state.role === 'master' && m.masterLabel) ? m.masterLabel : m.label;
@@ -1227,7 +1339,7 @@ function computeMilestones() {
   // Add individual experiment day milestones
   const dataCollectionItem = result.find(m => m.id === 'data_collection');
   if (dataCollectionItem) {
-    const totalDays = (state.labCalc && state.labCalc.totalDays) ? state.labCalc.totalDays : (state.manualLabDays || 0);
+    const totalDays = collectionDays;
     if (totalDays > 0) {
       const ppd = (state.labCalc && state.labCalc.participantsPerDay) ? state.labCalc.participantsPerDay : null;
       let d = new Date(dataCollectionItem.date);
@@ -1249,8 +1361,46 @@ function computeMilestones() {
     }
   }
 
-  result.sort((a, b) => a.date - b.date);
-  return result;
+  // User-defined custom milestones
+  (state.customMilestones || []).forEach(c => {
+    if (!c.id || !c.date) return;
+    result.push({
+      id: c.id,
+      label: c.label || 'Custom milestone',
+      date: parseDate(c.date),
+      section: c.section || 'phase3_before_experiment',
+      optional: !!c.optional,
+      roles: ['master','phd'],
+      note: c.note || '',
+      durationMin: c.durationMin || 0,
+      custom: true,
+    });
+  });
+
+  // Apply per-milestone date overrides (skip lab_day_* since those are regenerated)
+  const overrides = state.dateOverrides || {};
+  result.forEach(m => {
+    if (overrides[m.id]) {
+      const newDate = parseDate(overrides[m.id]);
+      if (m.id === 'data_collection' && m.endDate) {
+        // Shift endDate by the same delta so the range label stays coherent
+        const deltaMs = newDate - m.date;
+        m.endDate = new Date(m.endDate.getTime() + deltaMs);
+        m.label = `Data collection: ${formatDateShort(newDate)} \u2192 ${formatDateShort(m.endDate)}${m.label.includes('(') ? ' (' + m.label.split('(').slice(1).join('(') : ''}`;
+      }
+      m.date = newDate;
+      m.overridden = true;
+    }
+  });
+
+  // Filter out hidden milestones (never filter auto-generated lab_day_* here;
+  // they can be hidden collectively by hiding 'data_collection', but we also
+  // allow individual lab-day hiding via the same list).
+  const hidden = new Set(state.hiddenMilestones || []);
+  const filtered = hidden.size ? result.filter(m => !hidden.has(m.id)) : result;
+
+  filtered.sort((a, b) => a.date - b.date);
+  return filtered;
 }
 
 // ── Cached Milestones ──
@@ -1350,6 +1500,13 @@ function updateCalc() {
     startMin, endMin, lunchStartMin, lunch
   };
 
+  // Autofill the collection-days field with the calculator's recommended days.
+  if (typeof totalDays === 'number' && totalDays > 0) {
+    state.collectionDays = totalDays;
+    const cdInput = document.getElementById('collection-days-input');
+    if (cdInput) cdInput.value = totalDays;
+  }
+
   // Check if timetable is currently open before rebuilding
   const ttBody = document.getElementById('timetable-body');
   const timetableWasOpen = ttBody && ttBody.style.display !== 'none';
@@ -1426,27 +1583,27 @@ function showToast(msg) {
 // relativeTo: "bp" = offset from BP start date, "week" (default) = offset from chosen data collection week
 const MILESTONES = [
   // ── Phase 1: Before requesting participants ──
-  { id: "ethics_check", label: "Confirm ERCIC ethics approval is in hand", offsetDays: -56, relativeTo: "week", roles: ["phd"], optional: false, section: "phase1_before_sona", note: "ERCIC reviews take months \u2014 you should have submitted well before this point. Check the timeline and requirements at maastrichtuniversity.nl/ethical-review-committee-inner-city-faculties-ercic. If you haven\u2019t submitted yet, do it NOW and inform your supervisor. Do not start data collection without approval." },
-  { id: "prereg", label: "Pre-register on OSF or AsPredicted", offsetDays: -21, relativeTo: "week", roles: ["phd"], optional: false, section: "phase3_before_experiment", note: "Pre-register after your power analysis and SONA request, but before data collection starts. Separates confirmatory from exploratory." },
-  { id: "supervisor_checkin", label: "Check in with supervisor \u2014 ethics and pre-registration confirmed", offsetDays: -42, relativeTo: "week", roles: ["master"], optional: false, section: "phase1_before_sona", note: "Your supervisor handles formal ethics and pre-registration. Your job is to confirm it is done before you proceed." },
-  { id: "power_analysis", label: "Power analysis \u2014 calculate minimum N per condition", offsetDays: -56, relativeTo: "week", roles: ["master","phd"], optional: true, section: "phase1_before_sona", note: "Do this before pre-registration \u2014 your pre-reg should include your target N. If your pool is fixed, report achieved power post-hoc." },
-  { id: "equipment_book", label: "Book lab (DEXLab / BEELab) and equipment via Resource Booker", offsetDays: -35, relativeTo: "week", roles: ["master","phd"], optional: false, section: "phase1_before_sona", note: "Book before submitting your SONA request \u2014 you need to know your room and timeslots. Go to resourcebooker.maastrichtuniversity.nl. If you don\u2019t have access, ask your supervisor to book it for you." },
+  { id: "ethics_check", label: "Confirm ERCIC ethics approval is in hand", offsetDays: -56, relativeTo: "week", roles: ["phd"], optional: false, section: "phase1_before_sona", note: "ERCIC reviews take months \u2014 you should have submitted well before this point. Check the timeline and requirements at maastrichtuniversity.nl/ethical-review-committee-inner-city-faculties-ercic. If you haven\u2019t submitted yet, do it NOW and inform your supervisor. Do not start data collection without approval.", durationMin: 30 },
+  { id: "prereg", label: "Pre-register on OSF or AsPredicted", offsetDays: -21, relativeTo: "week", roles: ["phd"], optional: false, section: "phase3_before_experiment", note: "Pre-register after your power analysis and SONA request, but before data collection starts. Separates confirmatory from exploratory.", durationMin: 120 },
+  { id: "supervisor_checkin", label: "Check in with supervisor \u2014 ethics and pre-registration confirmed", offsetDays: -42, relativeTo: "week", roles: ["master"], optional: false, section: "phase1_before_sona", note: "Your supervisor handles formal ethics and pre-registration. Your job is to confirm it is done before you proceed.", durationMin: 30 },
+  { id: "power_analysis", label: "Power analysis \u2014 calculate minimum N per condition", offsetDays: -56, relativeTo: "week", roles: ["master","phd"], optional: true, section: "phase1_before_sona", note: "Do this before pre-registration \u2014 your pre-reg should include your target N. If your pool is fixed, report achieved power post-hoc.", durationMin: 180 },
+  { id: "equipment_book", label: "Book lab (DEXLab / BEELab) and equipment via Resource Booker", offsetDays: -35, relativeTo: "week", roles: ["master","phd"], optional: false, section: "phase1_before_sona", note: "Book before submitting your SONA request \u2014 you need to know your room and timeslots. Go to resourcebooker.maastrichtuniversity.nl. If you don\u2019t have access, ask your supervisor to book it for you.", durationMin: 30 },
   // ── Phase 2: Requesting participants & SONA setup ──
-  { id: "sona_request", label: "Submit SONA participant request form", masterLabel: "Submit SONA participant request form (ask your supervisor to do this)", offsetDays: -38, relativeTo: "bp", roles: ["master","phd"], optional: false, section: "phase2_sona", note: "The SONA coordinator sends a request form ~5\u20136 weeks before the block period. Fill it in with your estimated N per condition and session length. Miss this and you wait an entire period. Exact dates vary per period \u2014 check with the SONA coordinator." },
-  { id: "sona_upload", label: "Upload and finalize study on SONA", masterLabel: "Upload and finalize study on SONA (ask your supervisor to do this)", offsetDays: -5, relativeTo: "bp", roles: ["master","phd"], optional: false, section: "phase2_sona", note: "After the matchmaking is shared, upload your study to SONA: set timeslots, participants per slot, and session length. Must be done ~5 days before the period starts. Exact deadline varies \u2014 check the email from the SONA coordinator." },
+  { id: "sona_request", label: "Submit SONA participant request form", masterLabel: "Submit SONA participant request form (ask your supervisor to do this)", offsetDays: -38, relativeTo: "bp", roles: ["master","phd"], optional: false, section: "phase2_sona", note: "The SONA coordinator sends a request form ~5\u20136 weeks before the block period. Fill it in with your estimated N per condition and session length. Miss this and you wait an entire period. Exact dates vary per period \u2014 check with the SONA coordinator.", durationMin: 30 },
+  { id: "sona_upload", label: "Upload and finalize study on SONA", masterLabel: "Upload and finalize study on SONA (ask your supervisor to do this)", offsetDays: -5, relativeTo: "bp", roles: ["master","phd"], optional: false, section: "phase2_sona", note: "After the matchmaking is shared, upload your study to SONA: set timeslots, participants per slot, and session length. Must be done ~5 days before the period starts. Exact deadline varies \u2014 check the email from the SONA coordinator.", durationMin: 60 },
   { id: "sona_active", label: "SONA study must be active", masterLabel: "SONA study must be active (ask your supervisor to confirm)", offsetDays: 0, relativeTo: "bp", roles: ["master","phd"], optional: false, section: "phase2_sona", keyDate: true, note: "Your study must be live and visible to students when the block period starts. If it is not active on day one, you lose participant slots." },
   // ── Phase 3: Before the experiment ──
-  { id: "stimuli_pretest", label: "Pretest stimuli with 3\u20135 people", offsetDays: -14, relativeTo: "week", roles: ["master","phd"], optional: false, section: "phase3_before_experiment", note: "Is your manipulation actually manipulating what you think it is?" },
-  { id: "pilot", label: "Complete full pilot test (dry run with a friend)", offsetDays: -7, relativeTo: "week", roles: ["master","phd"], optional: false, section: "phase3_before_experiment", note: "Every tech demo fails the first time. Do not let that be with a real participant." },
-  { id: "qualtrics_final", label: "Qualtrics survey and manipulations finalized", offsetDays: -3, relativeTo: "week", roles: ["master","phd"], optional: false, section: "phase3_before_experiment", note: "End-to-end test, randomization confirmed, all conditions working." },
-  { id: "inform_team", label: "Post planning in Experiment Teams chat", offsetDays: -35, relativeTo: "week", roles: ["master","phd"], optional: false, section: "phase1_before_sona", note: "Share your planned dates, rooms, timeslots, and conditions before requesting SONA participants. This helps align with other researchers on DEXLab booking times and equipment availability." },
+  { id: "stimuli_pretest", label: "Pretest stimuli with 3\u20135 people", offsetDays: -14, relativeTo: "week", roles: ["master","phd"], optional: false, section: "phase3_before_experiment", note: "Is your manipulation actually manipulating what you think it is?", durationMin: 120 },
+  { id: "pilot", label: "Complete full pilot test (dry run with a friend)", offsetDays: -7, relativeTo: "week", roles: ["master","phd"], optional: false, section: "phase3_before_experiment", note: "Every tech demo fails the first time. Do not let that be with a real participant.", durationMin: 90 },
+  { id: "qualtrics_final", label: "Qualtrics survey and manipulations finalized", offsetDays: -3, relativeTo: "week", roles: ["master","phd"], optional: false, section: "phase3_before_experiment", note: "End-to-end test, randomization confirmed, all conditions working.", durationMin: 60 },
+  { id: "inform_team", label: "Post planning in Experiment Teams chat", offsetDays: -35, relativeTo: "week", roles: ["master","phd"], optional: false, section: "phase1_before_sona", note: "Share your planned dates, rooms, timeslots, and conditions before requesting SONA participants. This helps align with other researchers on DEXLab booking times and equipment availability.", durationMin: 15 },
   // ── Phase 4: Go time ──
-  { id: "equipment_prep", label: "Prepare equipment \u2014 charge devices, check software updates", offsetDays: -1, relativeTo: "week", roles: ["master","phd"], optional: false, section: "phase4_go", note: "The day before data collection: charge all devices (tablets, laptops, eye trackers, etc.), verify that all software is installed and up to date, test your full setup one more time. Do not discover a mandatory update 5 minutes before your first participant." },
+  { id: "equipment_prep", label: "Prepare equipment \u2014 charge devices, check software updates", offsetDays: -1, relativeTo: "week", roles: ["master","phd"], optional: false, section: "phase4_go", note: "The day before data collection: charge all devices (tablets, laptops, eye trackers, etc.), verify that all software is installed and up to date, test your full setup one more time. Do not discover a mandatory update 5 minutes before your first participant.", durationMin: 60 },
   { id: "data_collection", label: "Data collection starts", offsetDays: 0, relativeTo: "week", roles: ["master","phd"], optional: false, section: "phase4_go", keyDate: true, note: "Your chosen data collection week begins. SONA participant slots open earlier (when requested by the SONA coordinator) so students can sign up in advance.", dynamic: true },
   // ── Phase 5: After data collection (master thesis) ──
-  { id: "prepare_measures", label: "Prepare variables, scales, and analysis plan", offsetDays: -7, relativeTo: "week", roles: ["master"], optional: false, section: "phase3_before_experiment", note: "Define your dependent and independent variables, finalize measurement scales, plan manipulation checks, and outline your analysis strategy. Having this ready before data collection means you can start analysis immediately once data is in." },
-  { id: "data_cleaning", label: "Data cleaning and preparation", offsetDays: 3, relativeTo: "collectionEnd", roles: ["master"], optional: false, section: "phase5_thesis", note: "Export data, check for exclusions, clean variables, and prepare your analysis dataset. Do this before diving into results \u2014 a clean dataset saves hours of debugging later." },
-  { id: "analysis_complete", label: "Data analysis complete", offsetDays: 14, relativeTo: "collectionEnd", roles: ["master"], optional: false, section: "phase5_thesis", note: "Run your pre-registered analyses and any exploratory analyses. Document your steps so you can write the results section directly from your output." },
+  { id: "prepare_measures", label: "Prepare variables, scales, and analysis plan", offsetDays: -7, relativeTo: "week", roles: ["master"], optional: false, section: "phase3_before_experiment", note: "Define your dependent and independent variables, finalize measurement scales, plan manipulation checks, and outline your analysis strategy. Having this ready before data collection means you can start analysis immediately once data is in.", durationMin: 180 },
+  { id: "data_cleaning", label: "Data analysis starts \u2014 cleaning and preparation", offsetDays: 1, relativeTo: "collectionEnd", roles: ["master"], optional: false, section: "phase5_thesis", note: "Analysis starts the day after data collection ends. Export data, check for exclusions, clean variables, and prepare your analysis dataset. A clean dataset saves hours of debugging later.", durationMin: 240 },
+  { id: "analysis_complete", label: "Data analysis complete", offsetDays: 0, relativeTo: "collectionEnd", roles: ["master"], optional: false, section: "phase5_thesis", note: "End of your analysis window (set on the setup screen). Run your pre-registered analyses and any exploratory analyses. Document your steps so you can write the results section directly from your output." },
   { id: "first_draft", label: "First full draft to supervisor", offsetDays: -28, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", keyDate: true, note: "Submit a complete first draft — intro, method, results, and discussion. It does not need to be perfect, but it needs to be complete. Your supervisor needs enough to give meaningful feedback." },
   { id: "supervisor_feedback", label: "Receive supervisor feedback", offsetDays: -18, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", note: "Expect ~7–10 days for your supervisor to review. Use this time to polish figures, check references, and proofread. If you haven't heard back, send a reminder." },
   { id: "revision_complete", label: "Revisions complete — final draft ready", offsetDays: -7, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", note: "Incorporate all supervisor feedback. This is your last chance to improve content. After this, only formatting and final checks remain." },
@@ -1474,7 +1631,11 @@ let state = {
   thesisDeadline: null,
   supervisorEmail: "",
   manualLabDays: 0,
-  collectionWeeks: 1,
+  collectionDays: 5,
+  analysisWeeks: 1,
+  customMilestones: [],
+  hiddenMilestones: [],
+  dateOverrides: {},
   checkedItems: [],
   lastUpdated: null,
 };
@@ -1493,8 +1654,24 @@ function encodeState() {
   if (state.weekStart && state.weekStart !== state.bpStart) params.set('ws', compactDate(state.weekStart));
   if (state.bpWeeks !== 8) params.set('w', state.bpWeeks);
   if (state.thesisDeadline) params.set('td', compactDate(state.thesisDeadline));
-  if (state.collectionWeeks && state.collectionWeeks !== 1) params.set('cw', state.collectionWeeks);
+  if (state.collectionDays && state.collectionDays !== 5) params.set('cd', state.collectionDays);
+  if (state.analysisWeeks && state.analysisWeeks !== 1) params.set('aw', state.analysisWeeks);
   if (state.manualLabDays) params.set('ml', state.manualLabDays);
+  if (state.customMilestones && state.customMilestones.length) {
+    // Compact: base64 of minimal JSON array
+    try {
+      const cmPayload = state.customMilestones.map(c => [c.id, c.label || '', c.date || '', c.section || '', c.durationMin || 0, c.note || '']);
+      params.set('cm', btoa(unescape(encodeURIComponent(JSON.stringify(cmPayload)))));
+    } catch (e) {}
+  }
+  if (state.hiddenMilestones && state.hiddenMilestones.length) {
+    params.set('hm', state.hiddenMilestones.join(','));
+  }
+  if (state.dateOverrides && Object.keys(state.dateOverrides).length) {
+    // id1:YYYY-MM-DD,id2:YYYY-MM-DD
+    const parts = Object.entries(state.dateOverrides).map(([id, d]) => `${id}:${d}`);
+    params.set('do', parts.join(','));
+  }
   // Supervisor email and checked items are personal — saved in localStorage only
   return params.toString();
 }
@@ -1516,9 +1693,34 @@ function decodeState(hash) {
         state.weekStart = expandDate(p.get('ws')) || state.bpStart;
         state.bpWeeks = Math.max(1, Math.min(52, parseInt(p.get('w')) || 8));
         state.thesisDeadline = expandDate(p.get('td')) || null;
-        state.collectionWeeks = Math.max(1, Math.min(6, parseInt(p.get('cw')) || 1));
+        if (p.get('cd')) {
+          state.collectionDays = Math.max(1, Math.min(60, parseInt(p.get('cd')) || 5));
+        } else if (p.get('cw')) {
+          // Legacy: cw was collection weeks. Convert to ~5 working days/week.
+          state.collectionDays = Math.max(1, Math.min(60, (parseInt(p.get('cw')) || 1) * 5));
+        } else {
+          state.collectionDays = 5;
+        }
+        state.analysisWeeks = Math.max(1, Math.min(12, parseInt(p.get('aw')) || 1));
         state.supervisorEmail = escapeHTML(p.get('se') || "");
         state.manualLabDays = Math.max(0, Math.min(30, parseInt(p.get('ml')) || 0));
+        state.customMilestones = [];
+        if (p.get('cm')) {
+          try {
+            const arr = JSON.parse(decodeURIComponent(escape(atob(p.get('cm')))));
+            state.customMilestones = arr.map(a => ({
+              id: a[0], label: escapeHTML(a[1]), date: a[2], section: a[3], durationMin: parseInt(a[4]) || 0, note: escapeHTML(a[5] || ''),
+            }));
+          } catch (e) {}
+        }
+        state.hiddenMilestones = p.get('hm') ? p.get('hm').split(',').filter(Boolean) : [];
+        state.dateOverrides = {};
+        if (p.get('do')) {
+          p.get('do').split(',').forEach(pair => {
+            const [id, d] = pair.split(':');
+            if (id && d && /^\d{4}-\d{2}-\d{2}$/.test(d)) state.dateOverrides[id] = d;
+          });
+        }
         state.checkedItems = p.get('c') ? p.get('c').split(',') : [];
         return true;
       }
@@ -1563,10 +1765,9 @@ function copyShareLink() {
 }
 
 function copyProgressSummary() {
-  const bpStart = parseDate(state.bpStart);
-  const bpEnd = addDays(bpStart, state.bpWeeks * 7 - 1);
   const today = new Date(); today.setHours(0,0,0,0);
   const computed = getCachedMilestones();
+  const dc = computed.find(m => m.id === 'data_collection');
 
   const total = computed.length;
   const done = computed.filter(m => state.checkedItems.includes(m.id)).length;
@@ -1578,7 +1779,7 @@ function copyProgressSummary() {
   lines.push(`DEXLab Experiment Planner \u2014 Progress Update`);
   lines.push(`${displayName}${titleLine}`);
   lines.push(`Role: ${state.role === 'phd' ? 'PhD Researcher' : 'Master Student'}`);
-  lines.push(`Data collection: ${formatDate(bpStart)} \u2192 ${formatDate(bpEnd)}`);
+  if (dc) lines.push(`Data collection: ${formatDate(dc.date)} \u2192 ${formatDate(dc.endDate)}`);
   lines.push(`Overall: ${done}/${total} milestones complete (${pct}%)`);
   lines.push('');
 
@@ -1615,10 +1816,9 @@ function copyProgressSummary() {
 
 // ── Supervisor Update ──
 function buildSupervisorBody() {
-  const bpStart = parseDate(state.bpStart);
-  const bpEnd = addDays(bpStart, state.bpWeeks * 7 - 1);
   const today = new Date(); today.setHours(0,0,0,0);
   const computed = getCachedMilestones();
+  const dc = computed.find(m => m.id === 'data_collection');
 
   const total = computed.length;
   const done = computed.filter(m => state.checkedItems.includes(m.id)).length;
@@ -1639,7 +1839,7 @@ function buildSupervisorBody() {
   }
 
   lines.push(`Progress: ${done}/${total} milestones complete (${pct}%)`);
-  lines.push(`Data collection: ${formatDate(bpStart)} \u2192 ${formatDate(bpEnd)}`);
+  if (dc) lines.push(`Data collection: ${formatDate(dc.date)} \u2192 ${formatDate(dc.endDate)}`);
   if (state.thesisDeadline) lines.push(`Thesis deadline: ${formatDate(parseDate(state.thesisDeadline))}`);
   lines.push('');
 
@@ -1920,10 +2120,17 @@ function showConfirmation() {
   const thesisCard = document.getElementById('thesis-deadline-card');
   thesisCard.style.display = state.role === 'master' ? 'block' : 'none';
   if (state.thesisDeadline) document.getElementById('thesis-deadline-input').value = state.thesisDeadline;
-  document.getElementById('collection-weeks-input').value = state.collectionWeeks || 1;
+  document.getElementById('collection-days-input').value = state.collectionDays || 5;
+  document.getElementById('analysis-weeks-input').value = state.analysisWeeks || 1;
   saveState();
   // Run calculator so results and timetable are shown immediately
   updateCalc();
+}
+
+function onCollectionDaysChange() {
+  const val = parseInt(document.getElementById('collection-days-input').value) || 1;
+  state.collectionDays = Math.max(1, Math.min(60, val));
+  saveState();
 }
 
 function adjustWeeks(delta) {
@@ -1967,27 +2174,19 @@ function renderDatesDisplay() {
   const bpStart = parseDate(state.bpStart);
   const bpEnd = addDays(bpStart, state.bpWeeks * 7 - 1);
   const weekStart = parseDate(state.weekStart || state.bpStart);
-  const hasCalc = state.labCalc && state.labCalc.totalDays;
-  const labDays = hasCalc ? state.labCalc.totalDays : state.manualLabDays;
+  const cd = state.collectionDays || 5;
+  // Use the milestone engine so the displayed end date matches the timeline.
+  const dc = computeMilestones().find(m => m.id === 'data_collection');
+  const collEnd = dc && dc.endDate ? dc.endDate : addDays(weekStart, cd - 1);
   let html = `<div style="display:grid;grid-template-columns:auto 1fr;gap:0.25rem 1rem;font-size:0.85rem;">`;
   html += `<span style="color:var(--text-muted);">Block period</span><span class="mono">${formatDate(bpStart)} \u2192 ${formatDate(bpEnd)}</span>`;
   if (state.weekStart && state.weekStart !== state.bpStart) {
-    const cw = state.collectionWeeks || 1;
-    const collEnd = addDays(weekStart, cw * 7 - 1);
-    html += `<span style="color:var(--text-muted);">Data collection</span><span class="mono">${formatDate(weekStart)} \u2192 ${formatDate(collEnd)} (${cw} week${cw > 1 ? 's' : ''})</span>`;
+    html += `<span style="color:var(--text-muted);">Data collection</span><span class="mono">${formatDate(weekStart)} \u2192 ${formatDate(collEnd)} (${cd} day${cd !== 1 ? 's' : ''})</span>`;
   }
   if (state.thesisDeadline) {
     html += `<span style="color:var(--text-muted);">Thesis deadline</span><span class="mono" style="font-weight:600;color:var(--accent-dark);">${formatDate(parseDate(state.thesisDeadline))}</span>`;
   }
   html += `</div>`;
-  // Show lab days input if calculator wasn't used
-  if (!hasCalc) {
-    html += `<div style="margin-top:0.75rem;display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;">`;
-    html += `<label for="manual-lab-days" style="color:var(--text-muted);margin:0;font-size:0.85rem;">Lab days:</label>`;
-    html += `<input type="number" id="manual-lab-days" min="0" max="30" value="${state.manualLabDays || ''}" placeholder="e.g. 5" style="width:5rem;padding:0.3rem 0.5rem;font-size:0.85rem;" onchange="onManualLabDaysChange()">`;
-    html += `<span style="color:var(--text-muted);font-size:0.8rem;">Adds individual experiment days to your timeline</span>`;
-    html += `</div>`;
-  }
   document.getElementById('plan-dates-display').innerHTML = html;
 }
 
@@ -1998,13 +2197,230 @@ function onManualLabDaysChange() {
   renderPlan();
 }
 
+// ── Hide / restore milestones ──
+function hideMilestone(id) {
+  if (!state.hiddenMilestones) state.hiddenMilestones = [];
+  if (state.hiddenMilestones.includes(id)) return;
+  state.hiddenMilestones.push(id);
+  saveState();
+  history.replaceState(null, '', '#' + encodeState());
+  renderPlan();
+}
+
+function restoreMilestone(id) {
+  state.hiddenMilestones = (state.hiddenMilestones || []).filter(x => x !== id);
+  saveState();
+  history.replaceState(null, '', '#' + encodeState());
+  renderPlan();
+}
+
+function renderHiddenList() {
+  const card = document.getElementById('hidden-milestones-card');
+  const list = document.getElementById('hidden-list');
+  const ids = state.hiddenMilestones || [];
+  if (ids.length === 0) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  // Look up labels from MILESTONES + custom milestones
+  const resolve = id => {
+    const m = MILESTONES.find(x => x.id === id);
+    if (m) return (state.role === 'master' && m.masterLabel) ? m.masterLabel : m.label;
+    const c = (state.customMilestones || []).find(x => x.id === id);
+    if (c) return c.label + ' (custom)';
+    return id;
+  };
+  list.innerHTML = ids.map(id => `<div style="display:flex;align-items:center;justify-content:space-between;padding:0.3rem 0;border-bottom:1px solid var(--border-light);">
+    <span>${escapeHtml(resolve(id))}</span>
+    <button class="btn btn-sm btn-ghost" onclick="restoreMilestone('${id}')">Restore</button>
+  </div>`).join('');
+}
+
+// ── Per-milestone date overrides ──
+let _editingDateId = null;
+
+function startDateOverride(id) {
+  _editingDateId = id;
+  renderPlan();
+  // Focus the input after render
+  setTimeout(() => {
+    const el = document.getElementById('date-edit-input-' + id);
+    if (el) el.focus();
+  }, 0);
+}
+
+function cancelDateOverride() {
+  _editingDateId = null;
+  renderPlan();
+}
+
+function saveDateOverride(id) {
+  const el = document.getElementById('date-edit-input-' + id);
+  if (!el || !el.value || !/^\d{4}-\d{2}-\d{2}$/.test(el.value)) {
+    alert('Please enter a valid date.');
+    return;
+  }
+  if (!state.dateOverrides) state.dateOverrides = {};
+  state.dateOverrides[id] = el.value;
+  _editingDateId = null;
+  saveState();
+  history.replaceState(null, '', '#' + encodeState());
+  renderPlan();
+}
+
+function resetDateOverride(id) {
+  if (!state.dateOverrides) return;
+  delete state.dateOverrides[id];
+  saveState();
+  history.replaceState(null, '', '#' + encodeState());
+  renderPlan();
+}
+
+// ── Custom milestones ──
+function openCustomForm(prefill) {
+  const form = document.getElementById('custom-form');
+  form.style.display = 'block';
+  document.getElementById('cm-edit-id').value = prefill ? prefill.id : '';
+  document.getElementById('cm-label').value = prefill ? (prefill.label || '') : '';
+  document.getElementById('cm-date').value = prefill ? (prefill.date || '') : (state.weekStart || state.bpStart || '');
+  document.getElementById('cm-section').value = prefill ? (prefill.section || 'phase3_before_experiment') : 'phase3_before_experiment';
+  document.getElementById('cm-duration').value = prefill && prefill.durationMin ? prefill.durationMin : '';
+  document.getElementById('cm-note').value = prefill ? (prefill.note || '') : '';
+  document.getElementById('cm-label').focus();
+}
+
+function closeCustomForm() {
+  document.getElementById('custom-form').style.display = 'none';
+}
+
+function saveCustomMilestone() {
+  const label = document.getElementById('cm-label').value.trim();
+  const date = document.getElementById('cm-date').value;
+  if (!label || !date) { alert('Label and date are required.'); return; }
+  const section = document.getElementById('cm-section').value;
+  const durationMin = parseInt(document.getElementById('cm-duration').value) || 0;
+  const note = document.getElementById('cm-note').value.trim();
+  const editId = document.getElementById('cm-edit-id').value;
+  if (!state.customMilestones) state.customMilestones = [];
+  if (editId) {
+    const idx = state.customMilestones.findIndex(c => c.id === editId);
+    if (idx !== -1) state.customMilestones[idx] = { id: editId, label, date, section, durationMin, note };
+  } else {
+    const id = 'custom_' + Date.now().toString(36);
+    state.customMilestones.push({ id, label, date, section, durationMin, note });
+  }
+  saveState();
+  history.replaceState(null, '', '#' + encodeState());
+  closeCustomForm();
+  renderPlan();
+}
+
+function editCustomMilestone(id) {
+  const c = (state.customMilestones || []).find(x => x.id === id);
+  if (!c) return;
+  openCustomForm(c);
+  document.getElementById('custom-milestones-card').scrollIntoView({ behavior: 'smooth' });
+}
+
+function deleteCustomMilestone(id) {
+  if (!confirm('Delete this custom milestone?')) return;
+  state.customMilestones = (state.customMilestones || []).filter(c => c.id !== id);
+  state.checkedItems = (state.checkedItems || []).filter(x => x !== id);
+  saveState();
+  history.replaceState(null, '', '#' + encodeState());
+  renderPlan();
+}
+
+function renderCustomList() {
+  const list = document.getElementById('custom-list');
+  const items = state.customMilestones || [];
+  if (items.length === 0) {
+    list.innerHTML = '<p style="font-size:0.8rem;color:var(--text-muted);margin:0;">No custom milestones yet.</p>';
+    return;
+  }
+  const sorted = [...items].sort((a,b) => (a.date || '').localeCompare(b.date || ''));
+  list.innerHTML = sorted.map(c => {
+    const dur = formatDuration(c.durationMin);
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:0.35rem 0;border-bottom:1px solid var(--border-light);">
+      <div><strong>${escapeHtml(c.label)}</strong>${dur ? ` <span style="color:var(--text-muted);font-size:0.75rem;">\u00B7 ${dur}</span>` : ''}<br>
+        <span class="mono" style="font-size:0.75rem;color:var(--text-muted);">${formatDate(parseDate(c.date))}</span>
+      </div>
+      <div style="display:flex;gap:0.25rem;">
+        <button class="btn btn-sm btn-ghost" onclick="editCustomMilestone('${c.id}')">Edit</button>
+        <button class="btn btn-sm btn-ghost" onclick="deleteCustomMilestone('${c.id}')">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+
+// ── Schedule shift ──
+function shiftSchedule() {
+  if (!state.weekStart) { alert('Pick a data collection start date first.'); return; }
+  const input = prompt('Shift data collection (and everything anchored to it) by how many days? Use a negative number to bring it earlier.', '0');
+  if (input === null) return;
+  const delta = parseInt(input, 10);
+  if (!Number.isFinite(delta) || delta === 0) return;
+  const newWeek = addDays(parseDate(state.weekStart), delta);
+  state.weekStart = toISO(newWeek);
+  // Warn if analysis now runs past thesis deadline
+  if (state.thesisDeadline) {
+    const computed = computeMilestones();
+    const analysisEnd = computed.find(m => m.id === 'analysis_complete');
+    const thesis = parseDate(state.thesisDeadline);
+    if (analysisEnd && analysisEnd.date > thesis) {
+      alert('Heads up: after this shift, your analysis window ends AFTER your thesis deadline. Consider reducing analysis weeks or moving the thesis deadline.');
+    }
+  }
+  saveState();
+  history.replaceState(null, '', '#' + encodeState());
+  renderPlan();
+  document.getElementById('dates-changed-banner').style.display = 'block';
+}
+
+// ── Workload rollup ──
+function renderWorkload() {
+  const computed = computeMilestones();
+  const today = new Date(); today.setHours(0,0,0,0);
+  const upcoming = computed.filter(m => m.durationMin && m.durationMin > 0 && !state.checkedItems.includes(m.id) && m.date >= today);
+  const card = document.getElementById('workload-card');
+  const content = document.getElementById('workload-content');
+  if (upcoming.length === 0) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  // Group by ISO week
+  const buckets = new Map();
+  upcoming.forEach(m => {
+    const key = toISO(isoWeekStart(m.date));
+    if (!buckets.has(key)) buckets.set(key, { start: isoWeekStart(m.date), total: 0, items: [] });
+    const b = buckets.get(key);
+    b.total += m.durationMin;
+    b.items.push(m);
+  });
+  const weeks = [...buckets.values()].sort((a,b) => a.start - b.start).slice(0, 4);
+  const totalAll = upcoming.reduce((s,m) => s + m.durationMin, 0);
+  let html = `<p style="margin:0 0 0.5rem 0;color:var(--text-muted);">Outstanding items with a time estimate: <strong>${formatDuration(totalAll)}</strong> across ${upcoming.length} task${upcoming.length !== 1 ? 's' : ''}.</p>`;
+  html += '<div style="display:grid;grid-template-columns:auto 1fr auto;gap:0.35rem 0.75rem;">';
+  weeks.forEach(w => {
+    const endOfWeek = addDays(w.start, 6);
+    const labels = w.items.map(i => escapeHtml(i.label)).join(', ');
+    html += `<span class="mono" style="color:var(--text-muted);">Week of ${formatDateShort(w.start)}</span>`;
+    html += `<span style="color:var(--text-secondary);">${labels}</span>`;
+    html += `<span class="mono" style="font-weight:600;color:var(--accent-dark);">${formatDuration(w.total)}</span>`;
+  });
+  html += '</div>';
+  if (buckets.size > weeks.length) html += `<p style="margin:0.5rem 0 0 0;font-size:0.75rem;color:var(--text-muted);">(+ ${buckets.size - weeks.length} more week${buckets.size - weeks.length !== 1 ? 's' : ''} with estimates)</p>`;
+  content.innerHTML = html;
+}
+
 // ── Screen 5: Plan Generation ──
 function generatePlan() {
   state.name = document.getElementById('name-input').value.trim();
   state.studyTitle = document.getElementById('title-input').value.trim();
   const thesisInput = document.getElementById('thesis-deadline-input').value;
   state.thesisDeadline = thesisInput || null;
-  state.collectionWeeks = parseInt(document.getElementById('collection-weeks-input').value) || 1;
+  state.collectionDays = parseInt(document.getElementById('collection-days-input').value) || 5;
+  state.analysisWeeks = parseInt(document.getElementById('analysis-weeks-input').value) || 1;
   state.supervisorEmail = document.getElementById('supervisor-email-input').value.trim();
   // Remind user to fill in lab calculator if they haven't
   if (!state.labCalc) {
@@ -2063,6 +2479,9 @@ function renderPlan() {
   renderTimeline(computed, holidaysInRange, today);
   renderMilestoneTable(computed, today);
   renderChecklist(computed, today);
+  renderCustomList();
+  renderHiddenList();
+  renderWorkload();
 
   // Lab summary
   const labSummary = document.getElementById('plan-lab-summary');
@@ -2146,8 +2565,10 @@ function renderMilestoneTable(milestones, today) {
     else if (diff === 0) { statusClass = 'status-today'; statusText = '\u25CF Today'; }
     else if (diff <= 7) { statusClass = 'status-urgent'; statusText = `\u26A0 ${diff} day${diff !== 1 ? 's' : ''}`; }
     else { statusClass = 'status-ok'; statusText = `\u2014 ${diff} days`; }
+    const durLabel = formatDuration(m.durationMin);
+    const durBadge = durLabel ? ` <span style="color:var(--text-muted);font-size:0.75rem;">\u00B7 ${durLabel}</span>` : '';
     tr.innerHTML = `
-      <td>${m.label}${m.optional ? ' <span style="color:var(--text-muted);font-size:0.75rem;">(optional)</span>' : ''}</td>
+      <td>${m.label}${m.optional ? ' <span style="color:var(--text-muted);font-size:0.75rem;">(optional)</span>' : ''}${durBadge}</td>
       <td class="ms-date">${formatDate(m.date)}</td>
       <td class="${statusClass}">${statusText}</td>`;
     tbody.appendChild(tr);
@@ -2191,11 +2612,31 @@ function renderChecklist(milestones, today) {
       const checked = state.checkedItems.includes(m.id);
       const item = document.createElement('div');
       item.className = `check-item${m.keyDate ? ' key-date-item' : ''}`;
+      const durLabel = formatDuration(m.durationMin);
+      const durBadge = durLabel ? ` <span style="color:var(--text-muted);font-size:0.75rem;font-weight:400;">\u00B7 ${durLabel}</span>` : '';
+      const customBadge = m.custom ? ` <span style="background:var(--surface-alt);border:1px solid var(--border);border-radius:4px;padding:0 0.35rem;font-size:0.7rem;color:var(--text-muted);margin-left:0.25rem;">custom</span>` : '';
+      const overrideBadge = m.overridden ? ` <span style="background:var(--lab-orange-light);border:1px solid rgba(232,99,43,0.25);color:var(--lab-orange);border-radius:4px;padding:0 0.35rem;font-size:0.7rem;margin-left:0.25rem;">date edited</span>` : '';
+      const btnStyle = 'background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:0.75rem;padding:0 0.3rem;';
+      let actions = '';
+      // Date edit UI (inline input if this row is being edited)
+      if (_editingDateId === m.id) {
+        actions += `<input type="date" id="date-edit-input-${m.id}" value="${toISO(m.date)}" style="font-size:0.75rem;padding:0.1rem 0.3rem;">`;
+        actions += `<button onclick="saveDateOverride('${m.id}')" style="${btnStyle}color:var(--accent-dark);">Save</button>`;
+        actions += `<button onclick="cancelDateOverride()" style="${btnStyle}">Cancel</button>`;
+      } else {
+        actions += `<button onclick="startDateOverride('${m.id}')" style="${btnStyle}" title="Edit the date for this milestone">Edit date</button>`;
+        if (m.overridden) actions += `<button onclick="resetDateOverride('${m.id}')" style="${btnStyle}" title="Reset to computed date">Reset</button>`;
+      }
+      if (m.custom) {
+        actions += `<button onclick="editCustomMilestone('${m.id}')" style="${btnStyle}">Edit</button><button onclick="deleteCustomMilestone('${m.id}')" style="${btnStyle}">Delete</button>`;
+      } else if (!m.labDay) {
+        actions += `<button onclick="hideMilestone('${m.id}')" style="${btnStyle}" title="Hide this milestone">Hide</button>`;
+      }
       item.innerHTML = `
         <input type="checkbox" id="check-${m.id}" ${checked ? 'checked' : ''} onchange="toggleCheck('${m.id}')">
         <div>
-          <label for="check-${m.id}" class="check-item-label${checked ? ' checked' : ''}">${m.label}</label>
-          <div class="check-item-date">Due: ${formatDate(m.date)}</div>
+          <label for="check-${m.id}" class="check-item-label${checked ? ' checked' : ''}">${m.label}${customBadge}${overrideBadge}${durBadge}</label>
+          <div class="check-item-date">Due: ${formatDate(m.date)} ${actions}</div>
           ${m.note ? `<div class="check-item-note">${m.note}${m.id === 'equipment_book' && state.labCalc && state.labCalc.totalDays ? ` Based on your calculator estimate, book for at least <strong>${state.labCalc.totalDays} lab day${state.labCalc.totalDays > 1 ? 's' : ''}</strong> (+ 1\u20132 buffer days for no-shows).` : ''}</div>` : ''}
         </div>`;
       body.appendChild(item);
@@ -2240,6 +2681,7 @@ function toggleCheck(id) {
 
   // Update progress bar
   updateProgress(totalChecked, computed.length);
+  renderWorkload();
 }
 
 function updateProgress(checked, total) {
@@ -2255,7 +2697,8 @@ function editSetup() {
   document.getElementById('title-input').value = state.studyTitle || '';
   document.getElementById('supervisor-email-input').value = state.supervisorEmail || '';
   if (state.thesisDeadline) document.getElementById('thesis-deadline-input').value = state.thesisDeadline;
-  document.getElementById('collection-weeks-input').value = state.collectionWeeks || 1;
+  document.getElementById('collection-days-input').value = state.collectionDays || 5;
+  document.getElementById('analysis-weeks-input').value = state.analysisWeeks || 1;
   // Restore lab calculator fields if data exists
   if (state.labCalc) {
     const lc = state.labCalc;
@@ -2284,7 +2727,7 @@ function editSetup() {
 function resetState() {
   if (!confirm('This will permanently delete your plan and all checked items. Make sure you\'ve saved your link (Copy Link) if you want to keep it.\n\nReset everything?')) return;
   window.onbeforeunload = null;
-  state = { version: 1, role: null, name: "", studyTitle: "", bpStart: null, weekStart: null, bpWeeks: 8, thesisDeadline: null, supervisorEmail: "", manualLabDays: 0, collectionWeeks: 1, checkedItems: [], lastUpdated: null };
+  state = { version: 1, role: null, name: "", studyTitle: "", bpStart: null, weekStart: null, bpWeeks: 8, thesisDeadline: null, supervisorEmail: "", manualLabDays: 0, collectionDays: 5, analysisWeeks: 1, customMilestones: [], hiddenMilestones: [], dateOverrides: {}, checkedItems: [], lastUpdated: null };
   try { localStorage.removeItem("dexlab_planner_state"); } catch (e) {}
   history.replaceState(null, '', window.location.pathname);
   document.body.className = '';
