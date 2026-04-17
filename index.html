@@ -1253,6 +1253,21 @@ function computeMilestones() {
   return result;
 }
 
+// ── Cached Milestones ──
+let _milestoneCacheKey = null;
+let _milestoneCacheResult = null;
+
+function getCachedMilestones() {
+  const labCalcKey = state.labCalc ? `${state.labCalc.totalDays},${state.labCalc.participantsPerDay}` : '';
+  const key = `${state.role}|${state.bpStart}|${state.bpWeeks}|${state.weekStart}|${state.thesisDeadline}|${state.collectionWeeks}|${state.manualLabDays}|${labCalcKey}`;
+  if (key === _milestoneCacheKey && _milestoneCacheResult) {
+    return _milestoneCacheResult;
+  }
+  _milestoneCacheKey = key;
+  _milestoneCacheResult = computeMilestones();
+  return _milestoneCacheResult;
+}
+
 // ── Toast ──
 // ── Lab Time Calculator ──
 function fmtTime(totalMin) {
@@ -1551,7 +1566,7 @@ function copyProgressSummary() {
   const bpStart = parseDate(state.bpStart);
   const bpEnd = addDays(bpStart, state.bpWeeks * 7 - 1);
   const today = new Date(); today.setHours(0,0,0,0);
-  const computed = computeMilestones();
+  const computed = getCachedMilestones();
 
   const total = computed.length;
   const done = computed.filter(m => state.checkedItems.includes(m.id)).length;
@@ -1603,7 +1618,7 @@ function buildSupervisorBody() {
   const bpStart = parseDate(state.bpStart);
   const bpEnd = addDays(bpStart, state.bpWeeks * 7 - 1);
   const today = new Date(); today.setHours(0,0,0,0);
-  const computed = computeMilestones();
+  const computed = getCachedMilestones();
 
   const total = computed.length;
   const done = computed.filter(m => state.checkedItems.includes(m.id)).length;
@@ -1685,7 +1700,7 @@ function downloadICS() {
     state.studyTitle = title.trim();
     saveState();
   }
-  const computed = computeMilestones();
+  const computed = getCachedMilestones();
   const displayName = state.name || 'Student';
   const studyLabel = state.studyTitle ? ` \u2014 ${state.studyTitle}` : '';
   const now = new Date();
@@ -2037,7 +2052,7 @@ function renderPlan() {
   const title = state.studyTitle ? `${displayName}${state.name ? '\u2019s' : ''} Plan: ${state.studyTitle}` : `${displayName}${state.name ? '\u2019s' : ''} Experiment Plan`;
   document.getElementById('plan-title').textContent = title;
 
-  const computed = computeMilestones();
+  const computed = getCachedMilestones();
   const thesisDate = state.thesisDeadline ? parseDate(state.thesisDeadline) : null;
   const holidayEnd = (thesisDate && thesisDate > bpEnd) ? thesisDate : bpEnd;
   const holidaysInRange = getHolidaysInRange(bpStart, holidayEnd);
@@ -2208,7 +2223,7 @@ function toggleCheck(id) {
   }
 
   // Update section counts
-  const computed = computeMilestones();
+  const computed = getCachedMilestones();
   const sections = {};
   computed.forEach(m => {
     if (!sections[m.section]) sections[m.section] = [];
