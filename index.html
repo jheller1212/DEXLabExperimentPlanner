@@ -3432,6 +3432,7 @@ function isTourDone() {
 
 function startTour(force) {
   if (!force && isTourDone()) return;
+  if (_tourActive) return; // already running or paused — let advanceTourForScreen handle resume
   _tourActive = true;
   _tourStepIndex = 0;
   showTourStep(0);
@@ -3457,11 +3458,22 @@ function showTourStep(index) {
   var step = TOUR_STEPS[index];
   var el = document.querySelector(step.target);
 
-  // If target not visible, check if its screen is active
+  // If target not visible or not on an active screen, decide: skip or pause
   if (!el || el.offsetParent === null) {
     var stepScreen = document.getElementById(step.screen);
-    if (!stepScreen || !stepScreen.classList.contains('active')) return; // pause — screen not reached yet
-    showTourStep(index + 1); // skip hidden element on current screen
+    var screenActive = stepScreen && stepScreen.classList.contains('active');
+    if (screenActive) {
+      // Element hidden on the current screen (e.g., blocked slots before calc) — skip it
+      showTourStep(index + 1);
+    }
+    // Screen not active yet — pause. advanceTourForScreen will resume when user reaches it.
+    return;
+  }
+
+  // Also skip if the element is scrolled way out of the visible document area
+  var rect0 = el.getBoundingClientRect();
+  if (rect0.width === 0 && rect0.height === 0) {
+    showTourStep(index + 1);
     return;
   }
 
@@ -3490,11 +3502,16 @@ function showTourStep(index) {
     var top = rect.bottom + window.scrollY + 12;
     var left = rect.left + window.scrollX + (rect.width / 2) - (ttRect.width / 2);
     left = Math.max(8, Math.min(left, window.innerWidth - ttRect.width - 8));
+    // If tooltip would go below viewport, place above the element
     if (rect.bottom + ttRect.height + 20 > window.innerHeight) {
       top = rect.top + window.scrollY - ttRect.height - 12;
     }
+    // Ensure tooltip never goes above the page
+    top = Math.max(window.scrollY + 8, top);
     tooltip.style.top = top + 'px';
     tooltip.style.left = left + 'px';
+    // Scroll tooltip into view if needed
+    tooltip.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     var nextBtn = tooltip.querySelector('.tour-btn-next') || tooltip.querySelector('.tour-btn-skip');
     if (nextBtn) nextBtn.focus();
   }, 350);
