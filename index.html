@@ -657,6 +657,67 @@ body.dark select, body.dark input[type="date"], body.dark input[type="text"], bo
 body.dark textarea { background: var(--surface-alt); border-color: var(--border); color: var(--text-primary); }
 body.dark .skip-link { background: #334155; }
 
+/* ── Feedback Modal ── */
+.feedback-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.2s; pointer-events: none;
+}
+.feedback-overlay.show { opacity: 1; pointer-events: auto; }
+.feedback-modal {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 1.5rem; max-width: 480px; width: 90%; max-height: 90vh; overflow-y: auto;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.15); transform: translateY(20px); transition: transform 0.2s;
+}
+.feedback-overlay.show .feedback-modal { transform: translateY(0); }
+.feedback-modal h3 { font-family: 'Fraunces', serif; font-size: 1.2rem; margin-bottom: 0.25rem; }
+.feedback-modal .fb-sub { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; }
+.feedback-modal label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.35rem; color: var(--text-primary); }
+.feedback-modal textarea {
+  width: 100%; min-height: 70px; padding: 0.5rem 0.75rem; border: 1px solid var(--border);
+  border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; resize: vertical;
+  background: var(--surface-alt); color: var(--text-primary); line-height: 1.5;
+}
+.feedback-modal textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
+.feedback-modal .fb-field { margin-bottom: 0.75rem; }
+.fb-stars { display: flex; gap: 0.25rem; margin-bottom: 1rem; }
+.fb-stars button {
+  background: none; border: none; font-size: 1.6rem; cursor: pointer; padding: 0.1rem;
+  color: var(--border); transition: color 0.15s, transform 0.1s; line-height: 1;
+}
+.fb-stars button:hover { transform: scale(1.15); }
+.fb-stars button.active { color: #f59e0b; }
+.fb-stars button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.feedback-modal .fb-actions { display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; }
+.feedback-modal .fb-close {
+  position: absolute; top: 0.75rem; right: 0.75rem; background: none; border: none;
+  font-size: 1.2rem; cursor: pointer; color: var(--text-muted); padding: 0.25rem;
+}
+.feedback-modal .fb-close:hover { color: var(--text-primary); }
+.feedback-modal .fb-context {
+  font-size: 0.75rem; color: var(--text-muted); margin-top: 0.75rem;
+  padding-top: 0.75rem; border-top: 1px solid var(--border);
+}
+
+/* ── Google Calendar panel ── */
+.gcal-item {
+  display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.gcal-item:last-child { border-bottom: none; }
+.gcal-item-date {
+  font-family: 'DM Mono', monospace; font-size: 0.75rem; color: var(--text-muted);
+  min-width: 5.5rem; flex-shrink: 0;
+}
+.gcal-item-label { flex: 1; font-size: 0.85rem; }
+.gcal-item.key .gcal-item-label { font-weight: 600; color: var(--accent-dark); }
+.gcal-item a {
+  font-size: 0.75rem; font-weight: 600; color: var(--accent); text-decoration: none;
+  white-space: nowrap; padding: 0.2rem 0.5rem; border: 1px solid var(--accent);
+  border-radius: 6px; transition: background 0.15s, color 0.15s;
+}
+.gcal-item a:hover { background: var(--accent); color: #fff; }
+
 /* ── Theme toggle ── */
 .theme-toggle {
   position: fixed;
@@ -745,6 +806,25 @@ body.dark .skip-link { background: #334155; }
 @media (min-width: 601px) and (max-width: 960px) {
   .container { max-width: 90%; }
 }
+
+/* ── Onboarding Tour ── */
+.tour-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 3000; transition: opacity 0.2s; }
+.tour-highlight { position: relative; z-index: 3001; box-shadow: 0 0 0 4px var(--accent), 0 0 0 9999px rgba(0,0,0,0.45); border-radius: 8px; transition: box-shadow 0.3s; }
+.tour-tooltip {
+  position: absolute; z-index: 3002; background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 1rem 1.15rem; max-width: 320px; width: max-content;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.18); font-size: 0.85rem; line-height: 1.5; color: var(--text-primary);
+}
+.tour-tooltip h4 { font-family: 'Fraunces', serif; font-size: 1rem; margin: 0 0 0.35rem; color: var(--accent-dark); }
+.tour-tooltip p { margin: 0 0 0.75rem; color: var(--text-secondary); font-size: 0.8rem; }
+.tour-tooltip .tour-actions { display: flex; gap: 0.5rem; align-items: center; }
+.tour-tooltip .tour-step { font-size: 0.7rem; color: var(--text-muted); margin-left: auto; }
+.tour-tooltip .tour-btn { padding: 0.35rem 0.85rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; border: none; font-family: 'DM Sans', sans-serif; }
+.tour-tooltip .tour-btn-next { background: var(--accent); color: #fff; }
+.tour-tooltip .tour-btn-next:hover { background: var(--accent-dark); }
+.tour-tooltip .tour-btn-skip { background: none; color: var(--text-muted); border: 1px solid var(--border); }
+.tour-tooltip .tour-btn-skip:hover { color: var(--text-primary); border-color: var(--text-muted); }
+@media print { .tour-overlay, .tour-tooltip, .tour-highlight { display: none !important; } }
 </style>
 </head>
 <body>
@@ -897,8 +977,17 @@ body.dark .skip-link { background: #334155; }
           </p>
           <div id="blocked-slots-list" style="margin-bottom:0.5rem;"></div>
           <div id="blocked-slot-form" style="display:none;padding:0.75rem;background:var(--surface-alt);border:1px solid var(--border);border-radius:8px;margin-bottom:0.75rem;">
+            <div style="display:flex;gap:1rem;margin-bottom:0.5rem;align-items:center;">
+              <label style="font-size:0.8rem;font-weight:600;margin:0;">Applies to:</label>
+              <label style="font-size:0.8rem;margin:0;cursor:pointer;display:flex;align-items:center;gap:0.3rem;">
+                <input type="radio" name="bs-scope" value="single" checked onchange="onBsScopeChange()"> This day only
+              </label>
+              <label style="font-size:0.8rem;margin:0;cursor:pointer;display:flex;align-items:center;gap:0.3rem;">
+                <input type="radio" name="bs-scope" value="every"> Every lab day
+              </label>
+            </div>
             <div style="display:grid;grid-template-columns:1fr 1fr 1fr 2fr;gap:0.5rem;align-items:end;">
-              <div class="form-row"><label for="bs-day" style="font-size:0.8rem;">Lab day</label>
+              <div class="form-row" id="bs-day-row"><label for="bs-day" style="font-size:0.8rem;">Lab day</label>
                 <select id="bs-day"></select>
               </div>
               <div class="form-row"><label for="bs-start" style="font-size:0.8rem;">From</label>
@@ -987,9 +1076,26 @@ body.dark .skip-link { background: #334155; }
         <button class="btn btn-sm btn-primary" onclick="copyShareLink()">Copy Link</button>
         <button class="btn btn-sm btn-orange" id="supervisor-update-btn" onclick="toggleSupervisorUpdate()" style="display:none;">Update Supervisor</button>
         <button class="btn btn-sm btn-ghost" onclick="copyProgressSummary()">Copy Progress</button>
-        <button class="btn btn-sm btn-ghost" onclick="downloadICS()">Add to Calendar</button>
+        <button class="btn btn-sm btn-ghost" onclick="downloadICS()">Download .ics</button>
+        <button class="btn btn-sm btn-ghost" onclick="showGoogleCalPanel()">Google Calendar</button>
         <button class="btn btn-sm btn-ghost" onclick="window.print()">Print / PDF</button>
         <button class="btn btn-sm btn-ghost" onclick="resetState()">Reset</button>
+      </div>
+    </div>
+
+    <!-- Google Calendar export panel -->
+    <div class="card" id="gcal-panel" style="display:none;">
+      <h3 style="font-family:'Fraunces',serif;font-size:1rem;margin-bottom:0.25rem;">Add to Google Calendar</h3>
+      <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.75rem;">Add your full experiment plan as one event, or add individual milestones below.</p>
+      <div style="margin-bottom:0.75rem;">
+        <a id="gcal-all-link" class="btn btn-sm btn-primary" href="#" target="_blank" rel="noopener" style="text-decoration:none;">Add Full Plan to Google Calendar</a>
+      </div>
+      <details style="margin-bottom:0.5rem;">
+        <summary style="font-size:0.8rem;font-weight:600;cursor:pointer;color:var(--text-muted);">Or add individual milestones</summary>
+        <div id="gcal-list" style="margin-top:0.5rem;"></div>
+      </details>
+      <div style="margin-top:0.75rem;text-align:right;">
+        <button class="btn btn-sm btn-ghost" onclick="document.getElementById('gcal-panel').style.display='none'">Close</button>
       </div>
     </div>
 
@@ -1157,7 +1263,17 @@ body.dark .skip-link { background: #334155; }
 
     <!-- Feedback -->
     <div style="margin-top:0.75rem;text-align:center;">
-      <a class="btn btn-sm btn-ghost" href="mailto:j.heller@maastrichtuniversity.nl?subject=Feedback%20DEXLab%20Experiment%20Planner%3A%20&body=Hi%20Jonas%2C%0A%0A%5BYour%20feedback%20here%5D%0A%0AName%3A%20%0AEmail%3A%20" style="text-decoration:none;">Give Feedback</a>
+      <a class="btn btn-sm btn-ghost" id="feedback-link" href="#" onclick="openFeedback();return false;" style="text-decoration:none;">Give Feedback</a>
+    </div>
+
+    <!-- Completion prompt -->
+    <div id="completion-prompt" style="display:none;margin-top:1rem;padding:1rem;background:var(--accent-light);border:1px solid var(--accent);border-radius:8px;text-align:center;">
+      <p style="font-size:1rem;font-weight:600;margin-bottom:0.5rem;">You've completed your plan!</p>
+      <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.75rem;">How was this tool? Your feedback helps us improve it for future students.</p>
+      <div style="display:flex;gap:0.5rem;justify-content:center;">
+        <a class="btn btn-sm btn-primary" href="#" onclick="openFeedback();return false;" style="text-decoration:none;">Send Feedback</a>
+        <button type="button" class="btn btn-sm btn-ghost" onclick="dismissCompletion()">Maybe Later</button>
+      </div>
     </div>
 
     <!-- Print footer -->
@@ -1168,6 +1284,36 @@ body.dark .skip-link { background: #334155; }
 
 <!-- Toast -->
 <div class="toast" id="toast"></div>
+
+<!-- Feedback Modal -->
+<div class="feedback-overlay" id="feedback-overlay" onclick="if(event.target===this)closeFeedback()">
+  <div class="feedback-modal" style="position:relative;">
+    <button class="fb-close" onclick="closeFeedback()" aria-label="Close feedback">&times;</button>
+    <h3>How was the planner?</h3>
+    <p class="fb-sub">Your feedback helps us improve this tool for future students.</p>
+    <label>Overall rating</label>
+    <div class="fb-stars" id="fb-stars">
+      <button type="button" onclick="setRating(1)" aria-label="1 star">&#9733;</button>
+      <button type="button" onclick="setRating(2)" aria-label="2 stars">&#9733;</button>
+      <button type="button" onclick="setRating(3)" aria-label="3 stars">&#9733;</button>
+      <button type="button" onclick="setRating(4)" aria-label="4 stars">&#9733;</button>
+      <button type="button" onclick="setRating(5)" aria-label="5 stars">&#9733;</button>
+    </div>
+    <div class="fb-field">
+      <label for="fb-good">What went well?</label>
+      <textarea id="fb-good" placeholder="e.g. The timeline was really helpful..."></textarea>
+    </div>
+    <div class="fb-field">
+      <label for="fb-improve">What could be improved?</label>
+      <textarea id="fb-improve" placeholder="e.g. I wish I could also plan..."></textarea>
+    </div>
+    <div class="fb-actions">
+      <button type="button" class="btn btn-sm btn-primary" onclick="sendFeedbackEmail()">Send via Email</button>
+      <button type="button" class="btn btn-sm btn-ghost" onclick="copyFeedback()">Copy to Clipboard</button>
+    </div>
+    <div class="fb-context" id="fb-context"></div>
+  </div>
+</div>
 
 <script>
 // ============================================================
@@ -1607,24 +1753,22 @@ function updateCalc() {
       const effectiveParticipantsPerDay = effectiveSlots.length * perTimeslot;
       const dayParticipants = Math.min(participantsRemaining, effectiveParticipantsPerDay);
       const daySlotsNeeded = Math.ceil(dayParticipants / perTimeslot);
-      let slotLabels = '';
-      let lunchInserted = false;
-      // Show blocked slot markers for this day
+      // Merge participant slots, lunch break, and blocked slots into a single time-sorted sequence
       const dayBlocks = (state.blockedSlots || []).filter(b => b.dayIndex === day);
+      const allItems = [];
       for (let s = 0; s < daySlotsNeeded; s++) {
         const slot = effectiveSlots[s];
-        // Insert lunch break marker between morning and afternoon slots
-        if (lunch > 0 && !lunchInserted && slot.start >= lunchEnd) {
-          slotLabels += `<span style="display:inline-block;background:var(--lab-orange-light);border:1px solid rgba(232,99,43,0.2);border-radius:4px;padding:0.15rem 0.4rem;margin:0.15rem 0.2rem;font-size:0.7rem;white-space:nowrap;color:var(--lab-orange);">lunch ${fmtTime(lunchStartMin)}\u2013${fmtTime(lunchEnd)}</span>`;
-          lunchInserted = true;
-        }
         const pInSlot = Math.min(perTimeslot, participantsRemaining - s * perTimeslot);
-        slotLabels += `<span class="mono" style="display:inline-block;background:var(--surface-alt);border:1px solid var(--border);border-radius:4px;padding:0.15rem 0.4rem;margin:0.15rem 0.2rem;font-size:0.75rem;white-space:nowrap;">${fmtTime(slot.start)}\u2013${fmtTime(slot.start + sessionMin)}${perTimeslot > 1 ? ' (' + pInSlot + 'p)' : ''}</span>`;
+        allItems.push({ type: 'participant', sortTime: slot.start, html: `<span class="mono" style="display:inline-block;background:var(--surface-alt);border:1px solid var(--border);border-radius:4px;padding:0.15rem 0.4rem;margin:0.15rem 0.2rem;font-size:0.75rem;white-space:nowrap;">${fmtTime(slot.start)}\u2013${fmtTime(slot.start + sessionMin)}${perTimeslot > 1 ? ' (' + pInSlot + 'p)' : ''}</span>` });
       }
-      // Add blocked-time markers
+      if (lunch > 0) {
+        allItems.push({ type: 'lunch', sortTime: lunchStartMin, html: `<span style="display:inline-block;background:var(--lab-orange-light);border:1px solid rgba(232,99,43,0.2);border-radius:4px;padding:0.15rem 0.4rem;margin:0.15rem 0.2rem;font-size:0.7rem;white-space:nowrap;color:var(--lab-orange);">lunch ${fmtTime(lunchStartMin)}\u2013${fmtTime(lunchEnd)}</span>` });
+      }
       dayBlocks.forEach(b => {
-        slotLabels += `<span style="display:inline-block;background:var(--danger-light, #fde8e8);border:1px solid var(--danger);border-radius:4px;padding:0.15rem 0.4rem;margin:0.15rem 0.2rem;font-size:0.7rem;white-space:nowrap;color:var(--danger);opacity:0.85;">\u2715 ${fmtTime(b.startMin)}\u2013${fmtTime(b.endMin)}${b.label ? ' ' + escapeHTML(b.label) : ''}</span>`;
+        allItems.push({ type: 'blocked', sortTime: b.startMin, html: `<span style="display:inline-block;background:var(--danger-light, #fde8e8);border:1px solid var(--danger);border-radius:4px;padding:0.15rem 0.4rem;margin:0.15rem 0.2rem;font-size:0.7rem;white-space:nowrap;color:var(--danger);opacity:0.85;">\u2715 ${fmtTime(b.startMin)}\u2013${fmtTime(b.endMin)}${b.label ? ' ' + escapeHTML(b.label) : ''}</span>` });
       });
+      allItems.sort((a, b) => a.sortTime - b.sortTime);
+      const slotLabels = allItems.map(item => item.html).join('');
       dayRows += `<tr><td style="white-space:nowrap;vertical-align:top;padding:0.35rem 0.75rem 0.35rem 0;font-size:0.8rem;border-bottom:1px solid var(--border-light);"><strong>Day ${day}</strong><br><span class="mono" style="font-size:0.75rem;color:var(--text-muted);">${formatDateShort(d)}</span></td><td style="padding:0.35rem 0;border-bottom:1px solid var(--border-light);line-height:1.8;">${slotLabels}</td><td class="mono" style="vertical-align:top;padding:0.35rem 0 0.35rem 0.75rem;font-size:0.8rem;border-bottom:1px solid var(--border-light);white-space:nowrap;">${dayParticipants} participant${dayParticipants !== 1 ? 's' : ''}</td></tr>`;
       participantsRemaining -= dayParticipants;
       d = addDays(d, 1);
@@ -1673,13 +1817,48 @@ function updateCalc() {
       }
       if (prevVal && parseInt(prevVal) <= totalDays) bsDaySel.value = prevVal;
     }
+    // Sync recurring groups: add/remove entries so they match current totalDays
+    if (typeof totalDays === 'number' && totalDays > 0) {
+      const groups = new Map();
+      (state.blockedSlots || []).forEach(b => {
+        if (b.recurring && b.groupId) {
+          if (!groups.has(b.groupId)) groups.set(b.groupId, []);
+          groups.get(b.groupId).push(b);
+        }
+      });
+      groups.forEach((items, groupId) => {
+        const first = items[0];
+        const existingDays = new Set(items.map(b => b.dayIndex));
+        // Add missing days
+        for (let d = 1; d <= totalDays; d++) {
+          if (!existingDays.has(d)) {
+            state.blockedSlots.push({
+              id: 'blocked_' + Date.now() + '_' + d + '_' + Math.random().toString(36).slice(2,6),
+              dayIndex: d, startMin: first.startMin, endMin: first.endMin, label: first.label,
+              recurring: true, groupId
+            });
+          }
+        }
+        // Remove days beyond totalDays
+        state.blockedSlots = state.blockedSlots.filter(b => !(b.groupId === groupId && b.dayIndex > totalDays));
+      });
+    }
     renderBlockedSlotsList();
   }
+}
+
+function onBsScopeChange() {
+  const scope = document.querySelector('input[name="bs-scope"]:checked').value;
+  document.getElementById('bs-day-row').style.display = scope === 'single' ? 'block' : 'none';
 }
 
 function openBlockedSlotForm() {
   document.getElementById('blocked-slot-form').style.display = 'block';
   document.getElementById('add-block-btn').style.display = 'none';
+  // Reset to single-day mode
+  const radios = document.querySelectorAll('input[name="bs-scope"]');
+  radios.forEach(r => r.checked = r.value === 'single');
+  document.getElementById('bs-day-row').style.display = 'block';
 }
 
 function closeBlockedSlotForm() {
@@ -1689,7 +1868,6 @@ function closeBlockedSlotForm() {
 }
 
 function saveBlockedSlot() {
-  const dayIndex = parseInt(document.getElementById('bs-day').value);
   const startVal = document.getElementById('bs-start').value;
   const endVal = document.getElementById('bs-end').value;
   const label = document.getElementById('bs-label').value.trim();
@@ -1700,7 +1878,28 @@ function saveBlockedSlot() {
   const eMin = parseInt(endMatch[1]) * 60 + parseInt(endMatch[2]);
   if (eMin <= sMin) { showToast('End time must be after start time.'); return; }
   if (!state.blockedSlots) state.blockedSlots = [];
-  state.blockedSlots.push({ id: 'blocked_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), dayIndex, startMin: sMin, endMin: eMin, label });
+
+  const scope = document.querySelector('input[name="bs-scope"]:checked').value;
+
+  if (scope === 'every') {
+    // Create one entry per lab day, linked by groupId
+    const totalDays = (state.labCalc && typeof state.labCalc.totalDays === 'number') ? state.labCalc.totalDays : 1;
+    const groupId = 'group_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
+    for (let d = 1; d <= totalDays; d++) {
+      state.blockedSlots.push({
+        id: 'blocked_' + Date.now() + '_' + d + '_' + Math.random().toString(36).slice(2,6),
+        dayIndex: d, startMin: sMin, endMin: eMin, label,
+        recurring: true, groupId
+      });
+    }
+  } else {
+    const dayIndex = parseInt(document.getElementById('bs-day').value);
+    state.blockedSlots.push({
+      id: 'blocked_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+      dayIndex, startMin: sMin, endMin: eMin, label
+    });
+  }
+
   closeBlockedSlotForm();
   updateCalc();
   saveState();
@@ -1712,19 +1911,56 @@ function removeBlockedSlot(id) {
   saveState();
 }
 
+function removeBlockedGroup(groupId) {
+  state.blockedSlots = (state.blockedSlots || []).filter(b => b.groupId !== groupId);
+  updateCalc();
+  saveState();
+}
+
 function renderBlockedSlotsList() {
   const container = document.getElementById('blocked-slots-list');
   if (!container) return;
   const blocks = state.blockedSlots || [];
   if (blocks.length === 0) { container.innerHTML = ''; return; }
-  container.innerHTML = blocks.map(b =>
-    `<div style="display:flex;align-items:center;gap:0.5rem;padding:0.3rem 0;font-size:0.82rem;">
+
+  // Separate recurring groups from single blocks
+  const groups = new Map();
+  const singles = [];
+  blocks.forEach(b => {
+    if (b.recurring && b.groupId) {
+      if (!groups.has(b.groupId)) groups.set(b.groupId, []);
+      groups.get(b.groupId).push(b);
+    } else {
+      singles.push(b);
+    }
+  });
+
+  let html = '';
+
+  // Render recurring groups as a single row each
+  groups.forEach((items, groupId) => {
+    const first = items[0];
+    const dayCount = items.length;
+    html += `<div style="display:flex;align-items:center;gap:0.5rem;padding:0.3rem 0;font-size:0.82rem;">
+      <span class="mono" style="color:var(--lab-orange);font-weight:600;">Every day</span>
+      <span style="font-size:0.7rem;color:var(--text-muted);">(${dayCount} days)</span>
+      <span class="mono">${fmtTime(first.startMin)}\u2013${fmtTime(first.endMin)}</span>
+      <span style="color:var(--text-muted);">${escapeHTML(first.label || '')}</span>
+      <button type="button" data-group-id="${escapeHTML(groupId)}" onclick="removeBlockedGroup(this.dataset.groupId)" style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:0.9rem;padding:0.1rem 0.3rem;line-height:1;" aria-label="Remove recurring blocked slots">\u00D7</button>
+    </div>`;
+  });
+
+  // Render single blocks
+  singles.forEach(b => {
+    html += `<div style="display:flex;align-items:center;gap:0.5rem;padding:0.3rem 0;font-size:0.82rem;">
       <span class="mono" style="color:var(--danger);font-weight:600;">Day ${b.dayIndex}</span>
       <span class="mono">${fmtTime(b.startMin)}\u2013${fmtTime(b.endMin)}</span>
       <span style="color:var(--text-muted);">${escapeHTML(b.label || '')}</span>
       <button type="button" data-slot-id="${escapeHTML(b.id)}" onclick="removeBlockedSlot(this.dataset.slotId)" style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:0.9rem;padding:0.1rem 0.3rem;line-height:1;" aria-label="Remove blocked slot">\u00D7</button>
-    </div>`
-  ).join('');
+    </div>`;
+  });
+
+  container.innerHTML = html;
 }
 
 function showToast(msg) {
@@ -1830,7 +2066,7 @@ function encodeState() {
   }
   if (state.blockedSlots && state.blockedSlots.length) {
     try {
-      const bsPayload = state.blockedSlots.map(b => [b.dayIndex, b.startMin, b.endMin, b.label || '']);
+      const bsPayload = state.blockedSlots.map(b => [b.dayIndex, b.startMin, b.endMin, b.label || '', b.recurring ? 1 : 0, b.groupId || '']);
       params.set('bs', btoa(unescape(encodeURIComponent(JSON.stringify(bsPayload)))));
     } catch (e) {}
   }
@@ -1897,6 +2133,8 @@ function decodeState(hash) {
               startMin: Math.max(0, Math.min(1440, parseInt(a[1]) || 0)),
               endMin: Math.max(0, Math.min(1440, parseInt(a[2]) || 0)),
               label: escapeHTML(a[3] || ''),
+              recurring: !!(a[4]),
+              groupId: escapeHTML(a[5] || ''),
             }));
           } catch (e) {}
         }
@@ -2133,6 +2371,87 @@ function toICSDate(d) {
 
 function toICSDateOnly(d) {
   return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// ── Google Calendar Export ──
+function toGCalDate(d) {
+  return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function buildGCalURL(milestone) {
+  const dateStr = toGCalDate(milestone.date);
+  const next = new Date(milestone.date);
+  next.setDate(next.getDate() + 1);
+  const endStr = toGCalDate(next);
+  const title = `[DEXLab] ${milestone.label}`;
+  const details = (milestone.note || '') + (state.studyTitle ? `\n\nStudy: ${state.studyTitle}` : '');
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: title,
+    dates: `${dateStr}/${endStr}`,
+    details: details,
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
+function buildFullPlanGCalURL(milestones) {
+  const all = milestones.sort((a, b) => a.date - b.date);
+  const first = all[0];
+  const last = all[all.length - 1];
+  const startStr = toGCalDate(first.date);
+  const endDate = new Date(last.date);
+  endDate.setDate(endDate.getDate() + 1);
+  const endStr = toGCalDate(endDate);
+  const studyLabel = state.studyTitle || 'Experiment';
+  const title = `[DEXLab] ${studyLabel} — Experiment Plan`;
+  const fmt = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short' });
+  const lines = all.map(m => {
+    const prefix = m.keyDate ? '\u2605 ' : '  ';
+    return `${prefix}${fmt.format(m.date)} — ${m.label}`;
+  });
+  const details = `Experiment plan milestones:\n\n${lines.join('\n')}`;
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: title,
+    dates: `${startStr}/${endStr}`,
+    details: details,
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
+function showGoogleCalPanel() {
+  const panel = document.getElementById('gcal-panel');
+  const list = document.getElementById('gcal-list');
+  const computed = getCachedMilestones();
+
+  if (computed.length === 0) {
+    showToast('No milestones to export yet.');
+    return;
+  }
+
+  // Build full plan link
+  document.getElementById('gcal-all-link').href = buildFullPlanGCalURL([...computed]);
+
+  // Sort: key dates first, then by date
+  const sorted = [...computed].sort((a, b) => {
+    if (a.keyDate && !b.keyDate) return -1;
+    if (!a.keyDate && b.keyDate) return 1;
+    return a.date - b.date;
+  });
+
+  const fmt = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  list.innerHTML = sorted.map(m => {
+    const url = buildGCalURL(m);
+    const cls = m.keyDate ? 'gcal-item key' : 'gcal-item';
+    return `<div class="${cls}">
+      <span class="gcal-item-date">${fmt.format(m.date)}</span>
+      <span class="gcal-item-label">${m.label}</span>
+      <a href="${url}" target="_blank" rel="noopener">+ Add</a>
+    </div>`;
+  }).join('');
+
+  panel.style.display = 'block';
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 // ── localStorage ──
@@ -2617,6 +2936,8 @@ function generatePlan() {
   showBookmarkReminder();
   // Enable leave warning
   window.onbeforeunload = function() { return true; };
+  // Onboarding tour for first-time users (after plan renders)
+  setTimeout(startTour, 600);
 }
 
 function showBookmarkReminder() {
@@ -2866,6 +3187,96 @@ function toggleCheck(id) {
 function updateProgress(checked, total) {
   const pct = total > 0 ? (checked / total) * 100 : 0;
   document.getElementById('progress-bar').style.width = pct + '%';
+
+  // Show completion prompt at 100%
+  const prompt = document.getElementById('completion-prompt');
+  if (prompt && pct >= 100) {
+    try {
+      if (!localStorage.getItem('dexlab_feedback_shown')) {
+        prompt.style.display = 'block';
+      }
+    } catch (e) { prompt.style.display = 'block'; }
+  } else if (prompt) {
+    prompt.style.display = 'none';
+  }
+}
+
+let feedbackRating = 0;
+
+function getFeedbackContext() {
+  const role = state.role || 'unknown';
+  const computed = getCachedMilestones();
+  const checked = state.checkedItems ? state.checkedItems.length : 0;
+  const total = computed.length;
+  const pct = total > 0 ? Math.round((checked / total) * 100) : 0;
+  return { role, checked, total, pct };
+}
+
+function openFeedback() {
+  const ctx = getFeedbackContext();
+  const overlay = document.getElementById('feedback-overlay');
+  document.getElementById('fb-context').textContent =
+    `${ctx.role} \u2022 ${ctx.checked}/${ctx.total} milestones (${ctx.pct}%) \u2022 ${state.studyTitle || 'No study title'}`;
+  feedbackRating = 0;
+  document.querySelectorAll('#fb-stars button').forEach(b => b.classList.remove('active'));
+  document.getElementById('fb-good').value = '';
+  document.getElementById('fb-improve').value = '';
+  overlay.classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeFeedback() {
+  document.getElementById('feedback-overlay').classList.remove('show');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && document.getElementById('feedback-overlay').classList.contains('show')) closeFeedback();
+});
+
+function setRating(n) {
+  feedbackRating = n;
+  document.querySelectorAll('#fb-stars button').forEach((b, i) => {
+    b.classList.toggle('active', i < n);
+  });
+}
+
+function composeFeedbackText() {
+  const ctx = getFeedbackContext();
+  const stars = feedbackRating > 0 ? '\u2605'.repeat(feedbackRating) + '\u2606'.repeat(5 - feedbackRating) : 'No rating';
+  const good = document.getElementById('fb-good').value.trim();
+  const improve = document.getElementById('fb-improve').value.trim();
+  let text = `DEXLab Planner Feedback\n\nRating: ${stars} (${feedbackRating}/5)\n`;
+  if (good) text += `\nWhat went well:\n${good}\n`;
+  if (improve) text += `\nWhat could be improved:\n${improve}\n`;
+  text += `\n---\nRole: ${ctx.role}\nProgress: ${ctx.checked}/${ctx.total} milestones (${ctx.pct}%)\nBlock period: ${state.bpStart || 'N/A'}\nStudy: ${state.studyTitle || 'N/A'}\n`;
+  return text;
+}
+
+function sendFeedbackEmail() {
+  if (feedbackRating === 0) { showToast('Please select a rating first'); return; }
+  const ctx = getFeedbackContext();
+  const subject = encodeURIComponent(`DEXLab Planner Feedback (${ctx.role}, ${ctx.pct}% complete)`);
+  const body = encodeURIComponent(composeFeedbackText());
+  window.location.href = `mailto:j.heller@maastrichtuniversity.nl?subject=${subject}&body=${body}`;
+  closeFeedback();
+  try { localStorage.setItem('dexlab_feedback_shown', '1'); } catch (e) {}
+}
+
+function copyFeedback() {
+  if (feedbackRating === 0) { showToast('Please select a rating first'); return; }
+  const text = composeFeedbackText();
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('Feedback copied to clipboard');
+    closeFeedback();
+    try { localStorage.setItem('dexlab_feedback_shown', '1'); } catch (e) {}
+  }).catch(() => {
+    showToast('Could not copy — try Send via Email instead');
+  });
+}
+
+function dismissCompletion() {
+  document.getElementById('completion-prompt').style.display = 'none';
+  try { localStorage.setItem('dexlab_feedback_shown', '1'); } catch (e) {}
 }
 
 // ── Navigation ──
@@ -2979,10 +3390,89 @@ function resetState() {
   }
 })();
 
+// ── Onboarding Tour ──
+const TOUR_STEPS = [
+  { target: '#milestone-table', title: 'Your Milestones', text: 'All key deadlines are calculated from your block period. Click any date to override it manually.' },
+  { target: '#custom-milestones-card', title: 'Custom Milestones', text: 'Add your own milestones — extra meetings, supervisor calls, pilot sessions. They appear in the timeline and checklist.' },
+  { target: '#lab-calc-section', title: 'Lab Time Calculator', text: 'Fill in your experiment details to calculate how many lab days you need and generate a full timetable with timeslots.' },
+  { target: '[onclick="shiftSchedule()"]', title: 'Shift Schedule', text: 'Running behind? Shift your data collection start date and all downstream milestones move with it automatically.' },
+];
+
+function shouldShowTour() {
+  try { return !localStorage.getItem('dexlab_tour_done'); } catch(e) { return false; }
+}
+
+function startTour() {
+  if (!shouldShowTour()) return;
+  window._tourStep = 0;
+  showTourStep(0);
+}
+
+function showTourStep(index) {
+  // Clean up previous
+  document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
+  const oldTooltip = document.getElementById('tour-tooltip');
+  if (oldTooltip) oldTooltip.remove();
+
+  if (index >= TOUR_STEPS.length) { endTour(); return; }
+
+  const step = TOUR_STEPS[index];
+  const el = document.querySelector(step.target);
+  if (!el || el.offsetParent === null) {
+    // Skip invisible targets
+    showTourStep(index + 1);
+    return;
+  }
+
+  // Scroll target into view
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  setTimeout(() => {
+    // Add highlight
+    el.classList.add('tour-highlight');
+
+    // Create tooltip
+    const tooltip = document.createElement('div');
+    tooltip.id = 'tour-tooltip';
+    tooltip.className = 'tour-tooltip';
+    const isLast = index === TOUR_STEPS.length - 1;
+    tooltip.innerHTML = `
+      <h4>${step.title}</h4>
+      <p>${step.text}</p>
+      <div class="tour-actions">
+        <button class="tour-btn tour-btn-skip" onclick="endTour()">Skip tour</button>
+        <button class="tour-btn tour-btn-next" onclick="showTourStep(${index + 1})">${isLast ? 'Done' : 'Next'}</button>
+        <span class="tour-step">${index + 1} / ${TOUR_STEPS.length}</span>
+      </div>`;
+    document.body.appendChild(tooltip);
+
+    // Position tooltip below the target
+    const rect = el.getBoundingClientRect();
+    const ttRect = tooltip.getBoundingClientRect();
+    let top = rect.bottom + window.scrollY + 12;
+    let left = rect.left + window.scrollX + (rect.width / 2) - (ttRect.width / 2);
+    // Keep within viewport horizontally
+    left = Math.max(8, Math.min(left, window.innerWidth - ttRect.width - 8));
+    // If tooltip goes below viewport, show above
+    if (rect.bottom + ttRect.height + 20 > window.innerHeight) {
+      top = rect.top + window.scrollY - ttRect.height - 12;
+    }
+    tooltip.style.top = top + 'px';
+    tooltip.style.left = left + 'px';
+  }, 350);
+}
+
+function endTour() {
+  document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
+  const tooltip = document.getElementById('tour-tooltip');
+  if (tooltip) tooltip.remove();
+  try { localStorage.setItem('dexlab_tour_done', '1'); } catch(e) {}
+}
+
 // ── Theme toggle ──
 (function() {
   const saved = (() => { try { return localStorage.getItem('dexlab_theme'); } catch(e) { return null; } })();
-  if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) document.body.classList.add('dark');
+  if (saved === 'dark') document.body.classList.add('dark');
 })();
 function toggleTheme() {
   const isDark = document.body.classList.toggle('dark');
