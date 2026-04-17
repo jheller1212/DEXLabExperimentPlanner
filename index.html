@@ -907,10 +907,10 @@ body.dark .skip-link { background: #334155; }
       <div id="holiday-warning-container"></div>
     </div>
 
-    <!-- Lab Time Calculator -->
+    <!-- Lab Timetable Calculator -->
     <details class="checklist-section" id="lab-calc-section" open>
       <summary class="checklist-section-header">
-        <span>Lab Time Calculator <span class="checklist-section-count">fill in before generating</span></span>
+        <span>Lab Timetable Calculator <span class="checklist-section-count">fill in before generating</span></span>
         <span class="chevron">&#9660;</span>
       </summary>
       <div class="checklist-section-body">
@@ -1041,7 +1041,7 @@ body.dark .skip-link { background: #334155; }
       <div class="form-row" style="margin-top:0.75rem;">
         <label for="collection-days-input">How long will data collection take?</label>
         <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.35rem;line-height:1.5;">
-          Number of lab days. This autofills once you use the Lab Time Calculator above.
+          Number of lab days. This autofills once you use the Lab Timetable Calculator above.
         </p>
         <div style="display:flex;align-items:center;gap:0.5rem;">
           <input type="number" id="collection-days-input" min="1" max="60" value="5" inputmode="numeric" style="width:5rem;" onchange="onCollectionDaysChange()">
@@ -1147,8 +1147,13 @@ body.dark .skip-link { background: #334155; }
       </div>
       <div style="margin-top:0.75rem;display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center;">
         <button class="btn btn-sm btn-ghost" onclick="shiftSchedule()" title="Shift data collection (and everything anchored to it) by N days">Shift schedule &hellip;</button>
-        <span style="font-size:0.75rem;color:var(--text-muted);">Behind schedule? Shift data collection by N days \u2014 downstream milestones move with it.</span>
+        <span style="font-size:0.75rem;color:var(--text-muted);">Behind schedule? Shift data collection by N days &mdash; downstream milestones move with it.</span>
       </div>
+    </div>
+
+    <!-- Lab Timetable Calculator link -->
+    <div style="margin-bottom:0.75rem;">
+      <a href="javascript:scrollToTimetable()" style="font-size:0.8rem;color:var(--accent);text-decoration:none;display:inline-flex;align-items:center;gap:0.3rem;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">&larr; Open Lab Timetable Calculator</a>
     </div>
 
     <!-- Workload rollup -->
@@ -1278,6 +1283,7 @@ body.dark .skip-link { background: #334155; }
 
     <!-- Print footer -->
     <div class="print-footer" id="print-footer"></div>
+    <div style="text-align:center;margin-top:1.5rem;"><a href="javascript:replayTour()" style="font-size:0.75rem;color:var(--text-muted);text-decoration:none;border-bottom:1px dashed var(--border);">Show feature tour</a></div>
   </div>
 
 </div>
@@ -1620,7 +1626,23 @@ function getCachedMilestones() {
 }
 
 // ── Toast ──
-// ── Lab Time Calculator ──
+// ── Scroll to Lab Timetable ──
+function scrollToTimetable() {
+  // Show the confirm screen where the calculator lives
+  showScreen('screen-confirm');
+  var calc = document.getElementById('lab-calc-section');
+  if (calc) {
+    calc.open = true;
+    setTimeout(function() {
+      calc.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+  }
+  // Also expand timetable body if it exists
+  var ttBody = document.getElementById('timetable-body');
+  if (ttBody) ttBody.style.display = 'block';
+}
+
+// ── Lab Timetable Calculator ──
 function fmtTime(totalMin) {
   const h = Math.floor(totalMin / 60);
   const m = totalMin % 60;
@@ -2487,6 +2509,7 @@ function saveState() {
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  if (typeof advanceTourForScreen === 'function') advanceTourForScreen(id);
 }
 
 function showScreensUpTo(id) {
@@ -2496,6 +2519,7 @@ function showScreensUpTo(id) {
   for (let i = 0; i <= idx; i++) {
     document.getElementById(order[i]).classList.add('active');
   }
+  if (typeof advanceTourForScreen === 'function') advanceTourForScreen(id);
 }
 
 // ── Screen 1: Role ──
@@ -2922,7 +2946,7 @@ function generatePlan() {
   state.supervisorEmail = document.getElementById('supervisor-email-input').value.trim();
   // Remind user to fill in lab calculator if they haven't
   if (!state.labCalc) {
-    if (!confirm('You haven\u2019t filled in the Lab Time Calculator yet. It helps determine how many lab days you need and generates a timetable for your experiment.\n\nGenerate the plan anyway?')) {
+    if (!confirm('You haven\u2019t filled in the Lab Timetable Calculator yet. It helps determine how many lab days you need and generates a timetable for your experiment.\n\nGenerate the plan anyway?')) {
       document.getElementById('lab-calc-section').scrollIntoView({ behavior: 'smooth' });
       return;
     }
@@ -3041,7 +3065,7 @@ function renderTimeline(milestones, holidays, today) {
     li.innerHTML = `
       <div class="tl-dot${isOverdue ? '' : (isPast ? ' past' : '')}${isHoliday ? ' holiday' : ''}"></div>
       <span class="tl-date">${formatDateShort(item.date)}</span>
-      <span class="tl-label">${item.label}${isOverdue ? ' \u2014 OVERDUE' : ''}</span>`;
+      <span class="tl-label">${item.label}${isOverdue ? ' \u2014 OVERDUE' : ''}${(item.id && (item.id === 'data_collection' || item.id.startsWith('lab_day_'))) ? ' <a href="javascript:scrollToTimetable()" style="font-size:0.7rem;color:var(--text-muted);text-decoration:none;" onmouseover="this.style.textDecoration=\'underline\'" onmouseout="this.style.textDecoration=\'none\'">(view timetable)</a>' : ''}</span>`;
     list.appendChild(li);
   });
 
@@ -3068,7 +3092,7 @@ function renderMilestoneTable(milestones, today) {
     const durLabel = formatDuration(m.durationMin);
     const durBadge = durLabel ? ` <span style="color:var(--text-muted);font-size:0.75rem;">\u00B7 ${durLabel}</span>` : '';
     tr.innerHTML = `
-      <td>${m.label}${m.optional ? ' <span style="color:var(--text-muted);font-size:0.75rem;">(optional)</span>' : ''}${durBadge}</td>
+      <td>${m.label}${m.optional ? ' <span style="color:var(--text-muted);font-size:0.75rem;">(optional)</span>' : ''}${durBadge}${(m.id === 'data_collection' || (m.id && m.id.startsWith('lab_day_'))) ? ' <a href="javascript:scrollToTimetable()" style="font-size:0.7rem;color:var(--text-muted);text-decoration:none;" onmouseover="this.style.textDecoration=\'underline\'" onmouseout="this.style.textDecoration=\'none\'">(view timetable)</a>' : ''}</td>
       <td class="ms-date">${formatDate(m.date)}</td>
       <td class="${statusClass}">${statusText}</td>`;
     tbody.appendChild(tr);
@@ -3393,7 +3417,7 @@ function resetState() {
 // ── Onboarding Tour ──
 const TOUR_STEPS = [
   { target: '.role-buttons', screen: 'screen-role', title: 'Choose Your Role', text: 'Select your role to see relevant milestones — PhD researchers get additional steps for ethics and pre-registration.' },
-  { target: '#lab-calc-section', screen: 'screen-confirm', title: 'Lab Time Calculator', text: 'Use the lab calculator to figure out how many days you need. It generates a full timetable with timeslots.' },
+  { target: '#lab-calc-section', screen: 'screen-confirm', title: 'Lab Timetable Calculator', text: 'Use the lab calculator to figure out how many days you need. It generates a full timetable with timeslots.' },
   { target: '#blocked-slots-section', screen: 'screen-confirm', title: 'Blocked Time Slots', text: 'Block times when you can\'t run participants — tutorials, appointments, etc. The timetable skips those slots.' },
   { target: '#custom-milestones-card', screen: 'screen-plan', title: 'Custom Milestones', text: 'Add your own milestones to the timeline — extra meetings, supervisor calls, pilot sessions.' },
   { target: '[onclick="shiftSchedule()"]', screen: 'screen-plan', title: 'Shift Schedule', text: 'Shift your entire schedule forward or back — all downstream milestones move with it automatically.' },
@@ -3433,12 +3457,11 @@ function showTourStep(index) {
   var step = TOUR_STEPS[index];
   var el = document.querySelector(step.target);
 
-  // If target not visible (on a future screen), pause — advanceTourForScreen resumes it
+  // If target not visible, check if its screen is active
   if (!el || el.offsetParent === null) {
-    var activeScreens = document.querySelectorAll('.screen.active');
-    var lastActive = activeScreens[activeScreens.length - 1];
-    if (lastActive && lastActive.id !== step.screen) return; // pause
-    showTourStep(index + 1); // skip hidden on current screen
+    var stepScreen = document.getElementById(step.screen);
+    if (!stepScreen || !stepScreen.classList.contains('active')) return; // pause — screen not reached yet
+    showTourStep(index + 1); // skip hidden element on current screen
     return;
   }
 
@@ -3482,10 +3505,12 @@ document.addEventListener('keydown', function(e) {
 });
 
 // Called when a new screen becomes active — resumes the paused tour
-function advanceTourForScreen(screenId) {
+function advanceTourForScreen() {
   if (!_tourActive) return;
   var step = TOUR_STEPS[_tourStepIndex];
-  if (step && step.screen === screenId) {
+  if (!step) return;
+  var stepScreen = document.getElementById(step.screen);
+  if (stepScreen && stepScreen.classList.contains('active')) {
     setTimeout(function() { showTourStep(_tourStepIndex); }, 400);
   }
 }
