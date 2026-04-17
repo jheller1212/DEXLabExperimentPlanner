@@ -2395,7 +2395,7 @@ function buildGCalURL(milestone) {
 }
 
 function buildFullPlanGCalURL(milestones) {
-  const all = milestones.sort((a, b) => a.date - b.date);
+  const all = [...milestones].sort((a, b) => a.date - b.date);
   const first = all[0];
   const last = all[all.length - 1];
   const startStr = toGCalDate(first.date);
@@ -2445,7 +2445,7 @@ function showGoogleCalPanel() {
     const cls = m.keyDate ? 'gcal-item key' : 'gcal-item';
     return `<div class="${cls}">
       <span class="gcal-item-date">${fmt.format(m.date)}</span>
-      <span class="gcal-item-label">${m.label}</span>
+      <span class="gcal-item-label">${escapeHTML(m.label)}</span>
       <a href="${url}" target="_blank" rel="noopener">+ Add</a>
     </div>`;
   }).join('');
@@ -3392,82 +3392,112 @@ function resetState() {
 
 // ── Onboarding Tour ──
 const TOUR_STEPS = [
-  { target: '#milestone-table', title: 'Your Milestones', text: 'All key deadlines are calculated from your block period. Click any date to override it manually.' },
-  { target: '#custom-milestones-card', title: 'Custom Milestones', text: 'Add your own milestones — extra meetings, supervisor calls, pilot sessions. They appear in the timeline and checklist.' },
-  { target: '#lab-calc-section', title: 'Lab Time Calculator', text: 'Fill in your experiment details to calculate how many lab days you need and generate a full timetable with timeslots.' },
-  { target: '[onclick="shiftSchedule()"]', title: 'Shift Schedule', text: 'Running behind? Shift your data collection start date and all downstream milestones move with it automatically.' },
+  { target: '.role-buttons', screen: 'screen-role', title: 'Choose Your Role', text: 'Select your role to see relevant milestones — PhD researchers get additional steps for ethics and pre-registration.' },
+  { target: '#lab-calc-section', screen: 'screen-confirm', title: 'Lab Time Calculator', text: 'Use the lab calculator to figure out how many days you need. It generates a full timetable with timeslots.' },
+  { target: '#blocked-slots-section', screen: 'screen-confirm', title: 'Blocked Time Slots', text: 'Block times when you can\'t run participants — tutorials, appointments, etc. The timetable skips those slots.' },
+  { target: '#custom-milestones-card', screen: 'screen-plan', title: 'Custom Milestones', text: 'Add your own milestones to the timeline — extra meetings, supervisor calls, pilot sessions.' },
+  { target: '[onclick="shiftSchedule()"]', screen: 'screen-plan', title: 'Shift Schedule', text: 'Shift your entire schedule forward or back — all downstream milestones move with it automatically.' },
 ];
 
-function shouldShowTour() {
-  try { return !localStorage.getItem('dexlab_tour_done'); } catch(e) { return false; }
+var _tourActive = false;
+var _tourStepIndex = 0;
+
+function isTourDone() {
+  try { return !!localStorage.getItem('dexlab_tour_done'); } catch(e) { return true; }
 }
 
-function startTour() {
-  if (!shouldShowTour()) return;
-  window._tourStep = 0;
+function startTour(force) {
+  if (!force && isTourDone()) return;
+  _tourActive = true;
+  _tourStepIndex = 0;
   showTourStep(0);
 }
 
+function replayTour() {
+  try { localStorage.removeItem('dexlab_tour_done'); } catch(e) {}
+  startTour(true);
+}
+
+function cleanupTourUI() {
+  document.querySelectorAll('.tour-highlight').forEach(function(el) { el.classList.remove('tour-highlight'); });
+  var tooltip = document.getElementById('tour-tooltip');
+  if (tooltip) tooltip.remove();
+}
+
 function showTourStep(index) {
-  // Clean up previous
-  document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
-  const oldTooltip = document.getElementById('tour-tooltip');
-  if (oldTooltip) oldTooltip.remove();
+  cleanupTourUI();
+  _tourStepIndex = index;
 
   if (index >= TOUR_STEPS.length) { endTour(); return; }
 
-  const step = TOUR_STEPS[index];
-  const el = document.querySelector(step.target);
+  var step = TOUR_STEPS[index];
+  var el = document.querySelector(step.target);
+
+  // If target not visible (on a future screen), pause — advanceTourForScreen resumes it
   if (!el || el.offsetParent === null) {
-    // Skip invisible targets
-    showTourStep(index + 1);
+    var activeScreens = document.querySelectorAll('.screen.active');
+    var lastActive = activeScreens[activeScreens.length - 1];
+    if (lastActive && lastActive.id !== step.screen) return; // pause
+    showTourStep(index + 1); // skip hidden on current screen
     return;
   }
 
-  // Scroll target into view
   el.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-  setTimeout(() => {
-    // Add highlight
+  setTimeout(function() {
+    if (!_tourActive) return;
     el.classList.add('tour-highlight');
 
-    // Create tooltip
-    const tooltip = document.createElement('div');
+    var tooltip = document.createElement('div');
     tooltip.id = 'tour-tooltip';
     tooltip.className = 'tour-tooltip';
-    const isLast = index === TOUR_STEPS.length - 1;
-    tooltip.innerHTML = `
-      <h4>${step.title}</h4>
-      <p>${step.text}</p>
-      <div class="tour-actions">
-        <button class="tour-btn tour-btn-skip" onclick="endTour()">Skip tour</button>
-        <button class="tour-btn tour-btn-next" onclick="showTourStep(${index + 1})">${isLast ? 'Done' : 'Next'}</button>
-        <span class="tour-step">${index + 1} / ${TOUR_STEPS.length}</span>
-      </div>`;
+    var isLast = index === TOUR_STEPS.length - 1;
+    tooltip.innerHTML =
+      '<h4>' + step.title + '</h4>' +
+      '<p>' + step.text + '</p>' +
+      '<div class="tour-actions">' +
+        '<button class="tour-btn tour-btn-skip" onclick="endTour()">Skip tour</button>' +
+        '<button class="tour-btn tour-btn-next" onclick="showTourStep(' + (index + 1) + ')">' + (isLast ? 'Finish' : 'Next') + '</button>' +
+        '<span class="tour-step">' + (index + 1) + ' / ' + TOUR_STEPS.length + '</span>' +
+      '</div>';
     document.body.appendChild(tooltip);
 
-    // Position tooltip below the target
-    const rect = el.getBoundingClientRect();
-    const ttRect = tooltip.getBoundingClientRect();
-    let top = rect.bottom + window.scrollY + 12;
-    let left = rect.left + window.scrollX + (rect.width / 2) - (ttRect.width / 2);
-    // Keep within viewport horizontally
+    var rect = el.getBoundingClientRect();
+    var ttRect = tooltip.getBoundingClientRect();
+    var top = rect.bottom + window.scrollY + 12;
+    var left = rect.left + window.scrollX + (rect.width / 2) - (ttRect.width / 2);
     left = Math.max(8, Math.min(left, window.innerWidth - ttRect.width - 8));
-    // If tooltip goes below viewport, show above
     if (rect.bottom + ttRect.height + 20 > window.innerHeight) {
       top = rect.top + window.scrollY - ttRect.height - 12;
     }
     tooltip.style.top = top + 'px';
     tooltip.style.left = left + 'px';
+    var nextBtn = tooltip.querySelector('.tour-btn-next') || tooltip.querySelector('.tour-btn-skip');
+    if (nextBtn) nextBtn.focus();
   }, 350);
 }
 
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && _tourActive) endTour();
+});
+
+// Called when a new screen becomes active — resumes the paused tour
+function advanceTourForScreen(screenId) {
+  if (!_tourActive) return;
+  var step = TOUR_STEPS[_tourStepIndex];
+  if (step && step.screen === screenId) {
+    setTimeout(function() { showTourStep(_tourStepIndex); }, 400);
+  }
+}
+
 function endTour() {
-  document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
-  const tooltip = document.getElementById('tour-tooltip');
-  if (tooltip) tooltip.remove();
+  cleanupTourUI();
+  _tourActive = false;
   try { localStorage.setItem('dexlab_tour_done', '1'); } catch(e) {}
 }
+
+// Auto-start tour for first-time visitors
+setTimeout(function() { if (!isTourDone()) startTour(); }, 500);
 
 // ── Theme toggle ──
 (function() {
