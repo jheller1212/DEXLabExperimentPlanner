@@ -620,43 +620,65 @@ select { cursor: pointer; }
   color: var(--text-primary);
 }
 
-/* ── Dark Mode ── */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --dex-blue: #3db8f0;
-    --dex-blue-light: #1a2d3d;
-    --dex-blue-dark: #7dd3fc;
-    --lab-orange: #f0813f;
-    --lab-orange-light: #2d1f14;
-    --lab-orange-dark: #fbb580;
-    --navy: #e2e8f0;
-    --navy-light: #94a3b8;
-    --surface: #1e2433;
-    --surface-alt: #252d3f;
-    --border: #334155;
-    --border-light: #2d3a4e;
-    --text-primary: #e2e8f0;
-    --text-muted: #94a3b8;
-    --warning: #fb923c;
-    --danger: #f87171;
-    --success: #4ade80;
-  }
-  body { background: #0f1420; color: var(--text-primary); }
-  body.role-master { --accent: var(--dex-blue); --accent-light: var(--dex-blue-light); --accent-dark: var(--dex-blue-dark); }
-  body.role-phd { --accent: var(--lab-orange); --accent-light: var(--lab-orange-light); --accent-dark: var(--lab-orange-dark); }
-  body { --accent: var(--dex-blue); --accent-light: var(--dex-blue-light); --accent-dark: var(--dex-blue-dark); }
-  h1, h2, h3 { color: var(--navy); }
-  .role-btn:hover { border-color: var(--dex-blue); background: var(--dex-blue-light); }
-  .check-item input[type="checkbox"] { background: var(--surface-alt); border-color: var(--border); }
-  .check-item input[type="checkbox"]:checked::after { border-color: #fff; }
-  .toast { background: #334155; color: #e2e8f0; }
-  .holiday-warning { background: var(--lab-orange-light); border-color: rgba(240,129,63,0.3); color: var(--lab-orange); }
-  select, input[type="date"], input[type="text"], input[type="number"], input[type="email"], input[type="time"] {
-    background: var(--surface-alt); border-color: var(--border); color: var(--text-primary);
-  }
-  textarea { background: var(--surface-alt); border-color: var(--border); color: var(--text-primary); }
-  .skip-link { background: #334155; }
+/* ── Dark Mode (class-based toggle) ── */
+body.dark {
+  --dex-blue: #3db8f0;
+  --dex-blue-light: #1a2d3d;
+  --dex-blue-dark: #7dd3fc;
+  --lab-orange: #f0813f;
+  --lab-orange-light: #2d1f14;
+  --lab-orange-dark: #fbb580;
+  --navy: #e2e8f0;
+  --navy-light: #94a3b8;
+  --surface: #1e2433;
+  --surface-alt: #252d3f;
+  --border: #334155;
+  --border-light: #2d3a4e;
+  --text-primary: #e2e8f0;
+  --text-muted: #94a3b8;
+  --warning: #fb923c;
+  --danger: #f87171;
+  --success: #4ade80;
+  background: #0f1420;
+  color: var(--text-primary);
 }
+body.dark { --accent: var(--dex-blue); --accent-light: var(--dex-blue-light); --accent-dark: var(--dex-blue-dark); }
+body.dark.role-master { --accent: var(--dex-blue); --accent-light: var(--dex-blue-light); --accent-dark: var(--dex-blue-dark); }
+body.dark.role-phd { --accent: var(--lab-orange); --accent-light: var(--lab-orange-light); --accent-dark: var(--lab-orange-dark); }
+body.dark h1, body.dark h2, body.dark h3 { color: var(--navy); }
+body.dark .role-btn:hover { border-color: var(--dex-blue); background: var(--dex-blue-light); }
+body.dark .check-item input[type="checkbox"] { background: var(--surface-alt); border-color: var(--border); }
+body.dark .check-item input[type="checkbox"]:checked::after { border-color: #fff; }
+body.dark .toast { background: #334155; color: #e2e8f0; }
+body.dark .holiday-warning { background: var(--lab-orange-light); border-color: rgba(240,129,63,0.3); color: var(--lab-orange); }
+body.dark select, body.dark input[type="date"], body.dark input[type="text"], body.dark input[type="number"], body.dark input[type="email"], body.dark input[type="time"] {
+  background: var(--surface-alt); border-color: var(--border); color: var(--text-primary);
+}
+body.dark textarea { background: var(--surface-alt); border-color: var(--border); color: var(--text-primary); }
+body.dark .skip-link { background: #334155; }
+
+/* ── Theme toggle ── */
+.theme-toggle {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  z-index: 999;
+  transition: border-color 0.2s, background 0.2s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+.theme-toggle:hover { border-color: var(--accent); }
+@media print { .theme-toggle { display: none !important; } }
 
 /* ── Print ── */
 @media print {
@@ -717,6 +739,8 @@ select { cursor: pointer; }
   .share-url { flex-wrap: nowrap; overflow: hidden; }
   /* Key dates display: collapse grid on mobile */
   #plan-dates-display > div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
+  /* Blocked slots form: collapse to 1 column on mobile */
+  #blocked-slot-form div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
 }
 @media (min-width: 601px) and (max-width: 960px) {
   .container { max-width: 90%; }
@@ -888,8 +912,8 @@ select { cursor: pointer; }
               </div>
             </div>
             <div style="display:flex;gap:0.5rem;margin-top:0.5rem;">
-              <button class="btn btn-sm btn-primary" onclick="saveBlockedSlot()">Add Block</button>
-              <button class="btn btn-sm btn-ghost" onclick="closeBlockedSlotForm()">Cancel</button>
+              <button type="button" class="btn btn-sm btn-primary" onclick="saveBlockedSlot()">Add Block</button>
+              <button type="button" class="btn btn-sm btn-ghost" onclick="closeBlockedSlotForm()">Cancel</button>
             </div>
           </div>
           <button class="btn btn-sm btn-ghost" id="add-block-btn" onclick="openBlockedSlotForm()">+ Block a time slot</button>
@@ -1440,7 +1464,7 @@ let _milestoneCacheResult = null;
 function getCachedMilestones() {
   const labCalcKey = state.labCalc ? `${state.labCalc.totalDays},${state.labCalc.participantsPerDay}` : '';
   const blockedKey = (state.blockedSlots || []).map(b => `${b.dayIndex}:${b.startMin}-${b.endMin}`).join(';');
-  const key = `${state.role}|${state.bpStart}|${state.bpWeeks}|${state.weekStart}|${state.thesisDeadline}|${state.collectionWeeks}|${state.manualLabDays}|${labCalcKey}|${blockedKey}`;
+  const key = `${state.role}|${state.bpStart}|${state.bpWeeks}|${state.weekStart}|${state.thesisDeadline}|${state.collectionDays}|${state.analysisWeeks}|${state.manualLabDays}|${labCalcKey}|${blockedKey}`;
   if (key === _milestoneCacheKey && _milestoneCacheResult) {
     return _milestoneCacheResult;
   }
@@ -1539,12 +1563,14 @@ function updateCalc() {
   } else {
     let simDays = 0;
     let remaining = totalN;
-    while (remaining > 0 && simDays < 365) {
+    const maxSim = Math.min(baseTotalDays + (state.blockedSlots || []).length + 365, 730);
+    while (remaining > 0 && simDays < maxSim) {
       simDays++;
       const effSlots = getEffectiveDaySlots(simDays, daySlots, state.blockedSlots);
+      if (effSlots.length === 0) continue;
       remaining -= effSlots.length * perTimeslot;
     }
-    totalDays = simDays;
+    totalDays = remaining > 0 ? '?' : simDays;
   }
   const usableMinutes = labMinutes - lunch;
 
@@ -1674,7 +1700,7 @@ function saveBlockedSlot() {
   const eMin = parseInt(endMatch[1]) * 60 + parseInt(endMatch[2]);
   if (eMin <= sMin) { showToast('End time must be after start time.'); return; }
   if (!state.blockedSlots) state.blockedSlots = [];
-  state.blockedSlots.push({ id: 'blocked_' + Date.now(), dayIndex, startMin: sMin, endMin: eMin, label });
+  state.blockedSlots.push({ id: 'blocked_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), dayIndex, startMin: sMin, endMin: eMin, label });
   closeBlockedSlotForm();
   updateCalc();
   saveState();
@@ -1696,7 +1722,7 @@ function renderBlockedSlotsList() {
       <span class="mono" style="color:var(--danger);font-weight:600;">Day ${b.dayIndex}</span>
       <span class="mono">${fmtTime(b.startMin)}\u2013${fmtTime(b.endMin)}</span>
       <span style="color:var(--text-muted);">${escapeHTML(b.label || '')}</span>
-      <button onclick="removeBlockedSlot('${b.id}')" style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:0.9rem;padding:0.1rem 0.3rem;line-height:1;" title="Remove">\u00D7</button>
+      <button type="button" data-slot-id="${escapeHTML(b.id)}" onclick="removeBlockedSlot(this.dataset.slotId)" style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:0.9rem;padding:0.1rem 0.3rem;line-height:1;" aria-label="Remove blocked slot">\u00D7</button>
     </div>`
   ).join('');
 }
@@ -1861,11 +1887,15 @@ function decodeState(hash) {
         if (p.get('bs')) {
           try {
             const arr = JSON.parse(decodeURIComponent(escape(atob(p.get('bs')))));
-            state.blockedSlots = arr.map((a, i) => ({
-              id: 'blocked_' + i + '_' + Date.now(),
-              dayIndex: parseInt(a[0]),
-              startMin: parseInt(a[1]),
-              endMin: parseInt(a[2]),
+            state.blockedSlots = arr.filter(a => {
+              const s = Math.max(0, Math.min(1440, parseInt(a[1]) || 0));
+              const e = Math.max(0, Math.min(1440, parseInt(a[2]) || 0));
+              return e > s;
+            }).map((a, i) => ({
+              id: 'blocked_' + i + '_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+              dayIndex: Math.max(1, Math.min(365, parseInt(a[0]) || 1)),
+              startMin: Math.max(0, Math.min(1440, parseInt(a[1]) || 0)),
+              endMin: Math.max(0, Math.min(1440, parseInt(a[2]) || 0)),
               label: escapeHTML(a[3] || ''),
             }));
           } catch (e) {}
@@ -2944,10 +2974,23 @@ function resetState() {
   } catch (err) {
     console.error('Init failed — clearing corrupted state and starting fresh:', err);
     try { localStorage.removeItem('dexlab_planner_state'); } catch (e) {}
-    state = { version: 1, role: null, name: "", studyTitle: "", bpStart: null, weekStart: null, bpWeeks: 8, thesisDeadline: null, supervisorEmail: "", manualLabDays: 0, collectionWeeks: 1, blockedSlots: [], checkedItems: [], lastUpdated: null };
+    state = { version: 1, role: null, name: "", studyTitle: "", bpStart: null, weekStart: null, bpWeeks: 8, thesisDeadline: null, supervisorEmail: "", manualLabDays: 0, collectionDays: 5, analysisWeeks: 1, customMilestones: [], hiddenMilestones: [], dateOverrides: {}, blockedSlots: [], checkedItems: [], lastUpdated: null };
     showScreen('screen-role');
   }
 })();
+
+// ── Theme toggle ──
+(function() {
+  const saved = (() => { try { return localStorage.getItem('dexlab_theme'); } catch(e) { return null; } })();
+  if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) document.body.classList.add('dark');
+})();
+function toggleTheme() {
+  const isDark = document.body.classList.toggle('dark');
+  try { localStorage.setItem('dexlab_theme', isDark ? 'dark' : 'light'); } catch(e) {}
+  document.getElementById('theme-toggle-btn').textContent = isDark ? '\u2600\uFE0F' : '\uD83C\uDF19';
+}
 </script>
+<button class="theme-toggle" id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle dark mode" aria-label="Toggle dark mode">🌙</button>
+<script>document.getElementById('theme-toggle-btn').textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';</script>
 </body>
 </html>
