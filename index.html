@@ -1010,6 +1010,18 @@ select { cursor: pointer; }
       <div id="custom-list" style="font-size:0.85rem;"></div>
     </div>
 
+    <!-- Hidden milestones -->
+    <div class="card" id="hidden-milestones-card" style="display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+        <p class="section-title" style="margin:0;">Hidden Milestones</p>
+        <button class="btn btn-sm btn-ghost" onclick="var b=document.getElementById('hidden-list');b.style.display=b.style.display==='none'?'block':'none';this.textContent=b.style.display==='none'?'Show':'Hide';">Show</button>
+      </div>
+      <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.5rem;line-height:1.5;">
+        These items won\u2019t appear in your timeline, checklist, or calendar until restored.
+      </p>
+      <div id="hidden-list" style="display:none;font-size:0.85rem;"></div>
+    </div>
+
     <!-- 5c: Checklist -->
     <div id="checklist-container"></div>
 
@@ -1288,8 +1300,30 @@ function computeMilestones() {
     });
   });
 
-  result.sort((a, b) => a.date - b.date);
-  return result;
+  // Apply per-milestone date overrides (skip lab_day_* since those are regenerated)
+  const overrides = state.dateOverrides || {};
+  result.forEach(m => {
+    if (overrides[m.id]) {
+      const newDate = parseDate(overrides[m.id]);
+      if (m.id === 'data_collection' && m.endDate) {
+        // Shift endDate by the same delta so the range label stays coherent
+        const deltaMs = newDate - m.date;
+        m.endDate = new Date(m.endDate.getTime() + deltaMs);
+        m.label = `Data collection: ${formatDateShort(newDate)} \u2192 ${formatDateShort(m.endDate)}${m.label.includes('(') ? ' (' + m.label.split('(').slice(1).join('(') : ''}`;
+      }
+      m.date = newDate;
+      m.overridden = true;
+    }
+  });
+
+  // Filter out hidden milestones (never filter auto-generated lab_day_* here;
+  // they can be hidden collectively by hiding 'data_collection', but we also
+  // allow individual lab-day hiding via the same list).
+  const hidden = new Set(state.hiddenMilestones || []);
+  const filtered = hidden.size ? result.filter(m => !hidden.has(m.id)) : result;
+
+  filtered.sort((a, b) => a.date - b.date);
+  return filtered;
 }
 
 // ── Toast ──
@@ -1508,6 +1542,8 @@ let state = {
   collectionDays: 5,
   analysisWeeks: 1,
   customMilestones: [],
+  hiddenMilestones: [],
+  dateOverrides: {},
   checkedItems: [],
   lastUpdated: null,
 };
@@ -1535,6 +1571,14 @@ function encodeState() {
       const cmPayload = state.customMilestones.map(c => [c.id, c.label || '', c.date || '', c.section || '', c.durationMin || 0, c.note || '']);
       params.set('cm', btoa(unescape(encodeURIComponent(JSON.stringify(cmPayload)))));
     } catch (e) {}
+  }
+  if (state.hiddenMilestones && state.hiddenMilestones.length) {
+    params.set('hm', state.hiddenMilestones.join(','));
+  }
+  if (state.dateOverrides && Object.keys(state.dateOverrides).length) {
+    // id1:YYYY-MM-DD,id2:YYYY-MM-DD
+    const parts = Object.entries(state.dateOverrides).map(([id, d]) => `${id}:${d}`);
+    params.set('do', parts.join(','));
   }
   // Supervisor email and checked items are personal — saved in localStorage only
   return params.toString();
@@ -1576,6 +1620,14 @@ function decodeState(hash) {
               id: a[0], label: a[1], date: a[2], section: a[3], durationMin: parseInt(a[4]) || 0, note: a[5] || '',
             }));
           } catch (e) {}
+        }
+        state.hiddenMilestones = p.get('hm') ? p.get('hm').split(',').filter(Boolean) : [];
+        state.dateOverrides = {};
+        if (p.get('do')) {
+          p.get('do').split(',').forEach(pair => {
+            const [id, d] = pair.split(':');
+            if (id && d && /^\d{4}-\d{2}-\d{2}$/.test(d)) state.dateOverrides[id] = d;
+          });
         }
         state.checkedItems = p.get('c') ? p.get('c').split(',') : [];
         return true;
@@ -2053,6 +2105,83 @@ function onManualLabDaysChange() {
   renderPlan();
 }
 
+// ── Hide / restore milestones ──
+function hideMilestone(id) {
+  if (!state.hiddenMilestones) state.hiddenMilestones = [];
+  if (state.hiddenMilestones.includes(id)) return;
+  state.hiddenMilestones.push(id);
+  saveState();
+  history.replaceState(null, '', '#' + encodeState());
+  renderPlan();
+}
+
+function restoreMilestone(id) {
+  state.hiddenMilestones = (state.hiddenMilestones || []).filter(x => x !== id);
+  saveState();
+  history.replaceState(null, '', '#' + encodeState());
+  renderPlan();
+}
+
+function renderHiddenList() {
+  const card = document.getElementById('hidden-milestones-card');
+  const list = document.getElementById('hidden-list');
+  const ids = state.hiddenMilestones || [];
+  if (ids.length === 0) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  // Look up labels from MILESTONES + custom milestones
+  const resolve = id => {
+    const m = MILESTONES.find(x => x.id === id);
+    if (m) return (state.role === 'master' && m.masterLabel) ? m.masterLabel : m.label;
+    const c = (state.customMilestones || []).find(x => x.id === id);
+    if (c) return c.label + ' (custom)';
+    return id;
+  };
+  list.innerHTML = ids.map(id => `<div style="display:flex;align-items:center;justify-content:space-between;padding:0.3rem 0;border-bottom:1px solid var(--border-light);">
+    <span>${escapeHtml(resolve(id))}</span>
+    <button class="btn btn-sm btn-ghost" onclick="restoreMilestone('${id}')">Restore</button>
+  </div>`).join('');
+}
+
+// ── Per-milestone date overrides ──
+let _editingDateId = null;
+
+function startDateOverride(id) {
+  _editingDateId = id;
+  renderPlan();
+  // Focus the input after render
+  setTimeout(() => {
+    const el = document.getElementById('date-edit-input-' + id);
+    if (el) el.focus();
+  }, 0);
+}
+
+function cancelDateOverride() {
+  _editingDateId = null;
+  renderPlan();
+}
+
+function saveDateOverride(id) {
+  const el = document.getElementById('date-edit-input-' + id);
+  if (!el || !el.value || !/^\d{4}-\d{2}-\d{2}$/.test(el.value)) {
+    alert('Please enter a valid date.');
+    return;
+  }
+  if (!state.dateOverrides) state.dateOverrides = {};
+  state.dateOverrides[id] = el.value;
+  _editingDateId = null;
+  saveState();
+  history.replaceState(null, '', '#' + encodeState());
+  renderPlan();
+}
+
+function resetDateOverride(id) {
+  if (!state.dateOverrides) return;
+  delete state.dateOverrides[id];
+  saveState();
+  history.replaceState(null, '', '#' + encodeState());
+  renderPlan();
+}
+
 // ── Custom milestones ──
 function openCustomForm(prefill) {
   const form = document.getElementById('custom-form');
@@ -2259,6 +2388,7 @@ function renderPlan() {
   renderMilestoneTable(computed, today);
   renderChecklist(computed, today);
   renderCustomList();
+  renderHiddenList();
   renderWorkload();
 
   // Lab summary
@@ -2392,11 +2522,27 @@ function renderChecklist(milestones, today) {
       const durLabel = formatDuration(m.durationMin);
       const durBadge = durLabel ? ` <span style="color:var(--text-muted);font-size:0.75rem;font-weight:400;">\u00B7 ${durLabel}</span>` : '';
       const customBadge = m.custom ? ` <span style="background:var(--surface-alt);border:1px solid var(--border);border-radius:4px;padding:0 0.35rem;font-size:0.7rem;color:var(--text-muted);margin-left:0.25rem;">custom</span>` : '';
-      const actions = m.custom ? `<button onclick="editCustomMilestone('${m.id}')" title="Edit" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:0.75rem;padding:0 0.3rem;">Edit</button><button onclick="deleteCustomMilestone('${m.id}')" title="Delete" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:0.75rem;padding:0 0.3rem;">Delete</button>` : '';
+      const overrideBadge = m.overridden ? ` <span style="background:var(--lab-orange-light);border:1px solid rgba(232,99,43,0.25);color:var(--lab-orange);border-radius:4px;padding:0 0.35rem;font-size:0.7rem;margin-left:0.25rem;">date edited</span>` : '';
+      const btnStyle = 'background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:0.75rem;padding:0 0.3rem;';
+      let actions = '';
+      // Date edit UI (inline input if this row is being edited)
+      if (_editingDateId === m.id) {
+        actions += `<input type="date" id="date-edit-input-${m.id}" value="${toISO(m.date)}" style="font-size:0.75rem;padding:0.1rem 0.3rem;">`;
+        actions += `<button onclick="saveDateOverride('${m.id}')" style="${btnStyle}color:var(--accent-dark);">Save</button>`;
+        actions += `<button onclick="cancelDateOverride()" style="${btnStyle}">Cancel</button>`;
+      } else {
+        actions += `<button onclick="startDateOverride('${m.id}')" style="${btnStyle}" title="Edit the date for this milestone">Edit date</button>`;
+        if (m.overridden) actions += `<button onclick="resetDateOverride('${m.id}')" style="${btnStyle}" title="Reset to computed date">Reset</button>`;
+      }
+      if (m.custom) {
+        actions += `<button onclick="editCustomMilestone('${m.id}')" style="${btnStyle}">Edit</button><button onclick="deleteCustomMilestone('${m.id}')" style="${btnStyle}">Delete</button>`;
+      } else if (!m.labDay) {
+        actions += `<button onclick="hideMilestone('${m.id}')" style="${btnStyle}" title="Hide this milestone">Hide</button>`;
+      }
       item.innerHTML = `
         <input type="checkbox" id="check-${m.id}" ${checked ? 'checked' : ''} onchange="toggleCheck('${m.id}')">
         <div>
-          <label for="check-${m.id}" class="check-item-label${checked ? ' checked' : ''}">${m.label}${customBadge}${durBadge}</label>
+          <label for="check-${m.id}" class="check-item-label${checked ? ' checked' : ''}">${m.label}${customBadge}${overrideBadge}${durBadge}</label>
           <div class="check-item-date">Due: ${formatDate(m.date)} ${actions}</div>
           ${m.note ? `<div class="check-item-note">${m.note}${m.id === 'equipment_book' && state.labCalc && state.labCalc.totalDays ? ` Based on your calculator estimate, book for at least <strong>${state.labCalc.totalDays} lab day${state.labCalc.totalDays > 1 ? 's' : ''}</strong> (+ 1\u20132 buffer days for no-shows).` : ''}</div>` : ''}
         </div>`;
@@ -2465,7 +2611,7 @@ function editSetup() {
 function resetState() {
   if (!confirm('This will permanently delete your plan and all checked items. Make sure you\'ve saved your link (Copy Link) if you want to keep it.\n\nReset everything?')) return;
   window.onbeforeunload = null;
-  state = { version: 1, role: null, name: "", studyTitle: "", bpStart: null, weekStart: null, bpWeeks: 8, thesisDeadline: null, supervisorEmail: "", manualLabDays: 0, collectionDays: 5, analysisWeeks: 1, customMilestones: [], checkedItems: [], lastUpdated: null };
+  state = { version: 1, role: null, name: "", studyTitle: "", bpStart: null, weekStart: null, bpWeeks: 8, thesisDeadline: null, supervisorEmail: "", manualLabDays: 0, collectionDays: 5, analysisWeeks: 1, customMilestones: [], hiddenMilestones: [], dateOverrides: {}, checkedItems: [], lastUpdated: null };
   try { localStorage.removeItem("dexlab_planner_state"); } catch (e) {}
   history.replaceState(null, '', window.location.pathname);
   document.body.className = '';
