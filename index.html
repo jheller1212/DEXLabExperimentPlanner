@@ -19,6 +19,23 @@ body {
   min-height: 100vh;
 }
 
+/* ── Skip link ── */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 0;
+  background: var(--navy, #1b2a4a);
+  color: #fff;
+  padding: 0.5rem 1rem;
+  z-index: 9999;
+  font-size: 0.9rem;
+  text-decoration: none;
+  border-radius: 0 0 8px 0;
+}
+.skip-link:focus {
+  top: 0;
+}
+
 /* ── Brand Colors (DEXLab) ── */
 :root {
   --dex-blue: #1a9bd7;
@@ -135,7 +152,7 @@ h1, h2, h3 { font-family: 'Fraunces', serif; font-weight: 700; color: var(--navy
 
 /* ── Form elements ── */
 label { display: block; font-weight: 500; margin-bottom: 0.35rem; font-size: 0.9rem; color: var(--navy); }
-select, input[type="date"], input[type="text"], input[type="number"], input[type="email"] {
+select, input[type="date"], input[type="text"], input[type="number"], input[type="email"], input[type="time"] {
   width: 100%;
   padding: 0.6rem 0.75rem;
   background: var(--surface-alt);
@@ -296,6 +313,7 @@ select { cursor: pointer; }
 .timeline-list {
   position: relative;
   padding: 0.25rem 0 0.25rem 2rem;
+  list-style: none;
 }
 .timeline-list::before {
   content: '';
@@ -452,8 +470,10 @@ select { cursor: pointer; }
   color: var(--text-muted);
   font-size: 0.75rem;
 }
-.checklist-section.collapsed .chevron { transform: rotate(-90deg); }
-.checklist-section.collapsed .checklist-section-body { display: none; }
+.checklist-section:not([open]) .chevron { transform: rotate(-90deg); }
+.checklist-section-header::-webkit-details-marker,
+.checklist-section-header::marker { display: none; content: ''; }
+.checklist-section-header { list-style: none; }
 .checklist-section-body { padding: 0.5rem 1rem 0.75rem; }
 .checklist-section-count {
   font-family: 'DM Mono', monospace;
@@ -600,6 +620,44 @@ select { cursor: pointer; }
   color: var(--text-primary);
 }
 
+/* ── Dark Mode ── */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --dex-blue: #3db8f0;
+    --dex-blue-light: #1a2d3d;
+    --dex-blue-dark: #7dd3fc;
+    --lab-orange: #f0813f;
+    --lab-orange-light: #2d1f14;
+    --lab-orange-dark: #fbb580;
+    --navy: #e2e8f0;
+    --navy-light: #94a3b8;
+    --surface: #1e2433;
+    --surface-alt: #252d3f;
+    --border: #334155;
+    --border-light: #2d3a4e;
+    --text-primary: #e2e8f0;
+    --text-muted: #94a3b8;
+    --warning: #fb923c;
+    --danger: #f87171;
+    --success: #4ade80;
+  }
+  body { background: #0f1420; color: var(--text-primary); }
+  body.role-master { --accent: var(--dex-blue); --accent-light: var(--dex-blue-light); --accent-dark: var(--dex-blue-dark); }
+  body.role-phd { --accent: var(--lab-orange); --accent-light: var(--lab-orange-light); --accent-dark: var(--lab-orange-dark); }
+  body { --accent: var(--dex-blue); --accent-light: var(--dex-blue-light); --accent-dark: var(--dex-blue-dark); }
+  h1, h2, h3 { color: var(--navy); }
+  .role-btn:hover { border-color: var(--dex-blue); background: var(--dex-blue-light); }
+  .check-item input[type="checkbox"] { background: var(--surface-alt); border-color: var(--border); }
+  .check-item input[type="checkbox"]:checked::after { border-color: #fff; }
+  .toast { background: #334155; color: #e2e8f0; }
+  .holiday-warning { background: var(--lab-orange-light); border-color: rgba(240,129,63,0.3); color: var(--lab-orange); }
+  select, input[type="date"], input[type="text"], input[type="number"], input[type="email"], input[type="time"] {
+    background: var(--surface-alt); border-color: var(--border); color: var(--text-primary);
+  }
+  textarea { background: var(--surface-alt); border-color: var(--border); color: var(--text-primary); }
+  .skip-link { background: #334155; }
+}
+
 /* ── Print ── */
 @media print {
   @page { margin: 1in; }
@@ -610,7 +668,8 @@ select { cursor: pointer; }
   .screen:not(.active) { display: none !important; }
   #screen-role, #screen-date, #screen-confirm, #screen-name { display: none !important; }
   .plan-actions, .change-role-link, .btn, .progress-bar-container, .share-box, .bookmark-reminder, #plan-dates-edit, #edit-dates-btn, #dates-changed-banner, #supervisor-panel { display: none !important; }
-  .checklist-section.collapsed .checklist-section-body { display: block !important; }
+  .checklist-section .checklist-section-body { display: block !important; }
+  .checklist-section { display: block !important; }
   .checklist-section .chevron { display: none !important; }
   h1, h2, h3 { color: #000; }
   .milestone-table th { color: #666; }
@@ -647,6 +706,17 @@ select { cursor: pointer; }
   .tl-item { padding-left: 0; }
   .tl-date { min-width: 5.5rem; font-size: 0.7rem; }
   .tl-label { font-size: 0.78rem; }
+  /* Lab calculator: collapse 2-col grid to 1 column */
+  #lab-calc-section .checklist-section-body > div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
+  /* Date edit grid: collapse to 1 column */
+  #plan-dates-edit > div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
+  /* Milestone table: horizontal scroll */
+  .milestone-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  /* Share URL input overflow */
+  .share-url input { min-width: 0; font-size: 0.65rem; }
+  .share-url { flex-wrap: nowrap; overflow: hidden; }
+  /* Key dates display: collapse grid on mobile */
+  #plan-dates-display > div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
 }
 @media (min-width: 601px) and (max-width: 960px) {
   .container { max-width: 90%; }
@@ -654,6 +724,7 @@ select { cursor: pointer; }
 </style>
 </head>
 <body>
+<a href="#screen-role" class="skip-link">Skip to content</a>
 <div class="container">
 
   <!-- Header -->
@@ -723,9 +794,9 @@ select { cursor: pointer; }
       <div class="yn-group">
         <span style="font-size:0.85rem;">Adjust period length if needed:</span>
         <div class="stepper">
-          <button onclick="adjustWeeks(-1)">&minus;</button>
+          <button onclick="adjustWeeks(-1)" aria-label="Decrease weeks">&minus;</button>
           <span class="stepper-value" id="weeks-display"></span>
-          <button onclick="adjustWeeks(1)">+</button>
+          <button onclick="adjustWeeks(1)" aria-label="Increase weeks">+</button>
         </div>
         <span style="font-size:0.8rem;color:var(--text-muted);">weeks</span>
       </div>
@@ -733,11 +804,11 @@ select { cursor: pointer; }
     </div>
 
     <!-- Lab Time Calculator -->
-    <div class="checklist-section" id="lab-calc-section">
-      <button class="checklist-section-header" onclick="this.parentElement.classList.toggle('collapsed')">
+    <details class="checklist-section" id="lab-calc-section" open>
+      <summary class="checklist-section-header">
         <span>Lab Time Calculator <span class="checklist-section-count">fill in before generating</span></span>
         <span class="chevron">&#9660;</span>
-      </button>
+      </summary>
       <div class="checklist-section-body">
         <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:1rem;line-height:1.5;">
           How many participants do you need? How many lab days should you book? Fill this in <strong>before</strong> requesting participants on SONA and booking the lab &mdash; the results feed into your plan.
@@ -746,7 +817,7 @@ select { cursor: pointer; }
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
           <div class="form-row">
             <label for="calc-conditions">Number of conditions</label>
-            <input type="number" id="calc-conditions" min="1" max="20" value="2" onchange="updateCalc()">
+            <input type="number" id="calc-conditions" min="1" max="20" value="2" inputmode="numeric" onchange="updateCalc()">
           </div>
           <div class="form-row">
             <label for="calc-design">Study design</label>
@@ -758,35 +829,35 @@ select { cursor: pointer; }
           </div>
           <div class="form-row">
             <label for="calc-n-per-condition">Participants per condition</label>
-            <input type="number" id="calc-n-per-condition" min="1" max="500" value="50" onchange="updateCalc()">
+            <input type="number" id="calc-n-per-condition" min="1" max="500" value="50" inputmode="numeric" onchange="updateCalc()">
           </div>
           <div class="form-row">
             <label for="calc-session-duration">Session duration (minutes)</label>
-            <input type="number" id="calc-session-duration" min="5" max="240" value="30" onchange="updateCalc()">
+            <input type="number" id="calc-session-duration" min="5" max="240" value="30" inputmode="numeric" onchange="updateCalc()">
           </div>
           <div class="form-row">
             <label for="calc-per-timeslot">Participants per timeslot</label>
-            <input type="number" id="calc-per-timeslot" min="1" max="50" value="1" onchange="updateCalc()">
+            <input type="number" id="calc-per-timeslot" min="1" max="50" value="1" inputmode="numeric" onchange="updateCalc()">
           </div>
           <div class="form-row">
             <label for="calc-buffer" style="display:flex;align-items:center;gap:0.3rem;">Buffer between sessions (min) <span title="Only set this above 0 if you need substantial time between timeslots, e.g. to reset equipment or clean the lab." style="cursor:help;display:inline-flex;align-items:center;justify-content:center;width:1rem;height:1rem;border-radius:50%;background:var(--border);color:var(--text-muted);font-size:0.65rem;font-weight:700;line-height:1;">?</span></label>
-            <input type="number" id="calc-buffer" min="0" max="30" value="0" onchange="updateCalc()">
+            <input type="number" id="calc-buffer" min="0" max="30" value="0" inputmode="numeric" onchange="updateCalc()">
           </div>
           <div class="form-row">
             <label for="calc-lab-start">Lab available from</label>
-            <input type="text" id="calc-lab-start" value="09:00" onchange="updateCalc()">
+            <input type="time" id="calc-lab-start" value="09:00" onchange="updateCalc()">
           </div>
           <div class="form-row">
             <label for="calc-lab-end">Lab available until</label>
-            <input type="text" id="calc-lab-end" value="17:00" onchange="updateCalc()">
+            <input type="time" id="calc-lab-end" value="17:00" onchange="updateCalc()">
           </div>
           <div class="form-row">
             <label for="calc-lunch">Lunch break (minutes)</label>
-            <input type="number" id="calc-lunch" min="0" max="120" value="30" onchange="updateCalc()">
+            <input type="number" id="calc-lunch" min="0" max="120" value="30" inputmode="numeric" onchange="updateCalc()">
           </div>
           <div class="form-row">
             <label for="calc-lunch-start">Lunch starts at</label>
-            <input type="text" id="calc-lunch-start" value="12:00" onchange="updateCalc()">
+            <input type="time" id="calc-lunch-start" value="12:00" onchange="updateCalc()">
           </div>
         </div>
 
@@ -794,7 +865,7 @@ select { cursor: pointer; }
         <div id="calc-result" style="margin-top:1rem;padding:1rem;background:var(--accent-light);border:1px solid var(--border);border-radius:8px;display:none;">
         </div>
       </div>
-    </div>
+    </details>
   </div>
 
   <!-- Screen 4: Name -->
@@ -830,7 +901,7 @@ select { cursor: pointer; }
           Number of lab days. This autofills once you use the Lab Time Calculator above.
         </p>
         <div style="display:flex;align-items:center;gap:0.5rem;">
-          <input type="number" id="collection-days-input" min="1" max="60" value="5" style="width:5rem;" onchange="onCollectionDaysChange()">
+          <input type="number" id="collection-days-input" min="1" max="60" value="5" inputmode="numeric" style="width:5rem;" onchange="onCollectionDaysChange()">
           <span style="font-size:0.85rem;color:var(--text-muted);">day(s)</span>
         </div>
       </div>
@@ -840,7 +911,7 @@ select { cursor: pointer; }
           Analysis starts one day after data collection ends. Default is 1 week.
         </p>
         <div style="display:flex;align-items:center;gap:0.5rem;">
-          <input type="number" id="analysis-weeks-input" min="1" max="12" value="1" style="width:5rem;">
+          <input type="number" id="analysis-weeks-input" min="1" max="12" value="1" inputmode="numeric" style="width:5rem;">
           <span style="font-size:0.85rem;color:var(--text-muted);">week(s)</span>
         </div>
       </div>
@@ -929,7 +1000,7 @@ select { cursor: pointer; }
     <!-- 5a: Timeline -->
     <div class="card">
       <p class="section-title">Timeline</p>
-      <div class="timeline-list" id="timeline-list"></div>
+      <ol class="timeline-list" id="timeline-list"></ol>
     </div>
 
     <!-- 5b: Milestone table -->
@@ -1092,6 +1163,12 @@ const CONFIG = {
 // unless you are changing app logic
 // ============================================================
 
+// ── XSS Protection ──
+function escapeHTML(str) {
+  if (typeof str !== 'string') return str;
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+}
+
 // ── Easter Algorithm (Meeus/Jones/Butcher) ──
 function getEaster(year) {
   const a = year % 19;
@@ -1113,7 +1190,7 @@ function getEaster(year) {
 
 function getEasterHolidays(year) {
   const easter = getEaster(year);
-  const add = (d, n) => new Date(d.getTime() + n * 86400000);
+  const add = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
   return [
     { date: add(easter, -2), label: "Good Friday" },
     { date: add(easter, 1), label: "Easter Monday" },
@@ -1145,7 +1222,7 @@ function parseDate(str) {
 }
 
 function addDays(date, n) {
-  return new Date(date.getTime() + n * 86400000);
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate() + n);
 }
 
 function nextWorkingDay(date, holidaySet) {
@@ -1324,6 +1401,21 @@ function computeMilestones() {
 
   filtered.sort((a, b) => a.date - b.date);
   return filtered;
+}
+
+// ── Cached Milestones ──
+let _milestoneCacheKey = null;
+let _milestoneCacheResult = null;
+
+function getCachedMilestones() {
+  const labCalcKey = state.labCalc ? `${state.labCalc.totalDays},${state.labCalc.participantsPerDay}` : '';
+  const key = `${state.role}|${state.bpStart}|${state.bpWeeks}|${state.weekStart}|${state.thesisDeadline}|${state.collectionWeeks}|${state.manualLabDays}|${labCalcKey}`;
+  if (key === _milestoneCacheKey && _milestoneCacheResult) {
+    return _milestoneCacheResult;
+  }
+  _milestoneCacheKey = key;
+  _milestoneCacheResult = computeMilestones();
+  return _milestoneCacheResult;
 }
 
 // ── Toast ──
@@ -1595,29 +1687,29 @@ function decodeState(hash) {
       if (p.get('r') && p.get('s')) {
         const r = p.get('r');
         state.role = (r === 'm' ? 'master' : r === 'p' ? 'phd' : r);
-        state.name = p.get('n') || "";
-        state.studyTitle = p.get('t') || "";
+        state.name = escapeHTML(p.get('n') || "");
+        state.studyTitle = escapeHTML(p.get('t') || "");
         state.bpStart = expandDate(p.get('s'));
         state.weekStart = expandDate(p.get('ws')) || state.bpStart;
-        state.bpWeeks = parseInt(p.get('w')) || 8;
+        state.bpWeeks = Math.max(1, Math.min(52, parseInt(p.get('w')) || 8));
         state.thesisDeadline = expandDate(p.get('td')) || null;
         if (p.get('cd')) {
-          state.collectionDays = parseInt(p.get('cd')) || 5;
+          state.collectionDays = Math.max(1, Math.min(60, parseInt(p.get('cd')) || 5));
         } else if (p.get('cw')) {
           // Legacy: cw was collection weeks. Convert to ~5 working days/week.
-          state.collectionDays = (parseInt(p.get('cw')) || 1) * 5;
+          state.collectionDays = Math.max(1, Math.min(60, (parseInt(p.get('cw')) || 1) * 5));
         } else {
           state.collectionDays = 5;
         }
-        state.analysisWeeks = parseInt(p.get('aw')) || 1;
-        state.supervisorEmail = p.get('se') || "";
-        state.manualLabDays = parseInt(p.get('ml')) || 0;
+        state.analysisWeeks = Math.max(1, Math.min(12, parseInt(p.get('aw')) || 1));
+        state.supervisorEmail = escapeHTML(p.get('se') || "");
+        state.manualLabDays = Math.max(0, Math.min(30, parseInt(p.get('ml')) || 0));
         state.customMilestones = [];
         if (p.get('cm')) {
           try {
             const arr = JSON.parse(decodeURIComponent(escape(atob(p.get('cm')))));
             state.customMilestones = arr.map(a => ({
-              id: a[0], label: a[1], date: a[2], section: a[3], durationMin: parseInt(a[4]) || 0, note: a[5] || '',
+              id: a[0], label: escapeHTML(a[1]), date: a[2], section: a[3], durationMin: parseInt(a[4]) || 0, note: escapeHTML(a[5] || ''),
             }));
           } catch (e) {}
         }
@@ -1640,14 +1732,14 @@ function decodeState(hash) {
     const p = JSON.parse(json);
     if ((p.v === 1 || p.v === 2 || p.v === 3 || p.v === 4 || p.v === 5) && p.r && p.s) {
       state.role = p.r;
-      state.name = p.n || "";
-      state.studyTitle = p.t || "";
+      state.name = escapeHTML(p.n || "");
+      state.studyTitle = escapeHTML(p.t || "");
       state.bpStart = p.s;
       state.weekStart = p.ws || p.s;
-      state.bpWeeks = p.w || 8;
+      state.bpWeeks = Math.max(1, Math.min(52, p.w || 8));
       state.thesisDeadline = p.td || null;
-      state.supervisorEmail = p.se || "";
-      state.manualLabDays = p.ml || 0;
+      state.supervisorEmail = escapeHTML(p.se || "");
+      state.manualLabDays = Math.max(0, Math.min(30, p.ml || 0));
       state.checkedItems = p.c || [];
       return true;
     }
@@ -1674,7 +1766,7 @@ function copyShareLink() {
 
 function copyProgressSummary() {
   const today = new Date(); today.setHours(0,0,0,0);
-  const computed = computeMilestones();
+  const computed = getCachedMilestones();
   const dc = computed.find(m => m.id === 'data_collection');
 
   const total = computed.length;
@@ -1725,7 +1817,7 @@ function copyProgressSummary() {
 // ── Supervisor Update ──
 function buildSupervisorBody() {
   const today = new Date(); today.setHours(0,0,0,0);
-  const computed = computeMilestones();
+  const computed = getCachedMilestones();
   const dc = computed.find(m => m.id === 'data_collection');
 
   const total = computed.length;
@@ -1808,7 +1900,7 @@ function downloadICS() {
     state.studyTitle = title.trim();
     saveState();
   }
-  const computed = computeMilestones();
+  const computed = getCachedMilestones();
   const displayName = state.name || 'Student';
   const studyLabel = state.studyTitle ? ` \u2014 ${state.studyTitle}` : '';
   const now = new Date();
@@ -2376,7 +2468,7 @@ function renderPlan() {
   const title = state.studyTitle ? `${displayName}${state.name ? '\u2019s' : ''} Plan: ${state.studyTitle}` : `${displayName}${state.name ? '\u2019s' : ''} Experiment Plan`;
   document.getElementById('plan-title').textContent = title;
 
-  const computed = computeMilestones();
+  const computed = getCachedMilestones();
   const thesisDate = state.thesisDeadline ? parseDate(state.thesisDeadline) : null;
   const holidayEnd = (thesisDate && thesisDate > bpEnd) ? thesisDate : bpEnd;
   const holidaysInRange = getHolidaysInRange(bpStart, holidayEnd);
@@ -2433,32 +2525,32 @@ function renderTimeline(milestones, holidays, today) {
     // Insert today marker before the first future item
     if (!todayInserted && item.date >= today) {
       todayInserted = true;
-      const todayDiv = document.createElement('div');
-      todayDiv.className = 'tl-today';
-      todayDiv.innerHTML = `<span class="tl-today-badge">Today \u2014 ${formatDateShort(today)}</span>`;
-      list.appendChild(todayDiv);
+      const todayLi = document.createElement('li');
+      todayLi.className = 'tl-today';
+      todayLi.innerHTML = `<span class="tl-today-badge">Today \u2014 ${formatDateShort(today)}</span>`;
+      list.appendChild(todayLi);
     }
 
-    const div = document.createElement('div');
+    const li = document.createElement('li');
     const isPast = item.date < today;
     const isHoliday = item.type === 'holiday';
     const isOverdue = isPast && !isHoliday && !item.checked;
     const isKey = item.keyDate && !isPast;
     const isLabDay = item.labDay;
-    div.className = `tl-item${isLabDay ? ' lab-day' : ''}${isKey ? ' key-date' : (isOverdue ? ' overdue' : (isPast ? ' past' : ''))}${isHoliday ? ' holiday-item' : ''}`;
-    div.innerHTML = `
+    li.className = `tl-item${isLabDay ? ' lab-day' : ''}${isKey ? ' key-date' : (isOverdue ? ' overdue' : (isPast ? ' past' : ''))}${isHoliday ? ' holiday-item' : ''}`;
+    li.innerHTML = `
       <div class="tl-dot${isOverdue ? '' : (isPast ? ' past' : '')}${isHoliday ? ' holiday' : ''}"></div>
       <span class="tl-date">${formatDateShort(item.date)}</span>
       <span class="tl-label">${item.label}${isOverdue ? ' \u2014 OVERDUE' : ''}</span>`;
-    list.appendChild(div);
+    list.appendChild(li);
   });
 
   // If all items are past, insert today at the end
   if (!todayInserted) {
-    const todayDiv = document.createElement('div');
-    todayDiv.className = 'tl-today';
-    todayDiv.innerHTML = `<span class="tl-today-badge">Today \u2014 ${formatDateShort(today)}</span>`;
-    list.appendChild(todayDiv);
+    const todayLi = document.createElement('li');
+    todayLi.className = 'tl-today';
+    todayLi.innerHTML = `<span class="tl-today-badge">Today \u2014 ${formatDateShort(today)}</span>`;
+    list.appendChild(todayLi);
   }
 }
 
@@ -2470,9 +2562,9 @@ function renderMilestoneTable(milestones, today) {
     const diff = daysBetween(today, m.date);
     let statusClass, statusText;
     if (diff < 0) { statusClass = 'status-past'; statusText = '\u2713 Past'; tr.className = 'past'; }
-    else if (diff === 0) { statusClass = 'status-today'; statusText = 'Today'; }
+    else if (diff === 0) { statusClass = 'status-today'; statusText = '\u25CF Today'; }
     else if (diff <= 7) { statusClass = 'status-urgent'; statusText = `\u26A0 ${diff} day${diff !== 1 ? 's' : ''}`; }
-    else { statusClass = 'status-ok'; statusText = `${diff} days`; }
+    else { statusClass = 'status-ok'; statusText = `\u2014 ${diff} days`; }
     const durLabel = formatDuration(m.durationMin);
     const durBadge = durLabel ? ` <span style="color:var(--text-muted);font-size:0.75rem;">\u00B7 ${durLabel}</span>` : '';
     tr.innerHTML = `
@@ -2499,22 +2591,23 @@ function renderChecklist(milestones, today) {
 
   sectionOrder.filter(key => sections[key]).forEach(sectionKey => {
     const items = sections[sectionKey];
-    const div = document.createElement('div');
-    div.className = 'checklist-section';
+    const details = document.createElement('details');
+    details.className = 'checklist-section';
+    details.open = true;
 
     const sectionChecked = items.filter(m => state.checkedItems.includes(m.id)).length;
     checkedCount += sectionChecked;
 
     const bodyId = `section-${sectionKey}`;
-    div.innerHTML = `
-      <button class="checklist-section-header" aria-expanded="true" aria-controls="${bodyId}" onclick="this.setAttribute('aria-expanded',this.parentElement.classList.toggle('collapsed')?'false':'true')">
+    details.innerHTML = `
+      <summary class="checklist-section-header">
         <span>${SECTION_LABELS[sectionKey] || sectionKey}<span class="checklist-section-count">${sectionChecked}/${items.length}</span></span>
         <span class="chevron">\u25BC</span>
-      </button>
-      <div class="checklist-section-body" id="${bodyId}" role="region"></div>`;
-    container.appendChild(div);
+      </summary>
+      <div class="checklist-section-body" id="${bodyId}"></div>`;
+    container.appendChild(details);
 
-    const body = div.querySelector('.checklist-section-body');
+    const body = details.querySelector('.checklist-section-body');
     items.forEach(m => {
       const checked = state.checkedItems.includes(m.id);
       const item = document.createElement('div');
@@ -2555,16 +2648,39 @@ function renderChecklist(milestones, today) {
 
 function toggleCheck(id) {
   const idx = state.checkedItems.indexOf(id);
-  if (idx === -1) state.checkedItems.push(id);
+  const isNowChecked = idx === -1;
+  if (isNowChecked) state.checkedItems.push(id);
   else state.checkedItems.splice(idx, 1);
   saveState();
-  const today = new Date(); today.setHours(0,0,0,0);
-  const computed = computeMilestones();
-  const bpStart = parseDate(state.bpStart);
-  const bpEnd = addDays(bpStart, state.bpWeeks * 7 - 1);
-  renderTimeline(computed, getHolidaysInRange(bpStart, bpEnd), today);
-  renderMilestoneTable(computed, today);
-  renderChecklist(computed, today);
+
+  // Update only the specific checkbox's visual state
+  const checkbox = document.getElementById('check-' + id);
+  if (checkbox) {
+    const label = checkbox.parentElement.querySelector('.check-item-label');
+    if (label) {
+      if (isNowChecked) label.classList.add('checked');
+      else label.classList.remove('checked');
+    }
+  }
+
+  // Update section counts
+  const computed = getCachedMilestones();
+  const sections = {};
+  computed.forEach(m => {
+    if (!sections[m.section]) sections[m.section] = [];
+    sections[m.section].push(m);
+  });
+  let totalChecked = 0;
+  Object.keys(sections).forEach(sectionKey => {
+    const items = sections[sectionKey];
+    const sectionChecked = items.filter(m => state.checkedItems.includes(m.id)).length;
+    totalChecked += sectionChecked;
+    const countEl = document.querySelector(`#section-${sectionKey}`)?.previousElementSibling?.querySelector('.checklist-section-count');
+    if (countEl) countEl.textContent = `${sectionChecked}/${items.length}`;
+  });
+
+  // Update progress bar
+  updateProgress(totalChecked, computed.length);
   renderWorkload();
 }
 
@@ -2601,7 +2717,7 @@ function editSetup() {
       document.getElementById('calc-n-per-condition').value = npc;
     }
     // Expand the calculator section and recompute
-    document.getElementById('lab-calc-section').classList.remove('collapsed');
+    document.getElementById('lab-calc-section').open = true;
     updateCalc();
   }
   if (state.bpStart) showConfirmation();
@@ -2626,49 +2742,60 @@ function resetState() {
 
 // ── Init ──
 (function init() {
-  // Check localStorage
-  try { localStorage.setItem('_test', '1'); localStorage.removeItem('_test'); }
-  catch (e) { hasLocalStorage = false; document.getElementById('ls-notice').style.display = 'block'; }
+  try {
+    // Check localStorage
+    try { localStorage.setItem('_test', '1'); localStorage.removeItem('_test'); }
+    catch (e) { hasLocalStorage = false; document.getElementById('ls-notice').style.display = 'block'; }
 
-  // Check URL hash first (shared link takes priority)
-  const hash = window.location.hash.slice(1);
-  if (hash && decodeState(hash)) {
-    selectRole(state.role);
-    document.getElementById('date-input').value = state.bpStart;
-    const sel = document.getElementById('bp-select');
-    let matched = false;
-    CONFIG.blockPeriods.forEach((bp, i) => {
-      if (bp.start === state.bpStart) { sel.value = i; matched = true; }
-    });
-    if (!matched) sel.value = 'custom';
-    document.getElementById('name-input').value = state.name || '';
-    document.getElementById('title-input').value = state.studyTitle || '';
-    saveState(); // persist to localStorage too
-    renderPlan();
-    showScreen('screen-plan');
-    return;
-  }
-
-  // Otherwise load from localStorage
-  const hadState = loadState();
-  if (hadState && state.role && state.bpStart) {
-    selectRole(state.role);
-    document.getElementById('date-input').value = state.bpStart;
-    const sel = document.getElementById('bp-select');
-    let matched = false;
-    CONFIG.blockPeriods.forEach((bp, i) => {
-      if (bp.start === state.bpStart) { sel.value = i; matched = true; }
-    });
-    if (!matched) sel.value = 'custom';
-    showConfirmation();
-    if (state.name || state.studyTitle || state.checkedItems.length > 0) {
+    // Check URL hash first (shared link takes priority)
+    const hash = window.location.hash.slice(1);
+    if (hash && !decodeState(hash)) {
+      showToast("Couldn\u2019t restore plan from this link \u2014 starting fresh.");
+      history.replaceState(null, '', window.location.pathname);
+    }
+    if (hash && state.role && state.bpStart) {
+      selectRole(state.role);
+      document.getElementById('date-input').value = state.bpStart;
+      const sel = document.getElementById('bp-select');
+      let matched = false;
+      CONFIG.blockPeriods.forEach((bp, i) => {
+        if (bp.start === state.bpStart) { sel.value = i; matched = true; }
+      });
+      if (!matched) sel.value = 'custom';
       document.getElementById('name-input').value = state.name || '';
       document.getElementById('title-input').value = state.studyTitle || '';
+      saveState(); // persist to localStorage too
       renderPlan();
       showScreen('screen-plan');
+      return;
     }
-  } else if (hadState && state.role) {
-    selectRole(state.role);
+
+    // Otherwise load from localStorage
+    const hadState = loadState();
+    if (hadState && state.role && state.bpStart) {
+      selectRole(state.role);
+      document.getElementById('date-input').value = state.bpStart;
+      const sel = document.getElementById('bp-select');
+      let matched = false;
+      CONFIG.blockPeriods.forEach((bp, i) => {
+        if (bp.start === state.bpStart) { sel.value = i; matched = true; }
+      });
+      if (!matched) sel.value = 'custom';
+      showConfirmation();
+      if (state.name || state.studyTitle || state.checkedItems.length > 0) {
+        document.getElementById('name-input').value = state.name || '';
+        document.getElementById('title-input').value = state.studyTitle || '';
+        renderPlan();
+        showScreen('screen-plan');
+      }
+    } else if (hadState && state.role) {
+      selectRole(state.role);
+    }
+  } catch (err) {
+    console.error('Init failed — clearing corrupted state and starting fresh:', err);
+    try { localStorage.removeItem('dexlab_planner_state'); } catch (e) {}
+    state = { version: 1, role: null, name: "", studyTitle: "", bpStart: null, weekStart: null, bpWeeks: 8, thesisDeadline: null, supervisorEmail: "", manualLabDays: 0, collectionWeeks: 1, checkedItems: [], lastUpdated: null };
+    showScreen('screen-role');
   }
 })();
 </script>
