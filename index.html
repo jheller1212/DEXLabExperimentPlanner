@@ -2241,33 +2241,58 @@ function updateCalc() {
   showCalcUpdateBanner();
 }
 
+var _calcDirty = false;
+
 function showCalcUpdateBanner() {
+  _calcDirty = true;
   var existing = document.getElementById('calc-update-banner');
   if (existing) existing.remove();
-  // Only show if plan has been generated (screen-plan has content)
+  // Only show if plan has been generated
   if (!document.getElementById('screen-plan').classList.contains('active') && !document.querySelector('#timeline-list li')) return;
   var banner = document.createElement('div');
   banner.id = 'calc-update-banner';
-  banner.style.cssText = 'margin-top:0.75rem;padding:0.6rem 0.85rem;background:var(--accent-light);border:1.5px solid var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:space-between;gap:0.75rem;font-size:0.8rem;';
-  banner.innerHTML = '<span>Calculator values changed — update your plan to recalculate milestones and timeline.</span>' +
-    '<div style="display:flex;gap:0.5rem;">' +
-    '<button class="btn btn-sm btn-primary" onclick="applyCalcChanges()">Update plan</button>' +
-    '<button class="btn btn-sm btn-ghost" onclick="this.closest(\'#calc-update-banner\').remove()">Dismiss</button>' +
+  banner.style.cssText = 'margin-top:0.75rem;padding:0.75rem 1rem;background:var(--lab-orange-light);border:1.5px solid var(--lab-orange);border-radius:8px;display:flex;align-items:center;justify-content:space-between;gap:0.75rem;font-size:0.85rem;color:var(--lab-orange-dark);';
+  banner.innerHTML = '<span><strong>Unsaved changes</strong> — your plan milestones and timeline won\u2019t reflect the new calculator values until you update.</span>' +
+    '<div style="display:flex;gap:0.5rem;flex-shrink:0;">' +
+    '<button class="btn btn-sm btn-orange" onclick="applyCalcChanges()">Update plan</button>' +
+    '<button class="btn btn-sm btn-ghost" onclick="discardCalcChanges()">Discard</button>' +
     '</div>';
   var calcResult = document.getElementById('calc-result');
   if (calcResult) calcResult.after(banner);
 }
 
 function applyCalcChanges() {
-  // Invalidate milestone cache so they recompute with new collection days
+  _calcDirty = false;
   _milestoneCacheKey = null;
   saveState();
   renderPlan();
   var banner = document.getElementById('calc-update-banner');
   if (banner) banner.remove();
   showToast('Plan updated with new calculator values.');
-  // Switch to Overview tab to show the updated timeline
-  switchPlanTab('overview');
+  _switchPlanTabDirect('overview');
+}
+
+function discardCalcChanges() {
+  _calcDirty = false;
+  // Restore calculator fields from last saved labCalc state
+  if (state.labCalc) {
+    var lc = state.labCalc;
+    document.getElementById('calc-conditions').value = lc.conditions || 2;
+    document.getElementById('calc-design').value = lc.design || 'between';
+    document.getElementById('calc-n-per-condition').value = Math.round((lc.totalN || 60) / (lc.conditions || 2));
+    document.getElementById('calc-session-duration').value = lc.sessionMin || 30;
+    document.getElementById('calc-per-timeslot').value = lc.perTimeslot || 1;
+    document.getElementById('calc-buffer').value = lc.buffer || 0;
+    if (lc.startMin != null) document.getElementById('calc-lab-start').value = fmtTime(lc.startMin);
+    if (lc.endMin != null) document.getElementById('calc-lab-end').value = fmtTime(lc.endMin);
+    document.getElementById('calc-lunch').value = lc.lunch || 0;
+    if (lc.lunchStartMin != null) document.getElementById('calc-lunch-start').value = fmtTime(lc.lunchStartMin);
+    updateCalc(); // re-render with restored values
+    _calcDirty = false; // updateCalc sets it true again, reset
+  }
+  var banner = document.getElementById('calc-update-banner');
+  if (banner) banner.remove();
+  showToast('Changes discarded.');
 }
 
 function onBsScopeChange() {
@@ -2925,6 +2950,24 @@ document.addEventListener('keydown', function(e) {
 
 // ── Tab switching ──
 function switchPlanTab(name) {
+  // If leaving Lab tab with unsaved calculator changes, prompt
+  if (_calcDirty && name !== 'lab') {
+    var choice = confirm('You have unsaved calculator changes.\n\nClick OK to update your plan with the new values, or Cancel to go back and review.');
+    if (choice) {
+      applyCalcChanges();
+      // applyCalcChanges switches to overview, but user wanted 'name'
+      if (name !== 'overview') {
+        _switchPlanTabDirect(name);
+      }
+      return;
+    } else {
+      return; // stay on Lab tab
+    }
+  }
+  _switchPlanTabDirect(name);
+}
+
+function _switchPlanTabDirect(name) {
   document.querySelectorAll('.plan-tab').forEach(function(t) {
     var isActive = t.id === 'tab-' + name;
     t.setAttribute('aria-selected', isActive ? 'true' : 'false');
