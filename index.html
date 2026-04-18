@@ -2160,7 +2160,8 @@ function updateCalc() {
       });
       allItems.sort((a, b) => a.sortTime - b.sortTime);
       const slotLabels = allItems.map(item => item.html).join('');
-      dayRows += `<tr><td style="white-space:nowrap;vertical-align:top;padding:0.35rem 0.75rem 0.35rem 0;font-size:0.8rem;border-bottom:1px solid var(--border-light);"><strong>Day ${day}</strong><br><span class="mono" style="font-size:0.75rem;color:var(--text-muted);">${formatDateShort(d)}</span></td><td style="padding:0.35rem 0;border-bottom:1px solid var(--border-light);line-height:1.8;">${slotLabels}</td><td class="mono" style="vertical-align:top;padding:0.35rem 0 0.35rem 0.75rem;font-size:0.8rem;border-bottom:1px solid var(--border-light);white-space:nowrap;">${dayParticipants} participant${dayParticipants !== 1 ? 's' : ''}</td></tr>`;
+      const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      dayRows += `<tr><td style="white-space:nowrap;vertical-align:top;padding:0.35rem 0.75rem 0.35rem 0;font-size:0.8rem;border-bottom:1px solid var(--border-light);"><strong>Day ${day}</strong><br><span class="mono" style="font-size:0.75rem;color:var(--text-muted);">${weekdays[d.getDay()]}, ${formatDateShort(d)}</span></td><td style="padding:0.35rem 0;border-bottom:1px solid var(--border-light);line-height:1.8;">${slotLabels}</td><td class="mono" style="vertical-align:top;padding:0.35rem 0 0.35rem 0.75rem;font-size:0.8rem;border-bottom:1px solid var(--border-light);white-space:nowrap;">${dayParticipants} participant${dayParticipants !== 1 ? 's' : ''}</td></tr>`;
       participantsRemaining -= dayParticipants;
       d = addDays(d, 1);
     }
@@ -2949,22 +2950,67 @@ document.addEventListener('keydown', function(e) {
 });
 
 // ── Tab switching ──
+var _pendingTabSwitch = null;
+
 function switchPlanTab(name) {
-  // If leaving Lab tab with unsaved calculator changes, prompt
+  // If leaving Lab tab with unsaved calculator changes, show custom modal
   if (_calcDirty && name !== 'lab') {
-    var choice = confirm('You have unsaved calculator changes.\n\nClick OK to update your plan with the new values, or Cancel to go back and review.');
-    if (choice) {
-      applyCalcChanges();
-      // applyCalcChanges switches to overview, but user wanted 'name'
-      if (name !== 'overview') {
-        _switchPlanTabDirect(name);
-      }
-      return;
-    } else {
-      return; // stay on Lab tab
-    }
+    _pendingTabSwitch = name;
+    showCalcConfirmModal();
+    return;
   }
   _switchPlanTabDirect(name);
+}
+
+function showCalcConfirmModal() {
+  var existing = document.getElementById('calc-confirm-overlay');
+  if (existing) existing.remove();
+  var overlay = document.createElement('div');
+  overlay.id = 'calc-confirm-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;font-family:"DM Sans",sans-serif;';
+  overlay.innerHTML = '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;max-width:380px;width:90%;box-shadow:0 12px 40px rgba(0,0,0,0.2);">' +
+    '<h3 style="margin:0 0 0.5rem;font-family:Fraunces,serif;font-size:1.1rem;color:var(--lab-orange);">Unsaved calculator changes</h3>' +
+    '<p style="margin:0 0 1.25rem;font-size:0.85rem;color:var(--text-secondary);line-height:1.5;">You\u2019ve changed values in the Lab Timetable Calculator. Update your plan to recalculate milestones and timeline?</p>' +
+    '<div style="display:flex;gap:0.5rem;justify-content:flex-end;">' +
+    '<button class="btn btn-sm btn-ghost" onclick="calcConfirmDiscard()" style="color:var(--text-muted);">Discard changes</button>' +
+    '<button class="btn btn-sm btn-ghost" onclick="calcConfirmCancel()">Go back</button>' +
+    '<button class="btn btn-sm btn-orange" onclick="calcConfirmSave()">Update plan</button>' +
+    '</div></div>';
+  document.body.appendChild(overlay);
+  // Focus the Update plan button
+  overlay.querySelector('.btn-orange').focus();
+  // Close on Escape
+  overlay._escHandler = function(e) { if (e.key === 'Escape') calcConfirmCancel(); };
+  document.addEventListener('keydown', overlay._escHandler);
+}
+
+function _removeCalcConfirm() {
+  var overlay = document.getElementById('calc-confirm-overlay');
+  if (overlay) {
+    document.removeEventListener('keydown', overlay._escHandler);
+    overlay.remove();
+  }
+}
+
+function calcConfirmSave() {
+  var target = _pendingTabSwitch;
+  _removeCalcConfirm();
+  applyCalcChanges();
+  if (target && target !== 'overview') _switchPlanTabDirect(target);
+  _pendingTabSwitch = null;
+}
+
+function calcConfirmDiscard() {
+  var target = _pendingTabSwitch;
+  _removeCalcConfirm();
+  discardCalcChanges();
+  if (target) _switchPlanTabDirect(target);
+  _pendingTabSwitch = null;
+}
+
+function calcConfirmCancel() {
+  _removeCalcConfirm();
+  _pendingTabSwitch = null;
 }
 
 function _switchPlanTabDirect(name) {
