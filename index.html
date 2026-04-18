@@ -2238,9 +2238,10 @@ function updateCalc() {
     renderBlockedSlotsList();
   }
 
-  // Show "update plan" banner when calculator changes affect the plan
-  showCalcUpdateBanner();
+  // Show "update plan" banner when calculator changes affect the plan (only from user interaction)
+  if (!_calcSuppressDirty) showCalcUpdateBanner();
 }
+var _calcSuppressDirty = false;
 
 var _calcDirty = false;
 
@@ -2288,8 +2289,10 @@ function discardCalcChanges() {
     if (lc.endMin != null) document.getElementById('calc-lab-end').value = fmtTime(lc.endMin);
     document.getElementById('calc-lunch').value = lc.lunch || 0;
     if (lc.lunchStartMin != null) document.getElementById('calc-lunch-start').value = fmtTime(lc.lunchStartMin);
+    _calcSuppressDirty = true;
     updateCalc(); // re-render with restored values
-    _calcDirty = false; // updateCalc sets it true again, reset
+    _calcSuppressDirty = false;
+    _calcDirty = false;
   }
   var banner = document.getElementById('calc-update-banner');
   if (banner) banner.remove();
@@ -3207,7 +3210,10 @@ function showConfirmation() {
   document.getElementById('analysis-weeks-input').value = state.analysisWeeks || 1;
   saveState();
   // Run calculator so results and timetable are shown immediately
+  _calcSuppressDirty = true;
   updateCalc();
+  _calcSuppressDirty = false;
+  _calcDirty = false;
 }
 
 function onCollectionDaysChange() {
@@ -3583,7 +3589,10 @@ function renderPlan() {
       const npc = (lc.design === 'within') ? lc.totalN : Math.round(lc.totalN / lc.conditions);
       document.getElementById('calc-n-per-condition').value = npc;
     }
+    _calcSuppressDirty = true;
     updateCalc();
+    _calcSuppressDirty = false;
+    _calcDirty = false;
     renderBlockedSlotsList();
   } else if (state.quickEstimate) {
     // Seed full calculator with quick estimate values
@@ -3965,7 +3974,10 @@ function editSetup() {
     }
     // Expand the calculator section and recompute
     document.getElementById('lab-calc-section').open = true;
+    _calcSuppressDirty = true;
     updateCalc();
+    _calcSuppressDirty = false;
+    _calcDirty = false;
     renderBlockedSlotsList();
   }
   if (state.bpStart) showConfirmation();
