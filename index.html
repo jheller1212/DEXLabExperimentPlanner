@@ -1120,12 +1120,13 @@ body.dark .skip-link { background: #334155; }
         </summary>
         <div class="checklist-section-body">
           <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.75rem;line-height:1.5;">
-            Quick estimate of how many lab days you need. For a detailed timetable with blocked slots, use the full calculator on the Lab &amp; Booking tab after generating your plan.
+            Estimate how many lab days you need. Leave fields blank if you don&rsquo;t know yet &mdash; defaults will be used. For a detailed timetable with blocked slots, use the full calculator on the Lab &amp; Booking tab after generating your plan.
           </p>
+          <p style="font-size:0.75rem;font-weight:600;color:var(--text-primary);margin-bottom:0.5rem;">Experiment setup</p>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
             <div class="form-row">
               <label for="qe-conditions">Number of conditions</label>
-              <input type="number" id="qe-conditions" min="1" max="20" value="2" inputmode="numeric" onchange="updateQuickEstimate()">
+              <input type="number" id="qe-conditions" min="1" max="20" placeholder="2" inputmode="numeric" onchange="updateQuickEstimate()">
             </div>
             <div class="form-row">
               <label for="qe-design">Study design</label>
@@ -1137,11 +1138,38 @@ body.dark .skip-link { background: #334155; }
             </div>
             <div class="form-row">
               <label for="qe-n-per-condition">Participants per condition</label>
-              <input type="number" id="qe-n-per-condition" min="1" max="500" value="30" inputmode="numeric" onchange="updateQuickEstimate()">
+              <input type="number" id="qe-n-per-condition" min="1" max="500" placeholder="30" inputmode="numeric" onchange="updateQuickEstimate()">
             </div>
             <div class="form-row">
               <label for="qe-session-duration">Session duration (minutes)</label>
-              <input type="number" id="qe-session-duration" min="5" max="240" value="30" inputmode="numeric" onchange="updateQuickEstimate()">
+              <input type="number" id="qe-session-duration" min="5" max="240" placeholder="30" inputmode="numeric" onchange="updateQuickEstimate()">
+            </div>
+          </div>
+          <p style="font-size:0.75rem;font-weight:600;color:var(--text-primary);margin:0.75rem 0 0.5rem;">Lab schedule <span style="font-weight:400;color:var(--text-muted);">(optional &mdash; defaults shown)</span></p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+            <div class="form-row">
+              <label for="qe-per-timeslot">Participants per timeslot</label>
+              <input type="number" id="qe-per-timeslot" min="1" max="50" placeholder="1" inputmode="numeric" onchange="updateQuickEstimate()">
+            </div>
+            <div class="form-row">
+              <label for="qe-buffer">Buffer between sessions (min)</label>
+              <input type="number" id="qe-buffer" min="0" max="30" placeholder="0" inputmode="numeric" onchange="updateQuickEstimate()">
+            </div>
+            <div class="form-row">
+              <label for="qe-lab-start">Lab available from</label>
+              <input type="time" id="qe-lab-start" value="09:00" onchange="updateQuickEstimate()">
+            </div>
+            <div class="form-row">
+              <label for="qe-lab-end">Lab available until</label>
+              <input type="time" id="qe-lab-end" value="17:00" onchange="updateQuickEstimate()">
+            </div>
+            <div class="form-row">
+              <label for="qe-lunch">Lunch break (minutes)</label>
+              <input type="number" id="qe-lunch" min="0" max="120" placeholder="30" inputmode="numeric" onchange="updateQuickEstimate()">
+            </div>
+            <div class="form-row">
+              <label for="qe-lunch-start">Lunch starts at</label>
+              <input type="time" id="qe-lunch-start" value="12:00" onchange="updateQuickEstimate()">
             </div>
           </div>
           <div id="qe-result" style="margin-top:0.75rem;padding:0.75rem;background:var(--accent-light);border:1px solid var(--border);border-radius:8px;display:none;font-size:0.85rem;"></div>
@@ -1925,10 +1953,22 @@ function scrollToTimetable() {
 
 // ── Quick Estimate (Screen 4) ──
 function updateQuickEstimate() {
+  // Read values — use placeholder defaults when fields are blank
   const conditions = parseInt(document.getElementById('qe-conditions').value) || 2;
   const design = document.getElementById('qe-design').value;
   const nPerCondition = parseInt(document.getElementById('qe-n-per-condition').value) || 30;
   const sessionMin = parseInt(document.getElementById('qe-session-duration').value) || 30;
+  const perTimeslot = parseInt(document.getElementById('qe-per-timeslot').value) || 1;
+  const buffer = parseInt(document.getElementById('qe-buffer').value) || 0;
+  const lunch = parseInt(document.getElementById('qe-lunch').value) || 30;
+
+  // Parse lab hours
+  const startParts = (document.getElementById('qe-lab-start').value || '09:00').split(':');
+  const endParts = (document.getElementById('qe-lab-end').value || '17:00').split(':');
+  const lunchStartParts = (document.getElementById('qe-lunch-start').value || '12:00').split(':');
+  const labStartMin = parseInt(startParts[0]) * 60 + parseInt(startParts[1]);
+  const labEndMin = parseInt(endParts[0]) * 60 + parseInt(endParts[1]);
+  const lunchStartMin = parseInt(lunchStartParts[0]) * 60 + parseInt(lunchStartParts[1]);
 
   // Total participants
   let totalN;
@@ -1938,14 +1978,21 @@ function updateQuickEstimate() {
     totalN = nPerCondition * conditions;
   }
 
-  // Assume: 1 participant per timeslot, 0 buffer, 9:00-17:00, 30min lunch = 450 usable minutes
-  const usable = 450;
-  const slotsPerDay = Math.floor(usable / sessionMin);
-  const days = slotsPerDay > 0 ? Math.ceil(totalN / slotsPerDay) : '?';
+  // Calculate usable minutes (same logic as full calculator)
+  const totalLabMin = labEndMin - labStartMin;
+  const usable = Math.max(0, totalLabMin - lunch);
+  const slotDuration = sessionMin + buffer;
+  const slotsPerDay = slotDuration > 0 ? Math.floor(usable / slotDuration) : 0;
+  const participantsPerDay = slotsPerDay * perTimeslot;
+  const days = participantsPerDay > 0 ? Math.ceil(totalN / participantsPerDay) : '?';
 
   const resultEl = document.getElementById('qe-result');
   resultEl.style.display = 'block';
-  resultEl.innerHTML = `Estimated: <strong>${days} lab day${days !== 1 ? 's' : ''}</strong> needed <span style="color:var(--text-muted);">(${totalN} participants, ~${slotsPerDay} slots/day)</span>`;
+  if (days === '?') {
+    resultEl.innerHTML = '<span style="color:var(--lab-orange);">Session duration exceeds available lab time. Adjust your inputs.</span>';
+  } else {
+    resultEl.innerHTML = `Estimated: <strong>${days} lab day${days !== 1 ? 's' : ''}</strong> needed <span style="color:var(--text-muted);">(${totalN} participants, ${slotsPerDay} slot${slotsPerDay !== 1 ? 's' : ''}/day &times; ${perTimeslot} per slot, ${slotDuration}min per slot)</span>`;
+  }
 
   // Autofill collection days (only if full calculator hasn't overridden)
   if (typeof days === 'number' && days > 0 && !state.labCalc) {
@@ -1955,7 +2002,7 @@ function updateQuickEstimate() {
   }
 
   // Save quick estimate to state for syncing with full calculator
-  state.quickEstimate = { conditions, design, nPerCondition, sessionMin, totalN, days };
+  state.quickEstimate = { conditions, design, nPerCondition, sessionMin, perTimeslot, buffer, labStartMin, labEndMin, lunch, lunchStartMin, totalN, days };
 }
 
 // ── Lab Timetable Calculator ──
