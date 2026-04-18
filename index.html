@@ -1113,7 +1113,7 @@ body.dark .skip-link { background: #334155; }
 
     <!-- Quick Estimate helper (all roles) -->
     <div class="card" id="quick-estimate-card">
-      <details class="checklist-section" id="quick-estimate-section" style="border:1.5px solid var(--accent);">
+      <details class="checklist-section" id="quick-estimate-section" style="border:1.5px solid var(--accent);" ontoggle="if(this.open) updateQuickEstimate()">
         <summary class="checklist-section-header" style="background:var(--accent-light);color:var(--accent-dark);">
           <span>Estimate lab days <span class="checklist-section-count">optional — helps you plan data collection</span></span>
           <span class="chevron">&#9660;</span>
@@ -1126,11 +1126,11 @@ body.dark .skip-link { background: #334155; }
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
             <div class="form-row">
               <label for="qe-conditions">Number of conditions</label>
-              <input type="number" id="qe-conditions" min="1" max="20" placeholder="2" inputmode="numeric" onchange="updateQuickEstimate()">
+              <input type="number" id="qe-conditions" min="1" max="20" placeholder="2" inputmode="numeric" oninput="updateQuickEstimate()">
             </div>
             <div class="form-row">
               <label for="qe-design">Study design</label>
-              <select id="qe-design" onchange="updateQuickEstimate()">
+              <select id="qe-design" oninput="updateQuickEstimate()">
                 <option value="between" selected>Between-subject</option>
                 <option value="within">Within-subject</option>
                 <option value="mixed">Mixed</option>
@@ -1138,38 +1138,38 @@ body.dark .skip-link { background: #334155; }
             </div>
             <div class="form-row">
               <label for="qe-n-per-condition">Participants per condition</label>
-              <input type="number" id="qe-n-per-condition" min="1" max="500" placeholder="30" inputmode="numeric" onchange="updateQuickEstimate()">
+              <input type="number" id="qe-n-per-condition" min="1" max="500" placeholder="30" inputmode="numeric" oninput="updateQuickEstimate()">
             </div>
             <div class="form-row">
               <label for="qe-session-duration">Session duration (minutes)</label>
-              <input type="number" id="qe-session-duration" min="5" max="240" placeholder="30" inputmode="numeric" onchange="updateQuickEstimate()">
+              <input type="number" id="qe-session-duration" min="5" max="240" placeholder="30" inputmode="numeric" oninput="updateQuickEstimate()">
             </div>
           </div>
           <p style="font-size:0.75rem;font-weight:600;color:var(--text-primary);margin:0.75rem 0 0.5rem;">Lab schedule <span style="font-weight:400;color:var(--text-muted);">(optional &mdash; defaults shown)</span></p>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
             <div class="form-row">
               <label for="qe-per-timeslot">Participants per timeslot</label>
-              <input type="number" id="qe-per-timeslot" min="1" max="50" placeholder="1" inputmode="numeric" onchange="updateQuickEstimate()">
+              <input type="number" id="qe-per-timeslot" min="1" max="50" placeholder="1" inputmode="numeric" oninput="updateQuickEstimate()">
             </div>
             <div class="form-row">
               <label for="qe-buffer">Buffer between sessions (min)</label>
-              <input type="number" id="qe-buffer" min="0" max="30" placeholder="0" inputmode="numeric" onchange="updateQuickEstimate()">
+              <input type="number" id="qe-buffer" min="0" max="30" placeholder="0" inputmode="numeric" oninput="updateQuickEstimate()">
             </div>
             <div class="form-row">
               <label for="qe-lab-start">Lab available from</label>
-              <input type="time" id="qe-lab-start" value="09:00" onchange="updateQuickEstimate()">
+              <input type="time" id="qe-lab-start" value="09:00" oninput="updateQuickEstimate()">
             </div>
             <div class="form-row">
               <label for="qe-lab-end">Lab available until</label>
-              <input type="time" id="qe-lab-end" value="17:00" onchange="updateQuickEstimate()">
+              <input type="time" id="qe-lab-end" value="17:00" oninput="updateQuickEstimate()">
             </div>
             <div class="form-row">
               <label for="qe-lunch">Lunch break (minutes)</label>
-              <input type="number" id="qe-lunch" min="0" max="120" placeholder="30" inputmode="numeric" onchange="updateQuickEstimate()">
+              <input type="number" id="qe-lunch" min="0" max="120" placeholder="30" inputmode="numeric" oninput="updateQuickEstimate()">
             </div>
             <div class="form-row">
               <label for="qe-lunch-start">Lunch starts at</label>
-              <input type="time" id="qe-lunch-start" value="12:00" onchange="updateQuickEstimate()">
+              <input type="time" id="qe-lunch-start" value="12:00" oninput="updateQuickEstimate()">
             </div>
           </div>
           <div id="qe-result" style="margin-top:0.75rem;padding:0.75rem;background:var(--accent-light);border:1px solid var(--border);border-radius:8px;display:none;font-size:0.85rem;"></div>
