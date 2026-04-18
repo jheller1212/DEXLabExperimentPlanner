@@ -948,8 +948,9 @@ body.dark .skip-link { background: #334155; }
   .tl-item { padding-left: 0; }
   .tl-date { min-width: 5.5rem; font-size: 0.7rem; }
   .tl-label { font-size: 0.78rem; }
-  /* Lab calculator: collapse 2-col grid to 1 column */
-  #lab-calc-section .checklist-section-body > div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
+  /* Lab calculator & quick estimate: collapse 2-col grid to 1 column */
+  #lab-calc-section .checklist-section-body > div[style*="grid-template-columns"],
+  #quick-estimate-section .checklist-section-body > div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
   /* Date edit grid: collapse to 1 column */
   #plan-dates-edit > div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
   /* Milestone table: horizontal scroll */
@@ -1110,6 +1111,44 @@ body.dark .skip-link { background: #334155; }
       </div>
     </div>
 
+    <!-- Quick Estimate helper (all roles) -->
+    <div class="card" id="quick-estimate-card">
+      <details class="checklist-section" id="quick-estimate-section" style="border:1.5px solid var(--accent);">
+        <summary class="checklist-section-header" style="background:var(--accent-light);color:var(--accent-dark);">
+          <span>Estimate lab days <span class="checklist-section-count">optional — helps you plan data collection</span></span>
+          <span class="chevron">&#9660;</span>
+        </summary>
+        <div class="checklist-section-body">
+          <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.75rem;line-height:1.5;">
+            Quick estimate of how many lab days you need. For a detailed timetable with blocked slots, use the full calculator on the Lab &amp; Booking tab after generating your plan.
+          </p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+            <div class="form-row">
+              <label for="qe-conditions">Number of conditions</label>
+              <input type="number" id="qe-conditions" min="1" max="20" value="2" inputmode="numeric" onchange="updateQuickEstimate()">
+            </div>
+            <div class="form-row">
+              <label for="qe-design">Study design</label>
+              <select id="qe-design" onchange="updateQuickEstimate()">
+                <option value="between" selected>Between-subject</option>
+                <option value="within">Within-subject</option>
+                <option value="mixed">Mixed</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label for="qe-n-per-condition">Participants per condition</label>
+              <input type="number" id="qe-n-per-condition" min="1" max="500" value="30" inputmode="numeric" onchange="updateQuickEstimate()">
+            </div>
+            <div class="form-row">
+              <label for="qe-session-duration">Session duration (minutes)</label>
+              <input type="number" id="qe-session-duration" min="5" max="240" value="30" inputmode="numeric" onchange="updateQuickEstimate()">
+            </div>
+          </div>
+          <div id="qe-result" style="margin-top:0.75rem;padding:0.75rem;background:var(--accent-light);border:1px solid var(--border);border-radius:8px;display:none;font-size:0.85rem;"></div>
+        </div>
+      </details>
+    </div>
+
     <!-- Thesis deadline and collection duration (master only) -->
     <div class="card" id="thesis-deadline-card" style="display:none;">
       <div class="form-row">
@@ -1119,10 +1158,11 @@ body.dark .skip-link { background: #334155; }
         </p>
         <input type="date" id="thesis-deadline-input">
       </div>
+
       <div class="form-row" style="margin-top:0.75rem;">
         <label for="collection-days-input">How long will data collection take?</label>
         <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.35rem;line-height:1.5;">
-          Number of lab days. This autofills once you use the Lab Timetable Calculator above.
+          Tip: Use the estimate tool above, or refine later with the full Lab Timetable Calculator on the plan page.
         </p>
         <div style="display:flex;align-items:center;gap:0.5rem;">
           <input type="number" id="collection-days-input" min="1" max="60" value="5" inputmode="numeric" style="width:5rem;" onchange="onCollectionDaysChange()">
@@ -1216,7 +1256,7 @@ body.dark .skip-link { background: #334155; }
       <button class="plan-tab" role="tab" id="tab-overview" aria-selected="true" aria-controls="panel-overview" onclick="switchPlanTab('overview')">Overview</button>
       <button class="plan-tab" role="tab" id="tab-milestones" aria-selected="false" aria-controls="panel-milestones" onclick="switchPlanTab('milestones')">Milestones</button>
       <button class="plan-tab" role="tab" id="tab-checklist" aria-selected="false" aria-controls="panel-checklist" onclick="switchPlanTab('checklist')">Checklist</button>
-      <button class="plan-tab" role="tab" id="tab-lab" aria-selected="false" aria-controls="panel-lab" onclick="switchPlanTab('lab')">Lab &amp; Booking</button>
+      <button class="plan-tab" role="tab" id="tab-lab" aria-selected="false" aria-controls="panel-lab" onclick="switchPlanTab('lab')">Lab &amp; Booking<span id="lab-tab-dot" style="display:none;color:var(--lab-orange);margin-left:0.3rem;font-size:0.6rem;vertical-align:super;">&#9679;</span></button>
     </div>
 
     <!-- ═══ Tab Panel: Overview ═══ -->
@@ -1883,6 +1923,41 @@ function scrollToTimetable() {
   if (ttBody) ttBody.style.display = 'block';
 }
 
+// ── Quick Estimate (Screen 4) ──
+function updateQuickEstimate() {
+  const conditions = parseInt(document.getElementById('qe-conditions').value) || 2;
+  const design = document.getElementById('qe-design').value;
+  const nPerCondition = parseInt(document.getElementById('qe-n-per-condition').value) || 30;
+  const sessionMin = parseInt(document.getElementById('qe-session-duration').value) || 30;
+
+  // Total participants
+  let totalN;
+  if (design === 'within') {
+    totalN = nPerCondition;
+  } else {
+    totalN = nPerCondition * conditions;
+  }
+
+  // Assume: 1 participant per timeslot, 0 buffer, 9:00-17:00, 30min lunch = 450 usable minutes
+  const usable = 450;
+  const slotsPerDay = Math.floor(usable / sessionMin);
+  const days = slotsPerDay > 0 ? Math.ceil(totalN / slotsPerDay) : '?';
+
+  const resultEl = document.getElementById('qe-result');
+  resultEl.style.display = 'block';
+  resultEl.innerHTML = `Estimated: <strong>${days} lab day${days !== 1 ? 's' : ''}</strong> needed <span style="color:var(--text-muted);">(${totalN} participants, ~${slotsPerDay} slots/day)</span>`;
+
+  // Autofill collection days (only if full calculator hasn't overridden)
+  if (typeof days === 'number' && days > 0 && !state.labCalc) {
+    state.collectionDays = days;
+    const cdInput = document.getElementById('collection-days-input');
+    if (cdInput) cdInput.value = days;
+  }
+
+  // Save quick estimate to state for syncing with full calculator
+  state.quickEstimate = { conditions, design, nPerCondition, sessionMin, totalN, days };
+}
+
 // ── Lab Timetable Calculator ──
 function fmtTime(totalMin) {
   const h = Math.floor(totalMin / 60);
@@ -1989,6 +2064,12 @@ function updateCalc() {
     sessionMin, conditions, design, perTimeslot, daySlots, buffer,
     startMin, endMin, lunchStartMin, lunch
   };
+
+  // Hide nudge and dot indicator now that full calculator is used
+  var nudgeEl = document.getElementById('lab-calc-nudge');
+  if (nudgeEl) nudgeEl.style.display = 'none';
+  var dotEl = document.getElementById('lab-tab-dot');
+  if (dotEl) dotEl.style.display = 'none';
 
   // Autofill the collection-days field with the calculator's recommended days.
   if (typeof totalDays === 'number' && totalDays > 0) {
@@ -3257,8 +3338,8 @@ function generatePlan() {
   state.analysisWeeks = parseInt(document.getElementById('analysis-weeks-input').value) || 1;
   state.supervisorEmail = document.getElementById('supervisor-email-input').value.trim();
   // Remind user to fill in lab calculator if they haven't
-  if (!state.labCalc) {
-    if (!confirm('You haven\u2019t filled in the Lab Timetable Calculator yet. You\u2019ll find it on the plan page under Lab & Booking.\n\nGenerate the plan anyway?')) {
+  if (!state.labCalc && (!state.quickEstimate || state.quickEstimate.days === '?')) {
+    if (!confirm('You haven\u2019t estimated your lab days yet. You can use the \u201CEstimate lab days\u201D section above, or the full Lab Timetable Calculator on the plan page under Lab & Booking.\n\nGenerate the plan anyway?')) {
       return;
     }
   }
@@ -3336,6 +3417,33 @@ function renderPlan() {
     }
     updateCalc();
     renderBlockedSlotsList();
+  } else if (state.quickEstimate) {
+    // Seed full calculator with quick estimate values
+    const qe = state.quickEstimate;
+    document.getElementById('calc-conditions').value = qe.conditions;
+    document.getElementById('calc-design').value = qe.design;
+    document.getElementById('calc-n-per-condition').value = qe.nPerCondition;
+    document.getElementById('calc-session-duration').value = qe.sessionMin;
+  }
+
+  // Nudge on Lab tab if full calculator hasn't been used
+  var labNudge = document.getElementById('lab-calc-nudge');
+  if (!labNudge) {
+    labNudge = document.createElement('div');
+    labNudge.id = 'lab-calc-nudge';
+    var calcSection = document.getElementById('lab-calc-section');
+    if (calcSection) calcSection.parentNode.insertBefore(labNudge, calcSection);
+  }
+  var labTabDot = document.getElementById('lab-tab-dot');
+  if (!state.labCalc) {
+    labNudge.style.cssText = 'padding:0.6rem 0.75rem;background:var(--lab-orange-light);border:1px solid var(--lab-orange);border-radius:8px;margin-bottom:0.75rem;font-size:0.8rem;color:var(--lab-orange-dark);line-height:1.5;';
+    labNudge.innerHTML = state.quickEstimate
+      ? 'Your quick estimate suggests <strong>' + state.quickEstimate.days + ' lab day' + (state.quickEstimate.days !== 1 ? 's' : '') + '</strong>. Open the full calculator below to fine-tune with lab hours, lunch breaks, and blocked time slots.'
+      : 'Use the Lab Timetable Calculator below to figure out how many days you need. It generates a detailed timetable with timeslots.';
+    if (labTabDot) labTabDot.style.display = 'inline';
+  } else {
+    labNudge.style.display = 'none';
+    if (labTabDot) labTabDot.style.display = 'none';
   }
 
   // Lab summary
@@ -3649,6 +3757,16 @@ function editSetup() {
   if (state.thesisDeadline) document.getElementById('thesis-deadline-input').value = state.thesisDeadline;
   document.getElementById('collection-days-input').value = state.collectionDays || 5;
   document.getElementById('analysis-weeks-input').value = state.analysisWeeks || 1;
+  // Restore quick estimate fields if data exists
+  if (state.quickEstimate) {
+    const qe = state.quickEstimate;
+    document.getElementById('qe-conditions').value = qe.conditions;
+    document.getElementById('qe-design').value = qe.design;
+    document.getElementById('qe-n-per-condition').value = qe.nPerCondition;
+    document.getElementById('qe-session-duration').value = qe.sessionMin;
+    document.getElementById('quick-estimate-section').open = true;
+    updateQuickEstimate();
+  }
   // Restore lab calculator fields if data exists
   if (state.labCalc) {
     const lc = state.labCalc;
