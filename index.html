@@ -10,7 +10,7 @@
 <style>
 /* ── Reset & Base ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { font-size: 16px; scroll-behavior: smooth; }
+html { font-size: 16px; scroll-behavior: smooth; scroll-padding-top: 6rem; }
 body {
   font-family: 'DM Sans', sans-serif;
   background: #f5f7fa;
@@ -51,7 +51,7 @@ body {
   --border: #dce3ed;
   --border-light: #e8edf5;
   --text-primary: #1a2a4a;
-  --text-muted: #6b7a94;
+  --text-muted: #5a6a82;
   --warning: #f97316;
   --danger: #ef4444;
   --success: #22c55e;
@@ -80,6 +80,8 @@ h1, h2, h3 { font-family: 'Fraunces', serif; font-weight: 700; color: var(--navy
   padding-bottom: 1.5rem;
   border-bottom: 1px solid var(--border);
 }
+.header-logo-link { text-decoration: none; display: inline-block; cursor: pointer; }
+.header-logo-link:hover { opacity: 0.8; }
 .header-logo {
   height: 64px;
   margin-bottom: 0.75rem;
@@ -556,10 +558,163 @@ select { cursor: pointer; }
   align-items: center;
   flex-wrap: wrap;
   gap: 0.75rem;
-  margin-bottom: 1.25rem;
+  margin-bottom: 0;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  background: var(--surface);
+  padding: 0.75rem 0 0.5rem;
 }
 .plan-header h2 { font-size: 1.3rem; }
-.plan-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.plan-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+
+/* ── Overflow menu ── */
+.overflow-menu {
+  position: relative;
+  display: inline-block;
+}
+.overflow-toggle {
+  padding: 0.3rem 0.6rem;
+  font-size: 1rem;
+  line-height: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-family: 'DM Sans', sans-serif;
+}
+.overflow-toggle:hover { border-color: var(--accent); color: var(--text-primary); }
+.overflow-dropdown {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  min-width: 180px;
+  z-index: 300;
+  padding: 0.35rem 0;
+}
+.overflow-menu.open .overflow-dropdown { display: block; }
+.overflow-dropdown button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem 0.85rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+.overflow-dropdown button:hover { background: var(--surface-alt); }
+.overflow-dropdown .overflow-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0.25rem 0;
+}
+.overflow-dropdown .overflow-danger { color: var(--danger); }
+.overflow-dropdown .overflow-danger:hover { background: #fef2f2; }
+
+/* ── Step Indicator ── */
+.step-indicator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+  margin: 1rem 0 0.5rem;
+  padding: 0;
+}
+.step-indicator-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.75rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  cursor: default;
+  white-space: nowrap;
+  transition: color 0.15s;
+}
+.step-indicator-btn .step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: var(--border);
+  color: var(--text-muted);
+  transition: background 0.15s, color 0.15s;
+}
+.step-indicator-btn[aria-current="step"] {
+  color: var(--accent-dark);
+  font-weight: 600;
+}
+.step-indicator-btn[aria-current="step"] .step-num {
+  background: var(--accent);
+  color: #fff;
+}
+.step-indicator-btn.completed .step-num {
+  background: var(--success);
+  color: #fff;
+}
+.step-indicator-btn.completed {
+  cursor: pointer;
+  color: var(--text-secondary);
+}
+.step-indicator-btn.completed:hover {
+  color: var(--accent-dark);
+}
+.step-arrow {
+  color: var(--border);
+  font-size: 0.7rem;
+  margin: 0 0.15rem;
+}
+
+/* ── Plan Tabs ── */
+.plan-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 1.25rem;
+  position: sticky;
+  top: 3.5rem;
+  z-index: 100;
+  background: var(--surface);
+  padding-top: 0.5rem;
+}
+.plan-tab {
+  padding: 0.6rem 1.1rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.plan-tab:hover { color: var(--text-primary); }
+.plan-tab[aria-selected="true"] {
+  color: var(--accent-dark);
+  border-bottom-color: var(--accent);
+}
+.plan-tabpanel { display: none; }
+.plan-tabpanel.active { display: block; }
 
 /* ── localStorage notice ── */
 .ls-notice {
@@ -751,6 +906,10 @@ body.dark .skip-link { background: #334155; }
   .screen:not(.active) { display: none !important; }
   #screen-role, #screen-date, #screen-confirm, #screen-name { display: none !important; }
   .plan-actions, .change-role-link, .btn, .progress-bar-container, .share-box, .bookmark-reminder, #plan-dates-edit, #edit-dates-btn, #dates-changed-banner, #supervisor-panel { display: none !important; }
+  .step-indicator { display: none !important; }
+  .plan-tabs { display: none !important; }
+  .plan-tabpanel { display: block !important; }
+  #lab-calc-section { display: none !important; }
   .checklist-section .checklist-section-body { display: block !important; }
   .checklist-section { display: block !important; }
   .checklist-section .chevron { display: none !important; }
@@ -798,6 +957,9 @@ body.dark .skip-link { background: #334155; }
   /* Share URL input overflow */
   .share-url input { min-width: 0; font-size: 0.65rem; }
   .share-url { flex-wrap: nowrap; overflow: hidden; }
+  /* Tabs: horizontal scroll on mobile */
+  .plan-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .plan-tab { font-size: 0.8rem; padding: 0.5rem 0.85rem; }
   /* Key dates display: collapse grid on mobile */
   #plan-dates-display > div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
   /* Blocked slots form: collapse to 1 column on mobile */
@@ -828,19 +990,40 @@ body.dark .skip-link { background: #334155; }
 </style>
 </head>
 <body>
-<a href="#screen-role" class="skip-link">Skip to content</a>
+<a href="#main-content" class="skip-link">Skip to content</a>
 <div class="container">
 
   <!-- Header -->
-  <div class="header">
-    <img src="logo.png" alt="DEXLab" class="header-logo" onerror="this.style.display='none';document.getElementById('logo-fallback').style.display='block'">
-    <div id="logo-fallback" style="display:none;font-family:'Fraunces',serif;font-size:1.6rem;font-weight:700;"><span style="color:var(--dex-blue)">DEX</span><span style="color:var(--lab-orange)">LAB</span></div>
+  <header class="header">
+    <a href="javascript:goHome()" class="header-logo-link" aria-label="Start new plan">
+      <img src="logo.png" alt="DEXLab" class="header-logo" onerror="this.style.display='none';document.getElementById('logo-fallback').style.display='block'">
+      <div id="logo-fallback" style="display:none;font-family:'Fraunces',serif;font-size:1.6rem;font-weight:700;"><span style="color:var(--dex-blue)">DEX</span><span style="color:var(--lab-orange)">LAB</span></div>
+    </a>
     <h1>Experiment Planner for Researchers</h1>
     <div class="subtitle">Backwards-plan your study.</div>
     <div class="lab-badge">Maastricht University &middot; SBE</div>
     <button class="btn btn-sm" onclick="replayTour()" style="margin-top:0.75rem;background:var(--accent-light);color:var(--accent-dark);border:1.5px solid var(--accent);font-weight:600;">Start Tour</button>
-  </div>
+  </header>
 
+  <nav class="step-indicator" id="step-indicator" aria-label="Setup progress">
+    <button type="button" class="step-indicator-btn" id="step-btn-role" aria-current="step" onclick="navigateToStep('screen-role')">
+      <span class="step-num">1</span> Role
+    </button>
+    <span class="step-arrow" aria-hidden="true">&#9656;</span>
+    <button type="button" class="step-indicator-btn" id="step-btn-date" onclick="navigateToStep('screen-date')">
+      <span class="step-num">2</span> Schedule
+    </button>
+    <span class="step-arrow" aria-hidden="true">&#9656;</span>
+    <button type="button" class="step-indicator-btn" id="step-btn-name" onclick="navigateToStep('screen-name')">
+      <span class="step-num">3</span> Details
+    </button>
+    <span class="step-arrow" aria-hidden="true">&#9656;</span>
+    <button type="button" class="step-indicator-btn" id="step-btn-plan" onclick="navigateToStep('screen-plan')">
+      <span class="step-num">4</span> Plan
+    </button>
+  </nav>
+
+  <main id="main-content">
   <!-- localStorage notice (hidden by default) -->
   <div class="ls-notice" id="ls-notice" style="display:none;">
     Private browsing detected &mdash; your progress won't be saved between sessions, but the tool works normally.
@@ -898,7 +1081,7 @@ body.dark .skip-link { background: #334155; }
       </div>
       <div class="yn-group">
         <span style="font-size:0.85rem;">Adjust period length if needed:</span>
-        <div class="stepper">
+        <div class="stepper" role="group" aria-label="Adjust period length in weeks">
           <button onclick="adjustWeeks(-1)" aria-label="Decrease weeks">&minus;</button>
           <span class="stepper-value" id="weeks-display"></span>
           <button onclick="adjustWeeks(1)" aria-label="Increase weeks">+</button>
@@ -907,9 +1090,264 @@ body.dark .skip-link { background: #334155; }
       </div>
       <div id="holiday-warning-container"></div>
     </div>
+  </div>
+
+  <!-- Screen 4: Name -->
+  <div class="screen" id="screen-name">
+    <div class="card">
+      <div class="form-row">
+        <label for="name-input">Your name (optional &mdash; personalizes output)</label>
+        <input type="text" id="name-input" placeholder="e.g. Jane Doe">
+      </div>
+      <div class="form-row">
+        <label for="title-input">Study title / nickname (optional)</label>
+        <input type="text" id="title-input" placeholder="e.g. Cool new tech experiment at DEXLab">
+      </div>
+      <div class="form-row">
+        <label for="supervisor-email-input">Supervisor email (optional)</label>
+        <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.35rem;">Adds a button to send your supervisor a progress update with one click.</p>
+        <input type="email" id="supervisor-email-input" placeholder="e.g. m.supervisor@maastrichtuniversity.nl">
+      </div>
+    </div>
+
+    <!-- Thesis deadline and collection duration (master only) -->
+    <div class="card" id="thesis-deadline-card" style="display:none;">
+      <div class="form-row">
+        <label for="thesis-deadline-input">When is your thesis submission deadline?</label>
+        <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.5rem;line-height:1.5;">
+          This adds milestones for data analysis, writing, supervisor feedback, and final submission so you can plan the full arc from experiment to hand-in.
+        </p>
+        <input type="date" id="thesis-deadline-input">
+      </div>
+      <div class="form-row" style="margin-top:0.75rem;">
+        <label for="collection-days-input">How long will data collection take?</label>
+        <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.35rem;line-height:1.5;">
+          Number of lab days. This autofills once you use the Lab Timetable Calculator above.
+        </p>
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+          <input type="number" id="collection-days-input" min="1" max="60" value="5" inputmode="numeric" style="width:5rem;" onchange="onCollectionDaysChange()">
+          <span style="font-size:0.85rem;color:var(--text-muted);">day(s)</span>
+        </div>
+      </div>
+      <div class="form-row" style="margin-top:0.75rem;">
+        <label for="analysis-weeks-input">How long will data analysis take?</label>
+        <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.35rem;line-height:1.5;">
+          Analysis starts one day after data collection ends. Default is 1 week.
+        </p>
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+          <input type="number" id="analysis-weeks-input" min="1" max="12" value="1" inputmode="numeric" style="width:5rem;">
+          <span style="font-size:0.85rem;color:var(--text-muted);">week(s)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="text-align:center;padding:1rem;">
+      <button class="btn btn-primary" onclick="generatePlan()">Generate My Plan &rarr;</button>
+    </div>
+  </div>
+
+  <!-- Screen 5: Plan -->
+  <div class="screen" id="screen-plan">
+    <div class="plan-header">
+      <div>
+        <h2 id="plan-title">Your Experiment Plan</h2>
+        <button class="change-role-link" onclick="editSetup()">Edit setup</button>
+      </div>
+      <nav class="plan-actions" aria-label="Plan actions">
+        <button class="btn btn-sm btn-primary" onclick="copyShareLink()">Copy Link</button>
+        <button class="btn btn-sm btn-orange" id="supervisor-update-btn" onclick="toggleSupervisorUpdate()" style="display:none;">Update Supervisor</button>
+        <button class="btn btn-sm btn-ghost" onclick="exportCalendar()">Export</button>
+        <div class="overflow-menu" id="plan-overflow">
+          <button class="overflow-toggle" onclick="toggleOverflow()" aria-expanded="false" aria-haspopup="true" aria-label="More actions">&hellip;</button>
+          <div class="overflow-dropdown" role="menu">
+            <button role="menuitem" onclick="copyProgressSummary();closeOverflow()">Copy Progress</button>
+            <button role="menuitem" onclick="downloadICS();closeOverflow()">Download .ics</button>
+            <button role="menuitem" onclick="showGoogleCalPanel();closeOverflow()">Google Calendar</button>
+            <button role="menuitem" onclick="window.print();closeOverflow()">Print / PDF</button>
+            <div class="overflow-divider"></div>
+            <button role="menuitem" onclick="shiftSchedule();closeOverflow()">Shift Schedule</button>
+            <button role="menuitem" onclick="replayTour();closeOverflow()">Feature Tour</button>
+            <button role="menuitem" onclick="openFeedback();closeOverflow()">Give Feedback</button>
+            <div class="overflow-divider"></div>
+            <button role="menuitem" class="overflow-danger" onclick="resetState();closeOverflow()">Start New Plan</button>
+          </div>
+        </div>
+      </nav>
+    </div>
+
+    <!-- Google Calendar export panel (contextual, outside tabs) -->
+    <div class="card" id="gcal-panel" style="display:none;">
+      <h3 style="font-family:'Fraunces',serif;font-size:1rem;margin-bottom:0.25rem;">Add to Google Calendar</h3>
+      <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.75rem;">Add your full experiment plan as one event, or add individual milestones below.</p>
+      <div style="margin-bottom:0.75rem;">
+        <a id="gcal-all-link" class="btn btn-sm btn-primary" href="#" target="_blank" rel="noopener" style="text-decoration:none;">Add Full Plan to Google Calendar</a>
+      </div>
+      <details style="margin-bottom:0.5rem;">
+        <summary style="font-size:0.8rem;font-weight:600;cursor:pointer;color:var(--text-muted);">Or add individual milestones</summary>
+        <div id="gcal-list" style="margin-top:0.5rem;"></div>
+      </details>
+      <div style="margin-top:0.75rem;text-align:right;">
+        <button class="btn btn-sm btn-ghost" onclick="document.getElementById('gcal-panel').style.display='none'">Close</button>
+      </div>
+    </div>
+
+    <!-- Progress (always visible) -->
+    <div class="progress-bar-container"><div class="progress-bar" id="progress-bar"></div></div>
+
+    <!-- Supervisor update panel (contextual, outside tabs) -->
+    <div class="card" id="supervisor-panel" style="display:none;">
+      <p class="section-title" style="margin-bottom:0.5rem;">Send Update to Supervisor</p>
+      <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.75rem;line-height:1.5;">
+        Your progress summary and plan link will be included automatically. Add a personal note below if you'd like.
+      </p>
+      <div class="form-row">
+        <label for="supervisor-note" style="font-size:0.8rem;">Note (optional)</label>
+        <textarea id="supervisor-note" rows="3" placeholder="e.g. I finished data collection — could we schedule a meeting to discuss the results?" style="width:100%;padding:0.6rem 0.75rem;background:var(--surface-alt);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-family:'DM Sans',sans-serif;font-size:0.85rem;resize:vertical;"></textarea>
+      </div>
+      <div style="display:flex;gap:0.5rem;margin-top:0.75rem;">
+        <button class="btn btn-sm btn-primary" onclick="sendSupervisorEmail()">Open in Email</button>
+        <button class="btn btn-sm btn-ghost" onclick="copySupervisorUpdate()">Copy to Clipboard</button>
+        <button class="btn btn-sm btn-ghost" onclick="toggleSupervisorUpdate()">Cancel</button>
+      </div>
+    </div>
+
+    <!-- ═══ Plan Tab Bar ═══ -->
+    <div class="plan-tabs" role="tablist" aria-label="Plan sections">
+      <button class="plan-tab" role="tab" id="tab-overview" aria-selected="true" aria-controls="panel-overview" onclick="switchPlanTab('overview')">Overview</button>
+      <button class="plan-tab" role="tab" id="tab-milestones" aria-selected="false" aria-controls="panel-milestones" onclick="switchPlanTab('milestones')">Milestones</button>
+      <button class="plan-tab" role="tab" id="tab-checklist" aria-selected="false" aria-controls="panel-checklist" onclick="switchPlanTab('checklist')">Checklist</button>
+      <button class="plan-tab" role="tab" id="tab-lab" aria-selected="false" aria-controls="panel-lab" onclick="switchPlanTab('lab')">Lab &amp; Booking</button>
+    </div>
+
+    <!-- ═══ Tab Panel: Overview ═══ -->
+    <div class="plan-tabpanel active" role="tabpanel" id="panel-overview" aria-labelledby="tab-overview">
+      <!-- Date summary (editable) -->
+      <div class="card" id="plan-dates-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+          <p class="section-title" style="margin:0;">Key Dates</p>
+          <button class="btn btn-sm btn-ghost" id="edit-dates-btn" onclick="toggleDateEdit()">Edit</button>
+        </div>
+        <div id="plan-dates-display"></div>
+        <div id="plan-dates-edit" style="display:none;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-top:0.75rem;">
+            <div class="form-row">
+              <label for="edit-bp-start" style="font-size:0.8rem;">Block period start</label>
+              <input type="date" id="edit-bp-start" onchange="onDateEditChange()">
+            </div>
+            <div class="form-row">
+              <label for="edit-week-start" style="font-size:0.8rem;">Data collection week</label>
+              <input type="date" id="edit-week-start" onchange="onDateEditChange()">
+            </div>
+            <div class="form-row" id="edit-thesis-row" style="display:none;">
+              <label for="edit-thesis-deadline" style="font-size:0.8rem;">Thesis submission deadline</label>
+              <input type="date" id="edit-thesis-deadline" onchange="onDateEditChange()">
+            </div>
+          </div>
+        </div>
+        <div id="dates-changed-banner" style="display:none;margin-top:0.75rem;padding:0.6rem 0.85rem;background:var(--lab-orange-light);border:1px solid rgba(232,99,43,0.25);border-radius:8px;font-size:0.8rem;color:var(--lab-orange);">
+          Dates updated — your plan has been recalculated. <a href="javascript:downloadICS()" style="color:var(--lab-orange);font-weight:600;">Re-download your calendar</a> to keep it in sync.
+        </div>
+        <div style="margin-top:0.75rem;display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center;">
+          <button class="btn btn-sm btn-ghost" onclick="shiftSchedule()" title="Shift data collection (and everything anchored to it) by N days">Shift schedule &hellip;</button>
+          <span style="font-size:0.75rem;color:var(--text-muted);">Behind schedule? Shift data collection by N days &mdash; downstream milestones move with it.</span>
+        </div>
+      </div>
+
+      <!-- Workload rollup -->
+      <div class="card" id="workload-card" style="display:none;">
+        <p class="section-title" style="margin-bottom:0.5rem;">Estimated Workload</p>
+        <div id="workload-content" style="font-size:0.85rem;"></div>
+      </div>
+
+      <!-- Timeline -->
+      <div class="card">
+        <p class="section-title">Timeline</p>
+        <ol class="timeline-list" id="timeline-list"></ol>
+      </div>
+    </div>
+
+    <!-- ═══ Tab Panel: Milestones ═══ -->
+    <div class="plan-tabpanel" role="tabpanel" id="panel-milestones" aria-labelledby="tab-milestones">
+      <!-- Milestone table -->
+      <div class="card">
+        <p class="section-title">Milestones</p>
+        <table class="milestone-table" id="milestone-table">
+          <thead><tr><th>Milestone</th><th>Deadline</th><th>Status</th></tr></thead>
+          <tbody id="milestone-tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- Custom milestones -->
+      <div class="card" id="custom-milestones-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+          <p class="section-title" style="margin:0;">Your Custom Milestones</p>
+          <button class="btn btn-sm btn-ghost" onclick="openCustomForm()">+ Add milestone</button>
+        </div>
+        <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.5rem;line-height:1.5;">
+          Add ad-hoc items (extra meetings, unplanned delays, supervisor calls, etc.). They appear in the timeline and checklist alongside the standard milestones.
+        </p>
+        <div id="custom-form" style="display:none;padding:0.75rem;background:var(--surface-alt);border:1px solid var(--border);border-radius:8px;margin-bottom:0.75rem;">
+          <input type="hidden" id="cm-edit-id" value="">
+          <div style="display:grid;grid-template-columns:2fr 1fr;gap:0.5rem;margin-bottom:0.5rem;">
+            <div class="form-row"><label for="cm-label" style="font-size:0.8rem;">Label</label>
+              <input type="text" id="cm-label" placeholder="e.g. Meeting with supervisor" maxlength="80">
+            </div>
+            <div class="form-row"><label for="cm-date" style="font-size:0.8rem;">Date</label>
+              <input type="date" id="cm-date">
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem;margin-bottom:0.5rem;">
+            <div class="form-row"><label for="cm-section" style="font-size:0.8rem;">Phase</label>
+              <select id="cm-section">
+                <option value="phase1_before_sona">Phase 1 \u2014 Before SONA</option>
+                <option value="phase2_sona">Phase 2 \u2014 SONA setup</option>
+                <option value="phase3_before_experiment" selected>Phase 3 \u2014 Before experiment</option>
+                <option value="phase4_go">Phase 4 \u2014 Data collection</option>
+                <option value="phase5_thesis">Phase 5 \u2014 Analysis &amp; writing</option>
+              </select>
+            </div>
+            <div class="form-row"><label for="cm-duration" style="font-size:0.8rem;">Time needed (min)</label>
+              <input type="number" id="cm-duration" min="0" max="2400" placeholder="e.g. 60">
+            </div>
+            <div class="form-row" style="align-self:end;">
+              <span style="font-size:0.75rem;color:var(--text-muted);">Leave blank if unsure.</span>
+            </div>
+          </div>
+          <div class="form-row" style="margin-bottom:0.5rem;">
+            <label for="cm-note" style="font-size:0.8rem;">Note (optional)</label>
+            <textarea id="cm-note" rows="2" maxlength="300" style="width:100%;padding:0.5rem;background:var(--surface);border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.85rem;resize:vertical;"></textarea>
+          </div>
+          <div style="display:flex;gap:0.5rem;">
+            <button class="btn btn-sm btn-primary" onclick="saveCustomMilestone()">Save</button>
+            <button class="btn btn-sm btn-ghost" onclick="closeCustomForm()">Cancel</button>
+          </div>
+        </div>
+        <div id="custom-list" style="font-size:0.85rem;"></div>
+      </div>
+
+      <!-- Hidden milestones -->
+      <div class="card" id="hidden-milestones-card" style="display:none;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+          <p class="section-title" style="margin:0;">Hidden Milestones</p>
+          <button class="btn btn-sm btn-ghost" onclick="var b=document.getElementById('hidden-list');b.style.display=b.style.display==='none'?'block':'none';this.textContent=b.style.display==='none'?'Show':'Hide';">Show</button>
+        </div>
+        <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.5rem;line-height:1.5;">
+          These items won&#x2019;t appear in your timeline, checklist, or calendar until restored.
+        </p>
+        <div id="hidden-list" style="display:none;font-size:0.85rem;"></div>
+      </div>
+    </div>
+
+    <!-- ═══ Tab Panel: Checklist ═══ -->
+    <div class="plan-tabpanel" role="tabpanel" id="panel-checklist" aria-labelledby="tab-checklist">
+      <div id="checklist-container"></div>
+    </div>
+
+    <!-- ═══ Tab Panel: Lab & Booking ═══ -->
+    <div class="plan-tabpanel" role="tabpanel" id="panel-lab" aria-labelledby="tab-lab">
 
     <!-- Lab Timetable Calculator -->
-    <details class="checklist-section" id="lab-calc-section" open>
+    <details class="checklist-section" id="lab-calc-section">
       <summary class="checklist-section-header">
         <span>Lab Timetable Calculator <span class="checklist-section-count">fill in before generating</span></span>
         <span class="chevron">&#9660;</span>
@@ -1010,177 +1448,6 @@ body.dark .skip-link { background: #334155; }
         </div>
       </div>
     </details>
-  </div>
-
-  <!-- Screen 4: Name -->
-  <div class="screen" id="screen-name">
-    <div class="card">
-      <div class="form-row">
-        <label for="name-input">Your name (optional &mdash; personalizes output)</label>
-        <input type="text" id="name-input" placeholder="e.g. Jane Doe">
-      </div>
-      <div class="form-row">
-        <label for="title-input">Study title / nickname (optional)</label>
-        <input type="text" id="title-input" placeholder="e.g. Cool new tech experiment at DEXLab">
-      </div>
-      <div class="form-row">
-        <label for="supervisor-email-input">Supervisor email (optional)</label>
-        <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.35rem;">Adds a button to send your supervisor a progress update with one click.</p>
-        <input type="email" id="supervisor-email-input" placeholder="e.g. m.supervisor@maastrichtuniversity.nl">
-      </div>
-    </div>
-
-    <!-- Thesis deadline and collection duration (master only) -->
-    <div class="card" id="thesis-deadline-card" style="display:none;">
-      <div class="form-row">
-        <label for="thesis-deadline-input">When is your thesis submission deadline?</label>
-        <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.5rem;line-height:1.5;">
-          This adds milestones for data analysis, writing, supervisor feedback, and final submission so you can plan the full arc from experiment to hand-in.
-        </p>
-        <input type="date" id="thesis-deadline-input">
-      </div>
-      <div class="form-row" style="margin-top:0.75rem;">
-        <label for="collection-days-input">How long will data collection take?</label>
-        <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.35rem;line-height:1.5;">
-          Number of lab days. This autofills once you use the Lab Timetable Calculator above.
-        </p>
-        <div style="display:flex;align-items:center;gap:0.5rem;">
-          <input type="number" id="collection-days-input" min="1" max="60" value="5" inputmode="numeric" style="width:5rem;" onchange="onCollectionDaysChange()">
-          <span style="font-size:0.85rem;color:var(--text-muted);">day(s)</span>
-        </div>
-      </div>
-      <div class="form-row" style="margin-top:0.75rem;">
-        <label for="analysis-weeks-input">How long will data analysis take?</label>
-        <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.35rem;line-height:1.5;">
-          Analysis starts one day after data collection ends. Default is 1 week.
-        </p>
-        <div style="display:flex;align-items:center;gap:0.5rem;">
-          <input type="number" id="analysis-weeks-input" min="1" max="12" value="1" inputmode="numeric" style="width:5rem;">
-          <span style="font-size:0.85rem;color:var(--text-muted);">week(s)</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="card" style="text-align:center;padding:1rem;">
-      <button class="btn btn-primary" onclick="generatePlan()">Generate My Plan &rarr;</button>
-    </div>
-  </div>
-
-  <!-- Screen 5: Plan -->
-  <div class="screen" id="screen-plan">
-    <div class="plan-header">
-      <div>
-        <h2 id="plan-title">Your Experiment Plan</h2>
-        <button class="change-role-link" onclick="editSetup()">Edit setup</button>
-      </div>
-      <div class="plan-actions">
-        <button class="btn btn-sm btn-primary" onclick="copyShareLink()">Copy Link</button>
-        <button class="btn btn-sm btn-orange" id="supervisor-update-btn" onclick="toggleSupervisorUpdate()" style="display:none;">Update Supervisor</button>
-        <button class="btn btn-sm btn-ghost" onclick="copyProgressSummary()">Copy Progress</button>
-        <button class="btn btn-sm btn-ghost" onclick="downloadICS()">Download .ics</button>
-        <button class="btn btn-sm btn-ghost" onclick="showGoogleCalPanel()">Google Calendar</button>
-        <button class="btn btn-sm btn-ghost" onclick="window.print()">Print / PDF</button>
-        <button class="btn btn-sm btn-ghost" onclick="resetState()">Reset</button>
-      </div>
-      <div style="display:flex;gap:0.5rem;margin-top:0.5rem;">
-        <button class="btn btn-sm" onclick="replayTour()" style="background:var(--accent-light);color:var(--accent-dark);border:1.5px solid var(--accent);font-weight:600;">Feature Tour</button>
-        <button class="btn btn-sm" onclick="openFeedback();return false;" style="background:var(--lab-orange-light);color:var(--lab-orange-dark);border:1.5px solid var(--lab-orange);font-weight:600;">Give Feedback</button>
-      </div>
-    </div>
-
-    <!-- Google Calendar export panel -->
-    <div class="card" id="gcal-panel" style="display:none;">
-      <h3 style="font-family:'Fraunces',serif;font-size:1rem;margin-bottom:0.25rem;">Add to Google Calendar</h3>
-      <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.75rem;">Add your full experiment plan as one event, or add individual milestones below.</p>
-      <div style="margin-bottom:0.75rem;">
-        <a id="gcal-all-link" class="btn btn-sm btn-primary" href="#" target="_blank" rel="noopener" style="text-decoration:none;">Add Full Plan to Google Calendar</a>
-      </div>
-      <details style="margin-bottom:0.5rem;">
-        <summary style="font-size:0.8rem;font-weight:600;cursor:pointer;color:var(--text-muted);">Or add individual milestones</summary>
-        <div id="gcal-list" style="margin-top:0.5rem;"></div>
-      </details>
-      <div style="margin-top:0.75rem;text-align:right;">
-        <button class="btn btn-sm btn-ghost" onclick="document.getElementById('gcal-panel').style.display='none'">Close</button>
-      </div>
-    </div>
-
-    <!-- Progress -->
-    <div class="progress-bar-container"><div class="progress-bar" id="progress-bar"></div></div>
-
-    <!-- Supervisor update panel -->
-    <div class="card" id="supervisor-panel" style="display:none;">
-      <p class="section-title" style="margin-bottom:0.5rem;">Send Update to Supervisor</p>
-      <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.75rem;line-height:1.5;">
-        Your progress summary and plan link will be included automatically. Add a personal note below if you'd like.
-      </p>
-      <div class="form-row">
-        <label for="supervisor-note" style="font-size:0.8rem;">Note (optional)</label>
-        <textarea id="supervisor-note" rows="3" placeholder="e.g. I finished data collection — could we schedule a meeting to discuss the results?" style="width:100%;padding:0.6rem 0.75rem;background:var(--surface-alt);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-family:'DM Sans',sans-serif;font-size:0.85rem;resize:vertical;"></textarea>
-      </div>
-      <div style="display:flex;gap:0.5rem;margin-top:0.75rem;">
-        <button class="btn btn-sm btn-primary" onclick="sendSupervisorEmail()">Open in Email</button>
-        <button class="btn btn-sm btn-ghost" onclick="copySupervisorUpdate()">Copy to Clipboard</button>
-        <button class="btn btn-sm btn-ghost" onclick="toggleSupervisorUpdate()">Cancel</button>
-      </div>
-    </div>
-
-    <!-- Date summary (editable) -->
-    <div class="card" id="plan-dates-card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
-        <p class="section-title" style="margin:0;">Key Dates</p>
-        <button class="btn btn-sm btn-ghost" id="edit-dates-btn" onclick="toggleDateEdit()">Edit</button>
-      </div>
-      <div id="plan-dates-display"></div>
-      <div id="plan-dates-edit" style="display:none;">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-top:0.75rem;">
-          <div class="form-row">
-            <label for="edit-bp-start" style="font-size:0.8rem;">Block period start</label>
-            <input type="date" id="edit-bp-start" onchange="onDateEditChange()">
-          </div>
-          <div class="form-row">
-            <label for="edit-week-start" style="font-size:0.8rem;">Data collection week</label>
-            <input type="date" id="edit-week-start" onchange="onDateEditChange()">
-          </div>
-          <div class="form-row" id="edit-thesis-row" style="display:none;">
-            <label for="edit-thesis-deadline" style="font-size:0.8rem;">Thesis submission deadline</label>
-            <input type="date" id="edit-thesis-deadline" onchange="onDateEditChange()">
-          </div>
-        </div>
-      </div>
-      <div id="dates-changed-banner" style="display:none;margin-top:0.75rem;padding:0.6rem 0.85rem;background:var(--lab-orange-light);border:1px solid rgba(232,99,43,0.25);border-radius:8px;font-size:0.8rem;color:var(--lab-orange);">
-        Dates updated — your plan has been recalculated. <a href="javascript:downloadICS()" style="color:var(--lab-orange);font-weight:600;">Re-download your calendar</a> to keep it in sync.
-      </div>
-      <div style="margin-top:0.75rem;display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center;">
-        <button class="btn btn-sm btn-ghost" onclick="shiftSchedule()" title="Shift data collection (and everything anchored to it) by N days">Shift schedule &hellip;</button>
-        <span style="font-size:0.75rem;color:var(--text-muted);">Behind schedule? Shift data collection by N days &mdash; downstream milestones move with it.</span>
-      </div>
-    </div>
-
-    <!-- Lab Timetable Calculator link -->
-    <div style="margin-bottom:0.75rem;">
-      <a href="javascript:scrollToTimetable()" style="font-size:0.8rem;color:var(--accent);text-decoration:none;display:inline-flex;align-items:center;gap:0.3rem;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">&larr; Open Lab Timetable Calculator</a>
-    </div>
-
-    <!-- Workload rollup -->
-    <div class="card" id="workload-card" style="display:none;">
-      <p class="section-title" style="margin-bottom:0.5rem;">Estimated Workload</p>
-      <div id="workload-content" style="font-size:0.85rem;"></div>
-    </div>
-
-    <!-- 5a: Timeline -->
-    <div class="card">
-      <p class="section-title">Timeline</p>
-      <ol class="timeline-list" id="timeline-list"></ol>
-    </div>
-
-    <!-- 5b: Milestone table -->
-    <div class="card">
-      <p class="section-title">Milestones</p>
-      <table class="milestone-table" id="milestone-table">
-        <thead><tr><th>Milestone</th><th>Deadline</th><th>Status</th></tr></thead>
-        <tbody id="milestone-tbody"></tbody>
-      </table>
-    </div>
 
     <!-- Lab summary (if calculator was used) -->
     <div class="card" id="plan-lab-summary" style="display:none;">
@@ -1202,76 +1469,12 @@ body.dark .skip-link { background: #334155; }
       </p>
       <a class="btn btn-sm btn-primary" href="https://resourcebooker.maastrichtuniversity.nl/" target="_blank" rel="noopener" style="text-decoration:none;">Open Resource Booker &rarr;</a>
     </div>
-
-    <!-- Custom milestones -->
-    <div class="card" id="custom-milestones-card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
-        <p class="section-title" style="margin:0;">Your Custom Milestones</p>
-        <button class="btn btn-sm btn-ghost" onclick="openCustomForm()">+ Add milestone</button>
-      </div>
-      <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.5rem;line-height:1.5;">
-        Add ad-hoc items (extra meetings, unplanned delays, supervisor calls, etc.). They appear in the timeline and checklist alongside the standard milestones.
-      </p>
-      <div id="custom-form" style="display:none;padding:0.75rem;background:var(--surface-alt);border:1px solid var(--border);border-radius:8px;margin-bottom:0.75rem;">
-        <input type="hidden" id="cm-edit-id" value="">
-        <div style="display:grid;grid-template-columns:2fr 1fr;gap:0.5rem;margin-bottom:0.5rem;">
-          <div class="form-row"><label for="cm-label" style="font-size:0.8rem;">Label</label>
-            <input type="text" id="cm-label" placeholder="e.g. Meeting with supervisor" maxlength="80">
-          </div>
-          <div class="form-row"><label for="cm-date" style="font-size:0.8rem;">Date</label>
-            <input type="date" id="cm-date">
-          </div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem;margin-bottom:0.5rem;">
-          <div class="form-row"><label for="cm-section" style="font-size:0.8rem;">Phase</label>
-            <select id="cm-section">
-              <option value="phase1_before_sona">Phase 1 \u2014 Before SONA</option>
-              <option value="phase2_sona">Phase 2 \u2014 SONA setup</option>
-              <option value="phase3_before_experiment" selected>Phase 3 \u2014 Before experiment</option>
-              <option value="phase4_go">Phase 4 \u2014 Data collection</option>
-              <option value="phase5_thesis">Phase 5 \u2014 Analysis &amp; writing</option>
-            </select>
-          </div>
-          <div class="form-row"><label for="cm-duration" style="font-size:0.8rem;">Time needed (min)</label>
-            <input type="number" id="cm-duration" min="0" max="2400" placeholder="e.g. 60">
-          </div>
-          <div class="form-row" style="align-self:end;">
-            <span style="font-size:0.75rem;color:var(--text-muted);">Leave blank if unsure.</span>
-          </div>
-        </div>
-        <div class="form-row" style="margin-bottom:0.5rem;">
-          <label for="cm-note" style="font-size:0.8rem;">Note (optional)</label>
-          <textarea id="cm-note" rows="2" maxlength="300" style="width:100%;padding:0.5rem;background:white;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.85rem;resize:vertical;"></textarea>
-        </div>
-        <div style="display:flex;gap:0.5rem;">
-          <button class="btn btn-sm btn-primary" onclick="saveCustomMilestone()">Save</button>
-          <button class="btn btn-sm btn-ghost" onclick="closeCustomForm()">Cancel</button>
-        </div>
-      </div>
-      <div id="custom-list" style="font-size:0.85rem;"></div>
     </div>
-
-    <!-- Hidden milestones -->
-    <div class="card" id="hidden-milestones-card" style="display:none;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
-        <p class="section-title" style="margin:0;">Hidden Milestones</p>
-        <button class="btn btn-sm btn-ghost" onclick="var b=document.getElementById('hidden-list');b.style.display=b.style.display==='none'?'block':'none';this.textContent=b.style.display==='none'?'Show':'Hide';">Show</button>
-      </div>
-      <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.5rem;line-height:1.5;">
-        These items won\u2019t appear in your timeline, checklist, or calendar until restored.
-      </p>
-      <div id="hidden-list" style="display:none;font-size:0.85rem;"></div>
-    </div>
-
-    <!-- 5c: Checklist -->
-    <div id="checklist-container"></div>
 
     <!-- Disclaimer -->
     <div style="margin-top:1.5rem;padding:0.75rem 1rem;background:var(--surface-alt);border:1px solid var(--border);border-radius:8px;font-size:0.75rem;color:var(--text-muted);line-height:1.5;">
       This is an internal DEXLab planning tool. No rights can be derived from the suggested deadlines. Always align with your supervisor on actual timelines and requirements.
     </div>
-
-    <!-- Feedback (button moved to plan header) -->
 
     <!-- Completion prompt -->
     <div id="completion-prompt" style="display:none;margin-top:1rem;padding:1rem;background:var(--accent-light);border:1px solid var(--accent);border-radius:8px;text-align:center;">
@@ -1285,9 +1488,9 @@ body.dark .skip-link { background: #334155; }
 
     <!-- Print footer -->
     <div class="print-footer" id="print-footer"></div>
-    <!-- Tour replay button moved to plan header -->
   </div>
 
+  </main>
 </div>
 
 <!-- Toast -->
@@ -1295,9 +1498,9 @@ body.dark .skip-link { background: #334155; }
 
 <!-- Feedback Modal -->
 <div class="feedback-overlay" id="feedback-overlay" onclick="if(event.target===this)closeFeedback()">
-  <div class="feedback-modal" style="position:relative;">
+  <div class="feedback-modal" role="dialog" aria-modal="true" aria-labelledby="fb-heading" style="position:relative;">
     <button class="fb-close" onclick="closeFeedback()" aria-label="Close feedback">&times;</button>
-    <h3>How was the planner?</h3>
+    <h3 id="fb-heading">How was the planner?</h3>
     <p class="fb-sub">Your feedback helps us improve this tool for future students.</p>
     <label>Overall rating</label>
     <div class="fb-stars" id="fb-stars">
@@ -1627,11 +1830,48 @@ function getCachedMilestones() {
   return _milestoneCacheResult;
 }
 
+// ── Overflow Menu ──
+function toggleOverflow() {
+  var menu = document.getElementById('plan-overflow');
+  var btn = menu.querySelector('.overflow-toggle');
+  var isOpen = menu.classList.toggle('open');
+  btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+}
+function closeOverflow() {
+  var menu = document.getElementById('plan-overflow');
+  menu.classList.remove('open');
+  menu.querySelector('.overflow-toggle').setAttribute('aria-expanded', 'false');
+}
+// Close overflow when clicking outside
+document.addEventListener('click', function(e) {
+  var menu = document.getElementById('plan-overflow');
+  if (menu && !menu.contains(e.target)) closeOverflow();
+});
+// Keyboard: Escape closes overflow
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeOverflow();
+});
+
+// Go home — returns to role selection with confirmation if plan exists
+function goHome() {
+  var planScreen = document.getElementById('screen-plan');
+  if (planScreen && planScreen.classList.contains('active')) {
+    if (!confirm('Go back to the start? Your saved plan will still be available via your link.')) return;
+  }
+  editSetup();
+}
+
+// Export shortcut — opens .ics download and shows Google Calendar option
+function exportCalendar() {
+  downloadICS();
+  showGoogleCalPanel();
+}
+
 // ── Toast ──
 // ── Scroll to Lab Timetable ──
 function scrollToTimetable() {
-  // Show the confirm screen where the calculator lives
-  showScreen('screen-confirm');
+  // Switch to Lab tab first
+  switchPlanTab('lab');
   var calc = document.getElementById('lab-calc-section');
   if (calc) {
     calc.open = true;
@@ -1639,7 +1879,6 @@ function scrollToTimetable() {
       calc.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 50);
   }
-  // Also expand timetable body if it exists
   var ttBody = document.getElementById('timetable-body');
   if (ttBody) ttBody.style.display = 'block';
 }
@@ -2507,10 +2746,80 @@ function saveState() {
   }
 }
 
+// Arrow key navigation between plan tabs
+document.addEventListener('keydown', function(e) {
+  var tablist = document.querySelector('.plan-tabs');
+  if (!tablist || !tablist.contains(document.activeElement)) return;
+  var tabNames = ['overview', 'milestones', 'checklist', 'lab'];
+  var current = tabNames.indexOf(document.activeElement.id.replace('tab-', ''));
+  if (current < 0) return;
+  var next = -1;
+  if (e.key === 'ArrowRight') next = (current + 1) % tabNames.length;
+  else if (e.key === 'ArrowLeft') next = (current - 1 + tabNames.length) % tabNames.length;
+  if (next >= 0) {
+    e.preventDefault();
+    switchPlanTab(tabNames[next]);
+    document.getElementById('tab-' + tabNames[next]).focus();
+  }
+});
+
+// ── Tab switching ──
+function switchPlanTab(name) {
+  document.querySelectorAll('.plan-tab').forEach(function(t) {
+    var isActive = t.id === 'tab-' + name;
+    t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    t.setAttribute('tabindex', isActive ? '0' : '-1');
+  });
+  document.querySelectorAll('.plan-tabpanel').forEach(function(p) {
+    p.classList.toggle('active', p.id === 'panel-' + name);
+  });
+}
+
 // ── Screen Management ──
+// ── Step indicator ──
+const STEP_MAP = [
+  { btn: 'step-btn-role', screen: 'screen-role' },
+  { btn: 'step-btn-date', screen: 'screen-date' },
+  { btn: 'step-btn-name', screen: 'screen-name' },
+  { btn: 'step-btn-plan', screen: 'screen-plan' },
+];
+var _highestReachedStep = 0;
+
+function updateStepIndicator(screenId) {
+  const indicator = document.getElementById('step-indicator');
+  if (!indicator) return;
+  // Hide on plan screen
+  indicator.style.display = (screenId === 'screen-plan') ? 'none' : '';
+  // Find which step this screen belongs to (screen-confirm maps to step 1 / Schedule)
+  let activeIdx = STEP_MAP.findIndex(s => s.screen === screenId);
+  if (screenId === 'screen-confirm') activeIdx = 1; // confirm is part of Schedule step
+  if (activeIdx < 0) return;
+  if (activeIdx > _highestReachedStep) _highestReachedStep = activeIdx;
+  STEP_MAP.forEach((step, i) => {
+    const btn = document.getElementById(step.btn);
+    if (!btn) return;
+    btn.removeAttribute('aria-current');
+    btn.classList.remove('completed');
+    btn.disabled = (i > _highestReachedStep);
+    if (i === activeIdx) btn.setAttribute('aria-current', 'step');
+    else if (i < activeIdx) btn.classList.add('completed');
+  });
+}
+
+function navigateToStep(screenId) {
+  const idx = STEP_MAP.findIndex(s => s.screen === screenId);
+  if (idx > _highestReachedStep) return; // can't skip ahead
+  if (screenId === 'screen-plan') {
+    // Plan screen needs generatePlan, can't just show it
+    return;
+  }
+  showScreensUpTo(screenId);
+}
+
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  updateStepIndicator(id);
   if (typeof advanceTourForScreen === 'function') advanceTourForScreen(id);
 }
 
@@ -2521,6 +2830,7 @@ function showScreensUpTo(id) {
   for (let i = 0; i <= idx; i++) {
     document.getElementById(order[i]).classList.add('active');
   }
+  updateStepIndicator(id);
   if (typeof advanceTourForScreen === 'function') advanceTourForScreen(id);
 }
 
@@ -2948,8 +3258,7 @@ function generatePlan() {
   state.supervisorEmail = document.getElementById('supervisor-email-input').value.trim();
   // Remind user to fill in lab calculator if they haven't
   if (!state.labCalc) {
-    if (!confirm('You haven\u2019t filled in the Lab Timetable Calculator yet. It helps determine how many lab days you need and generates a timetable for your experiment.\n\nGenerate the plan anyway?')) {
-      document.getElementById('lab-calc-section').scrollIntoView({ behavior: 'smooth' });
+    if (!confirm('You haven\u2019t filled in the Lab Timetable Calculator yet. You\u2019ll find it on the plan page under Lab & Booking.\n\nGenerate the plan anyway?')) {
       return;
     }
   }
@@ -3008,6 +3317,26 @@ function renderPlan() {
   renderCustomList();
   renderHiddenList();
   renderWorkload();
+
+  // Restore lab calculator fields if data exists (e.g. from shared URL)
+  if (state.labCalc) {
+    const lc = state.labCalc;
+    if (lc.conditions) document.getElementById('calc-conditions').value = lc.conditions;
+    if (lc.design) document.getElementById('calc-design').value = lc.design;
+    if (lc.sessionMin) document.getElementById('calc-session-duration').value = lc.sessionMin;
+    if (lc.perTimeslot) document.getElementById('calc-per-timeslot').value = lc.perTimeslot;
+    document.getElementById('calc-buffer').value = lc.buffer || 0;
+    if (lc.startMin != null) document.getElementById('calc-lab-start').value = fmtTime(lc.startMin);
+    if (lc.endMin != null) document.getElementById('calc-lab-end').value = fmtTime(lc.endMin);
+    if (lc.lunch != null) document.getElementById('calc-lunch').value = lc.lunch;
+    if (lc.lunchStartMin != null) document.getElementById('calc-lunch-start').value = fmtTime(lc.lunchStartMin);
+    if (lc.totalN && lc.conditions) {
+      const npc = (lc.design === 'within') ? lc.totalN : Math.round(lc.totalN / lc.conditions);
+      document.getElementById('calc-n-per-condition').value = npc;
+    }
+    updateCalc();
+    renderBlockedSlotsList();
+  }
 
   // Lab summary
   const labSummary = document.getElementById('plan-lab-summary');
@@ -3249,11 +3578,16 @@ function openFeedback() {
   document.getElementById('fb-improve').value = '';
   overlay.classList.add('show');
   document.body.style.overflow = 'hidden';
+  _feedbackTrigger = document.activeElement;
+  var closeBtn = overlay.querySelector('.fb-close');
+  if (closeBtn) closeBtn.focus();
 }
+var _feedbackTrigger = null;
 
 function closeFeedback() {
   document.getElementById('feedback-overlay').classList.remove('show');
   document.body.style.overflow = '';
+  if (_feedbackTrigger) { _feedbackTrigger.focus(); _feedbackTrigger = null; }
 }
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape' && document.getElementById('feedback-overlay').classList.contains('show')) closeFeedback();
@@ -3419,8 +3753,8 @@ function resetState() {
 // ── Onboarding Tour ──
 const TOUR_STEPS = [
   { target: '.role-buttons', screen: 'screen-role', title: 'Choose Your Role', text: 'Select your role to see relevant milestones — PhD researchers get additional steps for ethics and pre-registration.' },
-  { target: '#lab-calc-section', screen: 'screen-confirm', title: 'Lab Timetable Calculator', text: 'Use the lab calculator to figure out how many days you need. It generates a full timetable with timeslots.' },
-  { target: '#blocked-slots-section', screen: 'screen-confirm', title: 'Blocked Time Slots', text: 'Block times when you can\'t run participants — tutorials, appointments, etc. The timetable skips those slots.' },
+  { target: '#lab-calc-section', screen: 'screen-plan', title: 'Lab Timetable Calculator', text: 'Use the lab calculator to figure out how many days you need. It generates a full timetable with timeslots.' },
+  { target: '#blocked-slots-section', screen: 'screen-plan', title: 'Blocked Time Slots', text: 'Block times when you can\'t run participants — tutorials, appointments, etc. The timetable skips those slots.' },
   { target: '#custom-milestones-card', screen: 'screen-plan', title: 'Custom Milestones', text: 'Add your own milestones to the timeline — extra meetings, supervisor calls, pilot sessions.' },
   { target: '[onclick="shiftSchedule()"]', screen: 'screen-plan', title: 'Shift Schedule', text: 'Shift your entire schedule forward or back — all downstream milestones move with it automatically.' },
 ];
