@@ -2197,8 +2197,8 @@ function updateQuickEstimate() {
     resultEl.innerHTML = `Estimated: <strong>${days} lab day${days !== 1 ? 's' : ''}</strong> needed <span style="color:var(--text-muted);">(${totalN} participants, ${slotsPerDay} slot${slotsPerDay !== 1 ? 's' : ''}/day &times; ${perTimeslot} per slot, ${slotDuration}min per slot)</span>`;
   }
 
-  // Autofill collection days (only if full calculator hasn't overridden)
-  if (typeof days === 'number' && days > 0 && !state.labCalc) {
+  // Autofill collection days from estimate
+  if (typeof days === 'number' && days > 0) {
     state.collectionDays = days;
     const cdInput = document.getElementById('collection-days-input');
     if (cdInput) cdInput.value = days;
