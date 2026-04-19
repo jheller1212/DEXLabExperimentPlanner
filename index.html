@@ -2028,6 +2028,26 @@ function computeMilestones() {
     return { ...m, date, label };
   });
 
+  // Ensure first_draft never precedes analysis_complete — compress equally if needed
+  if (thesisDate && state.role === 'master') {
+    const analysisMs = result.find(m => m.id === 'analysis_complete');
+    const draftMs = result.find(m => m.id === 'first_draft');
+    if (analysisMs && draftMs && draftMs.date <= analysisMs.date) {
+      // Split available time between analysis and writing equally
+      const collectionEnd = analysisMs.date; // original analysis end
+      const totalAvailable = Math.round((thesisDate - collectionEndDate) / (1000 * 60 * 60 * 24));
+      // first_draft is -21d from thesis, so writing phase = 21d. Split remaining time equally.
+      const halfWindow = Math.max(7, Math.floor(totalAvailable / 2));
+      analysisMs.date = addDays(collectionEndDate, halfWindow);
+      draftMs.date = addDays(analysisMs.date, 1);
+      // Also adjust data_cleaning to not exceed analysis_complete
+      const cleaningMs = result.find(m => m.id === 'data_cleaning');
+      if (cleaningMs && cleaningMs.date > analysisMs.date) {
+        cleaningMs.date = nextWorkingDay(addDays(collectionEndDate, 1), holidaySet);
+      }
+    }
+  }
+
   // Add individual experiment day milestones
   const dataCollectionItem = result.find(m => m.id === 'data_collection');
   if (dataCollectionItem) {
@@ -2646,7 +2666,7 @@ const MILESTONES = [
   { id: "prepare_measures", label: "Prepare variables, scales, and analysis plan", offsetDays: -7, relativeTo: "week", roles: ["master"], optional: false, section: "phase3_before_experiment", note: "Define your dependent and independent variables, finalize measurement scales, plan manipulation checks, and outline your analysis strategy. Having this ready before data collection means you can start analysis immediately once data is in.", durationMin: 180 },
   { id: "data_cleaning", label: "Data analysis starts \u2014 cleaning and preparation", offsetDays: 1, relativeTo: "collectionEnd", roles: ["master"], optional: false, section: "phase5_thesis", note: "Analysis starts the day after data collection ends. Export data, check for exclusions, clean variables, and prepare your analysis dataset. A clean dataset saves hours of debugging later.", durationMin: 240 },
   { id: "analysis_complete", label: "Data analysis complete", offsetDays: 0, relativeTo: "collectionEnd", roles: ["master"], optional: false, section: "phase5_thesis", note: "End of your analysis window (set on the setup screen). Run your pre-registered analyses and any exploratory analyses. Document your steps so you can write the results section directly from your output." },
-  { id: "first_draft", label: "First full draft to supervisor", offsetDays: -28, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", keyDate: true, note: "Submit a complete first draft — intro, method, results, and discussion. It does not need to be perfect, but it needs to be complete. Your supervisor needs enough to give meaningful feedback." },
+  { id: "first_draft", label: "First full draft to supervisor", offsetDays: -21, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", keyDate: true, note: "Submit a complete first draft — intro, method, results, and discussion. It does not need to be perfect, but it needs to be complete. Your supervisor needs enough to give meaningful feedback." },
   { id: "supervisor_feedback", label: "Receive supervisor feedback", offsetDays: -18, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", note: "Expect ~3–5 days for your supervisor to review. Use this time to polish figures, check references, and proofread. If you haven't heard back, send a reminder." },
   { id: "revision_complete", label: "Revisions complete — final draft ready", offsetDays: -7, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", note: "Incorporate all supervisor feedback. This is your last chance to improve content. After this, only formatting and final checks remain." },
   { id: "final_check", label: "Final formatting, references, and plagiarism check", offsetDays: -3, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", note: "Check formatting requirements, run a plagiarism self-check, verify all references are complete, and ensure figures/tables are numbered correctly." },
