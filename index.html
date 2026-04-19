@@ -1360,6 +1360,10 @@ body.dark .skip-link { background: #334155; }
           <p class="section-subtitle mt-3">Lab schedule <span style="font-weight:400;color:var(--text-muted);">(optional &mdash; defaults shown)</span></p>
           <div class="form-grid">
             <div class="form-row">
+              <label for="qe-showup">Expected show-up rate (%) <span class="info-pill" data-tip="Discuss with your supervisor what a realistic show-up rate is for your type of experiment. 50% is a safe default for SONA studies. This determines how many slots you need to open to reach your target N." tabindex="0">?</span></label>
+              <input type="number" id="qe-showup" min="10" max="100" placeholder="50" inputmode="numeric" oninput="updateQuickEstimate()">
+            </div>
+            <div class="form-row">
               <label for="qe-per-timeslot">Participants per timeslot</label>
               <input type="number" id="qe-per-timeslot" min="1" max="50" placeholder="1" inputmode="numeric" oninput="updateQuickEstimate()">
             </div>
@@ -1658,6 +1662,10 @@ body.dark .skip-link { background: #334155; }
           <div class="form-row">
             <label for="calc-session-duration">Session duration (minutes)</label>
             <input type="number" id="calc-session-duration" min="5" max="240" value="30" inputmode="numeric" oninput="updateCalc()">
+          </div>
+          <div class="form-row">
+            <label for="calc-showup">Expected show-up rate (%) <span class="info-pill" data-tip="Discuss with your supervisor what a realistic show-up rate is for your type of experiment. 50% is a safe default for SONA studies. This determines how many slots you need to open to reach your target N." tabindex="0">?</span></label>
+            <input type="number" id="calc-showup" min="10" max="100" value="50" inputmode="numeric" oninput="updateCalc()">
           </div>
           <div class="form-row">
             <label for="calc-per-timeslot">Participants per timeslot</label>
@@ -2264,6 +2272,7 @@ function updateQuickEstimate() {
   const design = document.getElementById('qe-design').value;
   const nPerCondition = parseInt(document.getElementById('qe-n-per-condition').value) || 50;
   const sessionMin = parseInt(document.getElementById('qe-session-duration').value) || 30;
+  const showupRate = Math.max(10, Math.min(100, parseInt(document.getElementById('qe-showup').value) || 50)) / 100;
   const perTimeslot = parseInt(document.getElementById('qe-per-timeslot').value) || 1;
   const buffer = parseInt(document.getElementById('qe-buffer').value) || 0;
   const lunch = parseInt(document.getElementById('qe-lunch').value) || 30;
@@ -2276,13 +2285,15 @@ function updateQuickEstimate() {
   const labEndMin = parseInt(endParts[0]) * 60 + parseInt(endParts[1]);
   const lunchStartMin = parseInt(lunchStartParts[0]) * 60 + parseInt(lunchStartParts[1]);
 
-  // Total participants
-  let totalN;
+  // Total participants needed
+  let targetN;
   if (design === 'within') {
-    totalN = nPerCondition;
+    targetN = nPerCondition;
   } else {
-    totalN = nPerCondition * conditions;
+    targetN = nPerCondition * conditions;
   }
+  // Adjust for show-up rate: need more slots to account for no-shows
+  const slotsNeeded = Math.ceil(targetN / showupRate);
 
   // Calculate usable minutes (same logic as full calculator)
   const totalLabMin = labEndMin - labStartMin;
@@ -2290,14 +2301,16 @@ function updateQuickEstimate() {
   const slotDuration = sessionMin + buffer;
   const slotsPerDay = slotDuration > 0 ? Math.floor(usable / slotDuration) : 0;
   const participantsPerDay = slotsPerDay * perTimeslot;
-  const days = participantsPerDay > 0 ? Math.ceil(totalN / participantsPerDay) : '?';
+  const days = participantsPerDay > 0 ? Math.ceil(slotsNeeded / participantsPerDay) : '?';
+  const totalN = targetN; // keep for state/display
 
   const resultEl = document.getElementById('qe-result');
   resultEl.style.display = 'block';
   if (days === '?') {
     resultEl.innerHTML = '<span style="color:var(--lab-orange);">Session duration exceeds available lab time. Adjust your inputs.</span>';
   } else {
-    resultEl.innerHTML = `Estimated: <strong>${days} lab day${days !== 1 ? 's' : ''}</strong> needed <span style="color:var(--text-muted);">(${totalN} participants, ${slotsPerDay} slot${slotsPerDay !== 1 ? 's' : ''}/day &times; ${perTimeslot} per slot, ${slotDuration}min per slot)</span>`;
+    const showupPct = Math.round(showupRate * 100);
+    resultEl.innerHTML = `Estimated: <strong>${days} lab day${days !== 1 ? 's' : ''}</strong> needed <span style="color:var(--text-muted);">(${targetN} participants needed, ${slotsNeeded} slots to open at ${showupPct}% show-up, ${slotsPerDay} slot${slotsPerDay !== 1 ? 's' : ''}/day)</span>`;
   }
 
   // Autofill collection days from estimate
@@ -2308,7 +2321,7 @@ function updateQuickEstimate() {
   }
 
   // Save quick estimate to state for syncing with full calculator
-  state.quickEstimate = { conditions, design, nPerCondition, sessionMin, perTimeslot, buffer, labStartMin, labEndMin, lunch, lunchStartMin, totalN, days };
+  state.quickEstimate = { conditions, design, nPerCondition, sessionMin, showupRate, perTimeslot, buffer, labStartMin, labEndMin, lunch, lunchStartMin, totalN, slotsNeeded, days };
 }
 
 // ── Lab Timetable Calculator ──
@@ -2349,6 +2362,7 @@ function updateCalc() {
   const design = document.getElementById('calc-design').value;
   const nPerCondition = parseInt(document.getElementById('calc-n-per-condition').value) || 50;
   const sessionMin = parseInt(document.getElementById('calc-session-duration').value) || 30;
+  const showupRate = Math.max(10, Math.min(100, parseInt(document.getElementById('calc-showup').value) || 50)) / 100;
   const perTimeslot = parseInt(document.getElementById('calc-per-timeslot').value) || 1;
   const bufferEl = document.getElementById('calc-buffer');
   const buffer = bufferEl.value === '' ? 0 : (parseInt(bufferEl.value) || 0);
@@ -2371,19 +2385,21 @@ function updateCalc() {
     return;
   }
 
-  // Total participants
-  let totalN;
+  // Total participants needed
+  let targetN;
   let designLabel;
   if (design === 'within') {
-    totalN = nPerCondition;
+    targetN = nPerCondition;
     designLabel = `Within-subject: each participant completes all ${conditions} conditions`;
   } else if (design === 'mixed') {
-    totalN = nPerCondition * conditions;
+    targetN = nPerCondition * conditions;
     designLabel = `Mixed design: ${nPerCondition} participants \u00D7 ${conditions} groups (check your specific design)`;
   } else {
-    totalN = nPerCondition * conditions;
+    targetN = nPerCondition * conditions;
     designLabel = `Between-subject: ${nPerCondition} participants \u00D7 ${conditions} conditions`;
   }
+  // Adjust for show-up rate: need more slots to account for no-shows
+  const totalN = Math.ceil(targetN / showupRate);
 
   // Build timeslots around lunch break
   const slotDuration = sessionMin + buffer;
@@ -2413,8 +2429,8 @@ function updateCalc() {
 
   // Save to state for plan
   state.labCalc = {
-    totalN, totalDays, participantsPerDay, slotsPerDay,
-    sessionMin, conditions, design, perTimeslot, daySlots, buffer,
+    totalN, targetN, totalDays, participantsPerDay, slotsPerDay,
+    sessionMin, conditions, design, perTimeslot, showupRate, daySlots, buffer,
     startMin, endMin, lunchStartMin, lunch
   };
 
@@ -2490,16 +2506,18 @@ function updateCalc() {
 
   const result = document.getElementById('calc-result');
   result.style.display = 'block';
+  const showupPct = Math.round(showupRate * 100);
   result.innerHTML = `
     <p class="form-hint mb-2">${designLabel}</p>
     <div class="form-grid" style="gap:0.5rem 1.5rem;font-size:var(--text-lg);">
-      <div><strong>Total participants needed</strong></div><div class="mono">${totalN}</div>
+      <div><strong>Target participants</strong></div><div class="mono">${targetN}</div>
+      <div><strong>Slots to open</strong></div><div class="mono">${totalN} <span style="font-size:var(--text-sm);color:var(--text-muted);">(${targetN} \u00F7 ${showupPct}% show-up)</span></div>
       <div><strong>Usable lab time per day</strong></div><div class="mono">${Math.floor(usableMinutes / 60)}h ${usableMinutes % 60}m</div>
       <div><strong>Timeslots per day</strong></div><div class="mono">${slotsPerDay} slots \u00D7 ${perTimeslot} participant${perTimeslot > 1 ? 's' : ''} = ${participantsPerDay}/day</div>
       <div><strong>Total lab days needed</strong></div><div class="mono result-value-highlight">${totalDays} day${totalDays !== 1 ? 's' : ''}</div>
     </div>
     <p class="form-hint mt-3">
-      \u2192 Book the lab and equipment for at least <strong>${totalDays} day${totalDays !== 1 ? 's' : ''}</strong>. Consider adding 1\u20132 extra days for no-shows and technical issues. Each session is ${sessionMin} min${buffer > 0 ? ` + ${buffer} min buffer` : ''} = ${slotDuration} min per slot. Coordinate with other researchers weeks in advance \u2014 the lab may already be booked by others planning experiments in the same period.
+      \u2192 You need <strong>${targetN} usable participants</strong>. At ${showupPct}% show-up, open <strong>${totalN} slots</strong> across <strong>${totalDays} day${totalDays !== 1 ? 's' : ''}</strong>. Each session is ${sessionMin} min${buffer > 0 ? ` + ${buffer} min buffer` : ''} = ${slotDuration} min per slot. Coordinate with other researchers weeks in advance.
     </p>${totalDays > baseTotalDays ? `<div class="holiday-warning mt-3"><span class="hw-icon">\u26A0\uFE0F</span> Blocked time slots reduce capacity. Without blocks: ${baseTotalDays} days. With blocks: <strong>${totalDays} days</strong>.</div>` : ''}${timetableHTML}`;
 
   // Show/hide blocked-slots section and populate day dropdown
@@ -2573,6 +2591,7 @@ function discardCalcChanges() {
     document.getElementById('calc-design').value = lc.design || 'between';
     document.getElementById('calc-n-per-condition').value = Math.round((lc.totalN || 60) / (lc.conditions || 2));
     document.getElementById('calc-session-duration').value = lc.sessionMin || 30;
+    document.getElementById('calc-showup').value = lc.showupRate ? Math.round(lc.showupRate * 100) : 50;
     document.getElementById('calc-per-timeslot').value = lc.perTimeslot || 1;
     document.getElementById('calc-buffer').value = lc.buffer || 0;
     if (lc.startMin != null) document.getElementById('calc-lab-start').value = fmtTime(lc.startMin);
@@ -4093,6 +4112,7 @@ function renderPlan() {
     if (lc.conditions) document.getElementById('calc-conditions').value = lc.conditions;
     if (lc.design) document.getElementById('calc-design').value = lc.design;
     if (lc.sessionMin) document.getElementById('calc-session-duration').value = lc.sessionMin;
+    document.getElementById('calc-showup').value = lc.showupRate ? Math.round(lc.showupRate * 100) : 50;
     if (lc.perTimeslot) document.getElementById('calc-per-timeslot').value = lc.perTimeslot;
     document.getElementById('calc-buffer').value = lc.buffer || 0;
     if (lc.startMin != null) document.getElementById('calc-lab-start').value = fmtTime(lc.startMin);
@@ -4115,6 +4135,7 @@ function renderPlan() {
     document.getElementById('calc-design').value = qe.design;
     document.getElementById('calc-n-per-condition').value = qe.nPerCondition;
     document.getElementById('calc-session-duration').value = qe.sessionMin;
+    if (qe.showupRate) document.getElementById('calc-showup').value = Math.round(qe.showupRate * 100);
   }
 
   // Nudge on Lab tab if full calculator hasn't been used
@@ -4485,6 +4506,7 @@ function editSetup() {
     document.getElementById('qe-design').value = qe.design;
     document.getElementById('qe-n-per-condition').value = qe.nPerCondition;
     document.getElementById('qe-session-duration').value = qe.sessionMin;
+    if (qe.showupRate) document.getElementById('qe-showup').value = Math.round(qe.showupRate * 100);
     document.getElementById('quick-estimate-section').open = true;
     updateQuickEstimate();
   }
@@ -4494,6 +4516,7 @@ function editSetup() {
     if (lc.conditions) document.getElementById('calc-conditions').value = lc.conditions;
     if (lc.design) document.getElementById('calc-design').value = lc.design;
     if (lc.sessionMin) document.getElementById('calc-session-duration').value = lc.sessionMin;
+    document.getElementById('calc-showup').value = lc.showupRate ? Math.round(lc.showupRate * 100) : 50;
     if (lc.perTimeslot) document.getElementById('calc-per-timeslot').value = lc.perTimeslot;
     document.getElementById('calc-buffer').value = lc.buffer || 0;
     if (lc.startMin != null) document.getElementById('calc-lab-start').value = fmtTime(lc.startMin);
