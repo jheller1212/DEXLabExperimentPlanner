@@ -254,12 +254,8 @@ body.dark .textarea { background: var(--surface-alt); border-color: var(--border
 .action-link:hover { text-decoration: underline; }
 .action-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xs); padding: 0 0.3rem; }
 .action-btn-accent { color: var(--accent-dark); }
-.calc-confirm-overlay { position: fixed; inset: 0; z-index: 5000; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; font-family: var(--font-sans); }
-.calc-confirm-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-6); max-width: 380px; width: 90%; box-shadow: var(--shadow-lg); }
-.calc-confirm-box h3 { margin: 0 0 var(--space-2); font-family: var(--font-serif); font-size: var(--text-lg); color: var(--lab-orange); }
 .tour-banner { position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%); z-index: 10001; background: var(--accent); color: #fff; padding: var(--space-2) var(--space-4); border-radius: var(--radius-md); font-size: var(--text-sm); font-family: var(--font-sans); box-shadow: var(--shadow-md); display: flex; align-items: center; gap: var(--space-3); }
 .tour-banner button { background: rgba(255,255,255,0.2); border: none; color: #fff; padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); cursor: pointer; font-size: var(--text-xs); font-family: inherit; }
-.calc-update-banner { margin-top: var(--space-3); padding: var(--space-3) var(--space-4); background: var(--lab-orange-light); border: 1.5px solid var(--lab-orange); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); font-size: var(--text-base); color: var(--lab-orange-dark); }
 .lab-nudge { padding: 0.6rem 0.75rem; background: var(--lab-orange-light); border: 1px solid var(--lab-orange); border-radius: var(--radius-md); margin-bottom: var(--space-3); font-size: var(--text-sm); color: var(--lab-orange-dark); line-height: 1.5; }
 .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2) var(--space-6); font-size: var(--text-base); }
 .result-value-highlight { font-weight: 700; color: var(--accent-dark); }
@@ -637,13 +633,13 @@ select { cursor: pointer; }
 }
 .checklist-section-accent,
 #lab-calc-section {
-  border: 2px solid var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-light);
+  border: 2px solid var(--lab-orange);
+  box-shadow: 0 0 0 3px var(--lab-orange-light);
 }
 .checklist-section-accent > .checklist-section-header,
 #lab-calc-section .checklist-section-header {
-  background: var(--accent-light);
-  color: var(--accent-dark);
+  background: var(--lab-orange-light);
+  color: var(--lab-orange-dark);
 }
 
 /* ── Checkbox items ── */
@@ -2445,30 +2441,16 @@ function updateCalc() {
     renderBlockedSlotsList();
   }
 
-  // Show "update plan" banner when calculator changes affect the plan (only from user interaction)
-  if (!_calcSuppressDirty) showCalcUpdateBanner();
+  // Auto-apply calculator changes to the plan (only from user interaction)
+  if (!_calcSuppressDirty) {
+    _milestoneCacheKey = null;
+    saveState();
+    renderPlan();
+  }
 }
 var _calcSuppressDirty = false;
 
 var _calcDirty = false;
-
-function showCalcUpdateBanner() {
-  _calcDirty = true;
-  var existing = document.getElementById('calc-update-banner');
-  if (existing) existing.remove();
-  // Only show if plan has been generated
-  if (!document.getElementById('screen-plan').classList.contains('active') && !document.querySelector('#timeline-list li')) return;
-  var banner = document.createElement('div');
-  banner.id = 'calc-update-banner';
-  banner.className = 'calc-update-banner';
-  banner.innerHTML = '<span><strong>Unsaved changes</strong> — your plan milestones and timeline won\u2019t reflect the new calculator values until you update.</span>' +
-    '<div class="flex-actions" style="flex-shrink:0;">' +
-    '<button class="btn btn-sm btn-orange" onclick="applyCalcChanges()">Update plan</button>' +
-    '<button class="btn btn-sm btn-ghost" onclick="discardCalcChanges()">Discard</button>' +
-    '</div>';
-  var calcResult = document.getElementById('calc-result');
-  if (calcResult) calcResult.after(banner);
-}
 
 function applyCalcChanges() {
   _calcDirty = false;
@@ -2477,8 +2459,6 @@ function applyCalcChanges() {
   renderPlan();
   var banner = document.getElementById('calc-update-banner');
   if (banner) banner.remove();
-  showToast('Plan updated with new calculator values.');
-  _switchPlanTabDirect('overview');
 }
 
 function discardCalcChanges() {
@@ -3160,67 +3140,8 @@ document.addEventListener('keydown', function(e) {
 });
 
 // ── Tab switching ──
-var _pendingTabSwitch = null;
-
 function switchPlanTab(name) {
-  // If leaving Lab tab with unsaved calculator changes, show custom modal
-  if (_calcDirty && name !== 'lab') {
-    _pendingTabSwitch = name;
-    showCalcConfirmModal();
-    return;
-  }
   _switchPlanTabDirect(name);
-}
-
-function showCalcConfirmModal() {
-  var existing = document.getElementById('calc-confirm-overlay');
-  if (existing) existing.remove();
-  var overlay = document.createElement('div');
-  overlay.id = 'calc-confirm-overlay';
-  overlay.className = 'calc-confirm-overlay';
-  overlay.innerHTML = '<div class="calc-confirm-box">' +
-    '<h3>Unsaved calculator changes</h3>' +
-    '<p class="form-hint mb-4">You\u2019ve changed values in the Lab Timetable Calculator. Update your plan to recalculate milestones and timeline?</p>' +
-    '<div class="flex-actions" style="justify-content:flex-end;">' +
-    '<button class="btn btn-sm btn-ghost" onclick="calcConfirmDiscard()" style="color:var(--text-muted);">Discard changes</button>' +
-    '<button class="btn btn-sm btn-ghost" onclick="calcConfirmCancel()">Go back</button>' +
-    '<button class="btn btn-sm btn-orange" onclick="calcConfirmSave()">Update plan</button>' +
-    '</div></div>';
-  document.body.appendChild(overlay);
-  // Focus the Update plan button
-  overlay.querySelector('.btn-orange').focus();
-  // Close on Escape
-  overlay._escHandler = function(e) { if (e.key === 'Escape') calcConfirmCancel(); };
-  document.addEventListener('keydown', overlay._escHandler);
-}
-
-function _removeCalcConfirm() {
-  var overlay = document.getElementById('calc-confirm-overlay');
-  if (overlay) {
-    document.removeEventListener('keydown', overlay._escHandler);
-    overlay.remove();
-  }
-}
-
-function calcConfirmSave() {
-  var target = _pendingTabSwitch;
-  _removeCalcConfirm();
-  applyCalcChanges();
-  if (target && target !== 'overview') _switchPlanTabDirect(target);
-  _pendingTabSwitch = null;
-}
-
-function calcConfirmDiscard() {
-  var target = _pendingTabSwitch;
-  _removeCalcConfirm();
-  discardCalcChanges();
-  if (target) _switchPlanTabDirect(target);
-  _pendingTabSwitch = null;
-}
-
-function calcConfirmCancel() {
-  _removeCalcConfirm();
-  _pendingTabSwitch = null;
 }
 
 function _switchPlanTabDirect(name) {
@@ -3415,6 +3336,9 @@ function showConfirmation() {
   if (state.thesisDeadline) document.getElementById('thesis-deadline-input').value = state.thesisDeadline;
   document.getElementById('collection-days-input').value = state.collectionDays || 5;
   document.getElementById('analysis-weeks-input').value = state.analysisWeeks || 1;
+  // Auto-expand quick estimate so users don't miss it
+  document.getElementById('quick-estimate-section').open = true;
+  updateQuickEstimate();
   saveState();
   // Run calculator so results and timetable are shown immediately
   _calcSuppressDirty = true;
