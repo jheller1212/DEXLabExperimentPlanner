@@ -12,9 +12,9 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { font-size: 16px; scroll-behavior: smooth; scroll-padding-top: 6rem; }
 body {
-  font-family: 'DM Sans', sans-serif;
-  background: #f5f7fa;
-  color: #1a2a4a;
+  font-family: var(--font-sans);
+  background: var(--surface-alt);
+  color: var(--text-primary);
   line-height: 1.6;
   min-height: 100vh;
 }
@@ -28,7 +28,7 @@ body {
   color: #fff;
   padding: 0.5rem 1rem;
   z-index: 9999;
-  font-size: 0.9rem;
+  font-size: var(--text-base);
   text-decoration: none;
   border-radius: 0 0 8px 0;
 }
@@ -36,8 +36,9 @@ body {
   top: 0;
 }
 
-/* ── Brand Colors (DEXLab) ── */
+/* ── Design Tokens ── */
 :root {
+  /* Colors — Brand */
   --dex-blue: #1a9bd7;
   --dex-blue-light: #e8f4fc;
   --dex-blue-dark: #1580b5;
@@ -46,15 +47,73 @@ body {
   --lab-orange-dark: #c8521f;
   --navy: #1b2a4a;
   --navy-light: #2d3f5e;
+
+  /* Colors — Surface & Border */
   --surface: #ffffff;
   --surface-alt: #f0f3f8;
   --border: #dce3ed;
   --border-light: #e8edf5;
+
+  /* Colors — Text */
   --text-primary: #1a2a4a;
+  --text-secondary: #4a5568;
   --text-muted: #5a6a82;
+
+  /* Colors — Semantic */
   --warning: #f97316;
   --danger: #ef4444;
+  --danger-light: #fde8e8;
   --success: #22c55e;
+
+  /* Spacing Scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-16: 4rem;
+
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(27,42,74,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+  --shadow-lg: 0 8px 30px rgba(0,0,0,0.15);
+
+  /* Typography — Sizes */
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.875rem;
+  --text-lg: 1rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 2rem;
+
+  /* Typography — Families */
+  --font-sans: 'DM Sans', sans-serif;
+  --font-serif: 'Fraunces', serif;
+  --font-mono: 'DM Mono', monospace;
+
+  /* Z-index Scale */
+  --z-sticky: 100;
+  --z-sticky-tabs: 200;
+  --z-dropdown: 300;
+  --z-toast: 1000;
+  --z-modal: 2000;
+  --z-tour: 3000;
+  --z-skip: 9999;
+
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.2s ease;
+  --transition-slow: 0.3s ease;
 }
 
 /* Role accent overrides */
@@ -63,8 +122,11 @@ body.role-phd { --accent: var(--lab-orange); --accent-light: var(--lab-orange-li
 body { --accent: var(--dex-blue); --accent-light: var(--dex-blue-light); --accent-dark: var(--dex-blue-dark); }
 
 /* ── Typography ── */
-h1, h2, h3 { font-family: 'Fraunces', serif; font-weight: 700; color: var(--navy); }
-.mono { font-family: 'DM Mono', monospace; }
+h1, h2, h3 { font-family: var(--font-serif); font-weight: 700; color: var(--navy); line-height: 1.3; }
+h1 { font-size: var(--text-3xl); }
+h2 { font-size: var(--text-2xl); }
+h3 { font-size: var(--text-xl); }
+.mono { font-family: var(--font-mono); font-size: var(--text-sm); }
 
 /* ── Layout ── */
 .container {
@@ -87,7 +149,7 @@ h1, h2, h3 { font-family: 'Fraunces', serif; font-weight: 700; color: var(--navy
   margin-bottom: 0.75rem;
 }
 .header h1 {
-  font-size: 1.6rem;
+  font-size: var(--text-2xl);
   letter-spacing: -0.02em;
   margin-bottom: 0.15rem;
 }
@@ -95,12 +157,12 @@ h1, h2, h3 { font-family: 'Fraunces', serif; font-weight: 700; color: var(--navy
 .header h1 .lab { color: var(--lab-orange); }
 .header .subtitle {
   color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: var(--text-base);
 }
 .header .lab-badge {
   display: inline-block;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.7rem;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
   color: var(--text-muted);
   border: 1px solid var(--border);
   border-radius: 4px;
@@ -115,14 +177,94 @@ h1, h2, h3 { font-family: 'Fraunces', serif; font-weight: 700; color: var(--navy
 .screen.active { display: block; }
 
 /* ── Cards ── */
-.card {
+.card, .card-flat, .card-raised {
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 1.5rem;
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
   margin-bottom: 1.25rem;
-  box-shadow: 0 1px 3px rgba(27,42,74,0.04);
 }
+.card-flat {
+  border: 1px solid var(--border);
+  box-shadow: none;
+}
+.card {
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+.card-raised {
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-md);
+}
+.card-accent {
+  border-left: 3px solid var(--accent);
+}
+
+/* ── Utility Classes ── */
+.hidden { display: none; }
+.text-center { text-align: center; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+.form-grid-wide { display: grid; grid-template-columns: 2fr 1fr; gap: var(--space-2); }
+.form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-2); }
+.form-grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 2fr; gap: var(--space-2); align-items: end; }
+.flex-row { display: flex; align-items: center; gap: var(--space-2); }
+.flex-row-between { display: flex; align-items: center; justify-content: space-between; }
+.flex-actions { display: flex; gap: var(--space-2); }
+.flex-center { display: flex; gap: var(--space-2); justify-content: center; }
+.form-hint { font-size: var(--text-sm); color: var(--text-muted); line-height: 1.5; }
+.form-hint-inline { font-size: var(--text-sm); color: var(--text-muted); }
+.section-subtitle { font-size: var(--text-xs); font-weight: 600; color: var(--text-primary); margin-bottom: var(--space-2); }
+.result-box { padding: var(--space-3); background: var(--accent-light); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: none; }
+.inline-form { padding: var(--space-3); background: var(--surface-alt); border: 1px solid var(--border); border-radius: var(--radius-md); }
+.notice { padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); font-size: var(--text-sm); line-height: 1.5; }
+.notice-warning { background: var(--lab-orange-light); border: 1px solid rgba(232,99,43,0.25); color: var(--lab-orange); }
+.notice-info { background: var(--surface-alt); border: 1px solid var(--border); color: var(--text-muted); }
+.textarea { width: 100%; padding: 0.5rem 0.75rem; background: var(--surface-alt); border: 1px solid var(--border); border-radius: var(--radius-md); font-family: var(--font-sans); font-size: var(--text-base); color: var(--text-primary); resize: vertical; }
+.textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
+label.label-sm { font-size: var(--text-sm); }
+.input-narrow { width: 5rem; }
+.info-pill { cursor: help; display: inline-flex; align-items: center; justify-content: center; width: 1rem; height: 1rem; border-radius: var(--radius-full); background: var(--border); color: var(--text-muted); font-size: var(--text-xs); font-weight: 700; line-height: 1; }
+.mb-0 { margin-bottom: 0; }
+.mb-2 { margin-bottom: var(--space-2); }
+.mb-3 { margin-bottom: var(--space-3); }
+.mb-4 { margin-bottom: var(--space-4); }
+.mt-3 { margin-top: var(--space-3); }
+.mt-4 { margin-top: var(--space-4); }
+.data-grid { display: grid; grid-template-columns: auto 1fr; gap: var(--space-1) var(--space-4); font-size: var(--text-base); }
+.data-grid-3 { display: grid; grid-template-columns: auto 1fr auto; gap: 0.35rem 0.75rem; }
+.remove-btn { background: none; border: none; cursor: pointer; color: var(--danger); font-size: var(--text-base); padding: 0.1rem 0.3rem; line-height: 1; }
+.slot-chip { display: inline-block; border-radius: var(--radius-sm); padding: 0.15rem 0.4rem; margin: 0.15rem 0.2rem; font-size: var(--text-xs); white-space: nowrap; }
+.slot-chip-default { background: var(--surface-alt); border: 1px solid var(--border); }
+.slot-chip-lunch { background: var(--lab-orange-light); border: 1px solid rgba(232,99,43,0.2); color: var(--lab-orange); font-size: var(--text-xs); }
+.slot-chip-blocked { background: var(--danger-light); border: 1px solid var(--danger); color: var(--danger); font-size: var(--text-xs); opacity: 0.85; }
+.badge-tag { background: var(--surface-alt); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0 0.35rem; font-size: var(--text-xs); color: var(--text-muted); margin-left: var(--space-1); }
+.badge-tag-warning { background: var(--lab-orange-light); border: 1px solid rgba(232,99,43,0.25); color: var(--lab-orange); }
+body.dark .textarea { background: var(--surface-alt); border-color: var(--border); color: var(--text-primary); }
+
+/* -- JS-generated component classes -- */
+.toggle-btn { background: none; border: none; cursor: pointer; font-size: var(--text-base); font-weight: 600; color: var(--accent-dark); font-family: var(--font-sans); padding: 0; display: flex; align-items: center; gap: 0.4rem; }
+.toggle-btn .chev { font-size: var(--text-xs); }
+.tt-table { width: 100%; border-collapse: collapse; font-size: var(--text-base); }
+.tt-table th { text-align: left; padding: 0.35rem 0.75rem 0.35rem 0; border-bottom: 2px solid var(--border); font-size: var(--text-sm); }
+.tt-table th:last-child { padding-left: 0.75rem; padding-right: 0; }
+.tt-table td { border-bottom: 1px solid var(--border-light); }
+.tt-day-cell { white-space: nowrap; vertical-align: top; padding: 0.35rem 0.75rem 0.35rem 0; font-size: var(--text-sm); }
+.tt-slots-cell { padding: 0.35rem 0; line-height: 1.8; }
+.tt-total-cell { vertical-align: top; padding: 0.35rem 0 0.35rem 0.75rem; font-size: var(--text-sm); white-space: nowrap; }
+.action-link { font-size: var(--text-xs); color: var(--text-muted); text-decoration: none; }
+.action-link:hover { text-decoration: underline; }
+.action-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xs); padding: 0 0.3rem; }
+.action-btn-accent { color: var(--accent-dark); }
+.calc-confirm-overlay { position: fixed; inset: 0; z-index: 5000; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; font-family: var(--font-sans); }
+.calc-confirm-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-6); max-width: 380px; width: 90%; box-shadow: var(--shadow-lg); }
+.calc-confirm-box h3 { margin: 0 0 var(--space-2); font-family: var(--font-serif); font-size: var(--text-lg); color: var(--lab-orange); }
+.tour-banner { position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%); z-index: 10001; background: var(--accent); color: #fff; padding: var(--space-2) var(--space-4); border-radius: var(--radius-md); font-size: var(--text-sm); font-family: var(--font-sans); box-shadow: var(--shadow-md); display: flex; align-items: center; gap: var(--space-3); }
+.tour-banner button { background: rgba(255,255,255,0.2); border: none; color: #fff; padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); cursor: pointer; font-size: var(--text-xs); font-family: inherit; }
+.calc-update-banner { margin-top: var(--space-3); padding: var(--space-3) var(--space-4); background: var(--lab-orange-light); border: 1.5px solid var(--lab-orange); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); font-size: var(--text-base); color: var(--lab-orange-dark); }
+.lab-nudge { padding: 0.6rem 0.75rem; background: var(--lab-orange-light); border: 1px solid var(--lab-orange); border-radius: var(--radius-md); margin-bottom: var(--space-3); font-size: var(--text-sm); color: var(--lab-orange-dark); line-height: 1.5; }
+.result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2) var(--space-6); font-size: var(--text-base); }
+.result-value-highlight { font-weight: 700; color: var(--accent-dark); }
+.hidden-item { display: flex; align-items: center; justify-content: space-between; padding: 0.3rem 0; border-bottom: 1px solid var(--border-light); }
+.kbd { background: var(--surface); border: 1px solid var(--border); border-radius: 3px; padding: 0.1rem 0.35rem; font-size: var(--text-xs); }
 
 /* ── Screen 1: Role ── */
 .role-buttons {
@@ -139,8 +281,8 @@ h1, h2, h3 { font-family: 'Fraunces', serif; font-weight: 700; color: var(--navy
   border: 2px solid var(--border);
   border-radius: 12px;
   color: var(--text-primary);
-  font-family: 'DM Sans', sans-serif;
-  font-size: 1rem;
+  font-family: var(--font-sans);
+  font-size: var(--text-lg);
   font-weight: 600;
   cursor: pointer;
   transition: border-color 0.2s, background 0.2s, transform 0.1s;
@@ -150,10 +292,10 @@ h1, h2, h3 { font-family: 'Fraunces', serif; font-weight: 700; color: var(--navy
 .role-btn:active { transform: scale(0.98); }
 .role-btn.selected-master { border-color: var(--dex-blue); background: var(--dex-blue-light); }
 .role-btn.selected-phd { border-color: var(--lab-orange); background: var(--lab-orange-light); }
-.role-label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.35rem; font-weight: 400; }
+.role-label { display: block; font-size: var(--text-xs); color: var(--text-muted); margin-bottom: 0.35rem; font-weight: 400; }
 
 /* ── Form elements ── */
-label { display: block; font-weight: 500; margin-bottom: 0.35rem; font-size: 0.9rem; color: var(--navy); }
+label { display: block; font-weight: 500; margin-bottom: 0.35rem; font-size: var(--text-base); color: var(--navy); }
 select, input[type="date"], input[type="text"], input[type="number"], input[type="email"], input[type="time"] {
   width: 100%;
   padding: 0.6rem 0.75rem;
@@ -161,8 +303,8 @@ select, input[type="date"], input[type="text"], input[type="number"], input[type
   border: 1px solid var(--border);
   border-radius: 8px;
   color: var(--text-primary);
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.9rem;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
   transition: border-color 0.2s;
 }
 select:focus, input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
@@ -184,7 +326,7 @@ select { cursor: pointer; }
   border: 1px solid var(--border);
   border-radius: 6px;
   color: var(--text-primary);
-  font-size: 1.1rem;
+  font-size: var(--text-lg);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -193,8 +335,8 @@ select { cursor: pointer; }
 }
 .stepper button:hover { border-color: var(--accent); }
 .stepper .stepper-value {
-  font-family: 'DM Mono', monospace;
-  font-size: 1rem;
+  font-family: var(--font-mono);
+  font-size: var(--text-lg);
   min-width: 2ch;
   text-align: center;
 }
@@ -209,8 +351,8 @@ select { cursor: pointer; }
 }
 .confirm-box .check { color: var(--accent); font-weight: 600; }
 .date-range {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.95rem;
+  font-family: var(--font-mono);
+  font-size: var(--text-base);
   color: var(--accent-dark);
   margin: 0.5rem 0;
 }
@@ -222,11 +364,11 @@ select { cursor: pointer; }
   border-radius: 8px;
   padding: 0.75rem 1rem;
   margin-top: 0.75rem;
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   color: var(--lab-orange);
 }
 .holiday-warning .hw-icon { margin-right: 0.35rem; }
-.holiday-warning .hw-list { color: var(--text-primary); margin-top: 0.25rem; font-size: 0.82rem; }
+.holiday-warning .hw-list { color: var(--text-primary); margin-top: 0.25rem; font-size: var(--text-sm); }
 
 /* ── Buttons ── */
 .btn {
@@ -235,30 +377,39 @@ select { cursor: pointer; }
   gap: 0.4rem;
   padding: 0.65rem 1.5rem;
   border: none;
-  border-radius: 8px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.9rem;
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
   font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.2s, transform 0.1s;
+  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
 }
-.btn:hover { opacity: 0.9; }
-.btn:active { transform: scale(0.98); }
+.btn:hover { opacity: 0.92; }
+.btn:active { transform: scale(0.97); }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .btn-primary {
   background: var(--accent);
   color: #fff;
 }
+.btn-primary:hover { background: var(--accent-dark); opacity: 1; }
 .btn-orange {
   background: var(--lab-orange);
   color: #fff;
 }
+.btn-orange:hover { background: var(--lab-orange-dark); opacity: 1; }
 .btn-ghost {
   background: transparent;
   border: 1px solid var(--border);
   color: var(--text-primary);
 }
-.btn-ghost:hover { border-color: var(--accent); }
-.btn-sm { padding: 0.4rem 0.9rem; font-size: 0.8rem; }
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent-dark); }
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+}
+.btn-outline:hover { background: var(--accent-light); color: var(--accent-dark); }
+.btn-sm { padding: 0.4rem 0.9rem; font-size: var(--text-sm); }
 
 /* ── Yes/No toggle ── */
 .yn-group { display: flex; gap: 0.75rem; align-items: center; margin-top: 0.75rem; flex-wrap: wrap; }
@@ -273,7 +424,7 @@ select { cursor: pointer; }
   color: #fff;
   padding: 0.6rem 1.25rem;
   border-radius: 8px;
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   font-weight: 500;
   z-index: 1000;
   opacity: 0;
@@ -342,7 +493,7 @@ select { cursor: pointer; }
   border-radius: 50%;
   background: var(--accent);
   border: 2px solid var(--surface);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: var(--shadow-sm);
   z-index: 2;
   flex-shrink: 0;
 }
@@ -357,14 +508,14 @@ select { cursor: pointer; }
   transform: rotate(45deg);
 }
 .tl-date {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
   color: var(--text-muted);
   min-width: 7rem;
   flex-shrink: 0;
 }
 .tl-label {
-  font-size: 0.82rem;
+  font-size: var(--text-sm);
   color: var(--text-primary);
   line-height: 1.4;
 }
@@ -379,8 +530,8 @@ select { cursor: pointer; }
 .tl-item.key-date .tl-label { font-weight: 700; color: var(--accent-dark); }
 .tl-item.key-date .tl-date { color: var(--accent-dark); font-weight: 600; }
 .tl-item.lab-day .tl-dot { background: var(--dex-blue); width: 8px; height: 8px; top: 0.65rem; left: calc(-2rem + 2px); }
-.tl-item.lab-day .tl-label { font-size: 0.78rem; color: var(--text-muted); }
-.tl-item.lab-day .tl-date { font-size: 0.72rem; }
+.tl-item.lab-day .tl-label { font-size: var(--text-xs); color: var(--text-muted); }
+.tl-item.lab-day .tl-date { font-size: var(--text-xs); }
 
 /* Today marker in timeline */
 .tl-today {
@@ -406,8 +557,8 @@ select { cursor: pointer; }
   z-index: 2;
   background: var(--accent);
   color: #fff;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.7rem;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
   font-weight: 600;
   padding: 0.15rem 0.5rem;
   border-radius: 4px;
@@ -418,7 +569,7 @@ select { cursor: pointer; }
 .milestone-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
 }
 .milestone-table th {
   text-align: left;
@@ -426,7 +577,7 @@ select { cursor: pointer; }
   border-bottom: 2px solid var(--border);
   color: var(--text-muted);
   font-weight: 500;
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -435,7 +586,7 @@ select { cursor: pointer; }
   border-bottom: 1px solid var(--border-light);
 }
 .milestone-table tr.past td { color: var(--text-muted); text-decoration: line-through; }
-.milestone-table .ms-date { font-family: 'DM Mono', monospace; font-size: 0.8rem; white-space: nowrap; }
+.milestone-table .ms-date { font-family: 'DM Mono', monospace; font-size: var(--text-sm); white-space: nowrap; }
 .status-past { color: var(--text-muted); }
 .status-urgent { color: var(--warning); font-weight: 600; }
 .status-overdue { color: var(--danger); font-weight: 600; }
@@ -445,10 +596,11 @@ select { cursor: pointer; }
 /* ── Checklist sections ── */
 .checklist-section {
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   margin-bottom: 0.75rem;
   overflow: hidden;
   background: var(--surface);
+  box-shadow: var(--shadow-sm);
 }
 .checklist-section-header {
   display: flex;
@@ -459,7 +611,7 @@ select { cursor: pointer; }
   cursor: pointer;
   user-select: none;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: var(--text-base);
   border: none;
   width: 100%;
   color: var(--text-primary);
@@ -470,7 +622,7 @@ select { cursor: pointer; }
 .checklist-section-header .chevron {
   transition: transform 0.2s;
   color: var(--text-muted);
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
 }
 .checklist-section:not([open]) .chevron { transform: rotate(-90deg); }
 .checklist-section-header::-webkit-details-marker,
@@ -479,14 +631,16 @@ select { cursor: pointer; }
 .checklist-section-body { padding: 0.5rem 1rem 0.75rem; }
 .checklist-section-count {
   font-family: 'DM Mono', monospace;
-  font-size: 0.7rem;
+  font-size: var(--text-xs);
   color: var(--text-muted);
   margin-left: 0.5rem;
 }
+.checklist-section-accent,
 #lab-calc-section {
   border: 2px solid var(--accent);
   box-shadow: 0 0 0 3px var(--accent-light);
 }
+.checklist-section-accent > .checklist-section-header,
 #lab-calc-section .checklist-section-header {
   background: var(--accent-light);
   color: var(--accent-dark);
@@ -529,17 +683,17 @@ select { cursor: pointer; }
   transform: rotate(45deg);
 }
 .check-item input[type="checkbox"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.check-item-label { font-size: 0.85rem; cursor: pointer; }
+.check-item-label { font-size: var(--text-base); cursor: pointer; }
 .check-item-label.checked { color: var(--text-muted); text-decoration: line-through; }
 .check-item-note {
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   color: var(--text-muted);
   margin-top: 0.15rem;
   line-height: 1.4;
 }
 .check-item-date {
   font-family: 'DM Mono', monospace;
-  font-size: 0.7rem;
+  font-size: var(--text-xs);
   color: var(--accent-dark);
   margin-top: 0.1rem;
 }
@@ -565,7 +719,7 @@ select { cursor: pointer; }
   background: var(--surface);
   padding: 0.75rem 0 0.5rem;
 }
-.plan-header h2 { font-size: 1.3rem; }
+.plan-header h2 { font-size: var(--text-xl); }
 .plan-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
 
 /* ── Overflow menu ── */
@@ -575,7 +729,7 @@ select { cursor: pointer; }
 }
 .overflow-toggle {
   padding: 0.3rem 0.6rem;
-  font-size: 1rem;
+  font-size: var(--text-lg);
   line-height: 1;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -593,7 +747,7 @@ select { cursor: pointer; }
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: var(--shadow-md);
   min-width: 180px;
   z-index: 300;
   padding: 0.35rem 0;
@@ -605,7 +759,7 @@ select { cursor: pointer; }
   text-align: left;
   padding: 0.5rem 0.85rem;
   font-family: 'DM Sans', sans-serif;
-  font-size: 0.82rem;
+  font-size: var(--text-sm);
   background: none;
   border: none;
   color: var(--text-primary);
@@ -618,7 +772,7 @@ select { cursor: pointer; }
   margin: 0.25rem 0;
 }
 .overflow-dropdown .overflow-danger { color: var(--danger); }
-.overflow-dropdown .overflow-danger:hover { background: #fef2f2; }
+.overflow-dropdown .overflow-danger:hover { background: var(--danger-light); }
 
 /* ── Step Indicator ── */
 .step-indicator {
@@ -635,7 +789,7 @@ select { cursor: pointer; }
   gap: 0.4rem;
   padding: 0.4rem 0.75rem;
   font-family: 'DM Sans', sans-serif;
-  font-size: 0.8rem;
+  font-size: var(--text-sm);
   font-weight: 500;
   color: var(--text-muted);
   background: none;
@@ -651,7 +805,7 @@ select { cursor: pointer; }
   width: 1.5rem;
   height: 1.5rem;
   border-radius: 50%;
-  font-size: 0.7rem;
+  font-size: var(--text-xs);
   font-weight: 700;
   background: var(--border);
   color: var(--text-muted);
@@ -678,7 +832,7 @@ select { cursor: pointer; }
 }
 .step-arrow {
   color: var(--border);
-  font-size: 0.7rem;
+  font-size: var(--text-xs);
   margin: 0 0.15rem;
 }
 
@@ -697,7 +851,7 @@ select { cursor: pointer; }
 .plan-tab {
   padding: 0.6rem 1.1rem;
   font-family: 'DM Sans', sans-serif;
-  font-size: 0.85rem;
+  font-size: var(--text-base);
   font-weight: 600;
   color: var(--text-muted);
   background: none;
@@ -720,16 +874,16 @@ select { cursor: pointer; }
 .ls-notice {
   background: var(--lab-orange-light);
   border: 1px solid rgba(232,99,43,0.2);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   padding: 0.6rem 1rem;
-  font-size: 0.8rem;
+  font-size: var(--text-sm);
   color: var(--lab-orange);
   margin-bottom: 1rem;
 }
 
 /* ── Section label ── */
 .section-title {
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--text-muted);
@@ -738,7 +892,7 @@ select { cursor: pointer; }
 
 /* ── Change role link ── */
 .change-role-link {
-  font-size: 0.8rem;
+  font-size: var(--text-sm);
   color: var(--text-muted);
   cursor: pointer;
   border: none;
@@ -756,7 +910,7 @@ select { cursor: pointer; }
   border-radius: 8px;
   padding: 0.75rem 1rem;
   margin-top: 0.75rem;
-  font-size: 0.8rem;
+  font-size: var(--text-sm);
 }
 .share-box p { margin-bottom: 0.5rem; color: var(--text-muted); }
 .share-url {
@@ -767,7 +921,7 @@ select { cursor: pointer; }
 .share-url input {
   flex: 1;
   font-family: 'DM Mono', monospace;
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   padding: 0.4rem 0.6rem;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -786,15 +940,20 @@ body.dark {
   --navy: #e2e8f0;
   --navy-light: #94a3b8;
   --surface: #1e2433;
-  --surface-alt: #252d3f;
+  --surface-alt: #0f1420;
   --border: #334155;
   --border-light: #2d3a4e;
   --text-primary: #e2e8f0;
+  --text-secondary: #cbd5e1;
   --text-muted: #94a3b8;
   --warning: #fb923c;
   --danger: #f87171;
+  --danger-light: #3b1c1c;
   --success: #4ade80;
-  background: #0f1420;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.2);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.3);
+  --shadow-lg: 0 8px 30px rgba(0,0,0,0.4);
+  background: var(--surface-alt);
   color: var(--text-primary);
 }
 body.dark { --accent: var(--dex-blue); --accent-light: var(--dex-blue-light); --accent-dark: var(--dex-blue-dark); }
@@ -822,22 +981,22 @@ body.dark .skip-link { background: #334155; }
 .feedback-modal {
   background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
   padding: 1.5rem; max-width: 480px; width: 90%; max-height: 90vh; overflow-y: auto;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.15); transform: translateY(20px); transition: transform 0.2s;
+  box-shadow: var(--shadow-lg); transform: translateY(20px); transition: transform 0.2s;
 }
 .feedback-overlay.show .feedback-modal { transform: translateY(0); }
-.feedback-modal h3 { font-family: 'Fraunces', serif; font-size: 1.2rem; margin-bottom: 0.25rem; }
-.feedback-modal .fb-sub { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; }
-.feedback-modal label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.35rem; color: var(--text-primary); }
+.feedback-modal h3 { font-family: 'Fraunces', serif; font-size: var(--text-xl); margin-bottom: 0.25rem; }
+.feedback-modal .fb-sub { font-size: var(--text-base); color: var(--text-muted); margin-bottom: 1rem; }
+.feedback-modal label { display: block; font-size: var(--text-sm); font-weight: 600; margin-bottom: 0.35rem; color: var(--text-primary); }
 .feedback-modal textarea {
   width: 100%; min-height: 70px; padding: 0.5rem 0.75rem; border: 1px solid var(--border);
-  border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; resize: vertical;
+  border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: var(--text-base); resize: vertical;
   background: var(--surface-alt); color: var(--text-primary); line-height: 1.5;
 }
 .feedback-modal textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
 .feedback-modal .fb-field { margin-bottom: 0.75rem; }
 .fb-stars { display: flex; gap: 0.25rem; margin-bottom: 1rem; }
 .fb-stars button {
-  background: none; border: none; font-size: 1.6rem; cursor: pointer; padding: 0.1rem;
+  background: none; border: none; font-size: var(--text-2xl); cursor: pointer; padding: 0.1rem;
   color: var(--border); transition: color 0.15s, transform 0.1s; line-height: 1;
 }
 .fb-stars button:hover { transform: scale(1.15); }
@@ -846,11 +1005,11 @@ body.dark .skip-link { background: #334155; }
 .feedback-modal .fb-actions { display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; }
 .feedback-modal .fb-close {
   position: absolute; top: 0.75rem; right: 0.75rem; background: none; border: none;
-  font-size: 1.2rem; cursor: pointer; color: var(--text-muted); padding: 0.25rem;
+  font-size: var(--text-xl); cursor: pointer; color: var(--text-muted); padding: 0.25rem;
 }
 .feedback-modal .fb-close:hover { color: var(--text-primary); }
 .feedback-modal .fb-context {
-  font-size: 0.75rem; color: var(--text-muted); margin-top: 0.75rem;
+  font-size: var(--text-xs); color: var(--text-muted); margin-top: 0.75rem;
   padding-top: 0.75rem; border-top: 1px solid var(--border);
 }
 
@@ -861,13 +1020,13 @@ body.dark .skip-link { background: #334155; }
 }
 .gcal-item:last-child { border-bottom: none; }
 .gcal-item-date {
-  font-family: 'DM Mono', monospace; font-size: 0.75rem; color: var(--text-muted);
+  font-family: 'DM Mono', monospace; font-size: var(--text-xs); color: var(--text-muted);
   min-width: 5.5rem; flex-shrink: 0;
 }
-.gcal-item-label { flex: 1; font-size: 0.85rem; }
+.gcal-item-label { flex: 1; font-size: var(--text-base); }
 .gcal-item.key .gcal-item-label { font-weight: 600; color: var(--accent-dark); }
 .gcal-item a {
-  font-size: 0.75rem; font-weight: 600; color: var(--accent); text-decoration: none;
+  font-size: var(--text-xs); font-weight: 600; color: var(--accent); text-decoration: none;
   white-space: nowrap; padding: 0.2rem 0.5rem; border: 1px solid var(--accent);
   border-radius: 6px; transition: background 0.15s, color 0.15s;
 }
@@ -888,10 +1047,10 @@ body.dark .skip-link { background: #334155; }
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
+  font-size: var(--text-lg);
   z-index: 999;
   transition: border-color 0.2s, background 0.2s;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  box-shadow: var(--shadow-sm);
 }
 .theme-toggle:hover { border-color: var(--accent); }
 @media print { .theme-toggle { display: none !important; } }
@@ -900,9 +1059,9 @@ body.dark .skip-link { background: #334155; }
 @media print {
   @page { margin: 1in; }
   body { background: #fff; color: #000; }
-  .header, .card, .checklist-section, .milestone-table { background: #fff; border-color: #ccc; }
+  .header, .card, .card-flat, .card-raised, .checklist-section, .milestone-table { background: #fff; border-color: #ccc; }
   .checklist-section { break-inside: avoid; }
-  .card { break-inside: avoid; }
+  .card, .card-flat, .card-raised { break-inside: avoid; }
   .screen:not(.active) { display: none !important; }
   #screen-role, #screen-date, #screen-confirm, #screen-name { display: none !important; }
   .plan-actions, .change-role-link, .btn, .progress-bar-container, .share-box, .bookmark-reminder, #plan-dates-edit, #edit-dates-btn, #dates-changed-banner, #supervisor-panel { display: none !important; }
@@ -919,9 +1078,9 @@ body.dark .skip-link { background: #334155; }
   .milestone-table tr.past td { color: #999; }
   .check-item input[type="checkbox"]:checked { background: #000; border-color: #000; }
   .check-item input[type="checkbox"]:checked::after { border-color: #fff; }
-  .timeline-dot { background: #333; border-color: #fff; }
-  .timeline-dot.holiday-marker { background: #c00; }
-  .timeline-line { background: #ccc; }
+  .tl-dot { background: #333; border-color: #fff; }
+  .tl-dot.holiday { background: #c00; }
+  .timeline-list::before { background: #ccc; }
   .holiday-warning { background: #fff8f0; border-color: #f97316; color: #c2410c; }
   .holiday-warning .hw-list { color: #000; }
   .confirm-box { background: #f8fdf9; }
@@ -929,13 +1088,14 @@ body.dark .skip-link { background: #334155; }
   .print-footer {
     display: block !important;
     text-align: center;
-    font-size: 0.75rem;
+    font-size: var(--text-xs);
     color: #999;
     margin-top: 2rem;
     padding-top: 1rem;
     border-top: 1px solid #ddd;
   }
-  .ls-notice, .toast { display: none !important; }
+  .ls-notice, .toast, .feedback-overlay, .overflow-dropdown { display: none !important; }
+  #workload-card, #plan-lab-summary, #timetable-body, #blocked-slots-section { display: block !important; }
 }
 .print-footer { display: none; }
 
@@ -946,25 +1106,22 @@ body.dark .skip-link { background: #334155; }
   .plan-header { flex-direction: column; align-items: flex-start; }
   .plan-actions { flex-wrap: wrap; }
   .tl-item { padding-left: 0; }
-  .tl-date { min-width: 5.5rem; font-size: 0.7rem; }
-  .tl-label { font-size: 0.78rem; }
-  /* Lab calculator & quick estimate: collapse 2-col grid to 1 column */
-  #lab-calc-section .checklist-section-body > div[style*="grid-template-columns"],
-  #quick-estimate-section .checklist-section-body > div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
-  /* Date edit grid: collapse to 1 column */
-  #plan-dates-edit > div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
+  .tl-date { min-width: 5.5rem; font-size: var(--text-xs); }
+  .tl-label { font-size: var(--text-xs); }
+  /* Collapse all multi-column grids to single column on mobile */
+  .form-grid, .form-grid-wide, .form-grid-3, .form-grid-4 { grid-template-columns: 1fr; }
+  /* Also collapse any remaining inline grid styles in JS-generated HTML */
+  #plan-dates-display > .data-grid { grid-template-columns: 1fr; }
   /* Milestone table: horizontal scroll */
   .milestone-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
   /* Share URL input overflow */
-  .share-url input { min-width: 0; font-size: 0.65rem; }
+  .share-url input { min-width: 0; font-size: var(--text-xs); }
   .share-url { flex-wrap: nowrap; overflow: hidden; }
   /* Tabs: horizontal scroll on mobile */
   .plan-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .plan-tab { font-size: 0.8rem; padding: 0.5rem 0.85rem; }
-  /* Key dates display: collapse grid on mobile */
-  #plan-dates-display > div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
-  /* Blocked slots form: collapse to 1 column on mobile */
-  #blocked-slot-form div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
+  .plan-tab { font-size: var(--text-sm); padding: 0.5rem 0.85rem; }
+  /* Custom milestone form: collapse on mobile */
+  #custom-form .form-grid-wide, #custom-form .form-grid-3 { grid-template-columns: 1fr; }
 }
 @media (min-width: 601px) and (max-width: 960px) {
   .container { max-width: 90%; }
@@ -976,18 +1133,68 @@ body.dark .skip-link { background: #334155; }
 .tour-tooltip {
   position: fixed; z-index: 3002; background: var(--surface); border: 1px solid var(--border);
   border-radius: 10px; padding: 1rem 1.15rem; max-width: 320px; width: max-content;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.18); font-size: 0.85rem; line-height: 1.5; color: var(--text-primary);
+  box-shadow: var(--shadow-lg); font-size: var(--text-base); line-height: 1.5; color: var(--text-primary);
 }
-.tour-tooltip h4 { font-family: 'Fraunces', serif; font-size: 1rem; margin: 0 0 0.35rem; color: var(--accent-dark); }
-.tour-tooltip p { margin: 0 0 0.75rem; color: var(--text-secondary); font-size: 0.8rem; }
+.tour-tooltip h4 { font-family: 'Fraunces', serif; font-size: var(--text-lg); margin: 0 0 0.35rem; color: var(--accent-dark); }
+.tour-tooltip p { margin: 0 0 0.75rem; color: var(--text-secondary); font-size: var(--text-sm); }
 .tour-tooltip .tour-actions { display: flex; gap: 0.5rem; align-items: center; }
-.tour-tooltip .tour-step { font-size: 0.7rem; color: var(--text-muted); margin-left: auto; }
-.tour-tooltip .tour-btn { padding: 0.35rem 0.85rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; border: none; font-family: 'DM Sans', sans-serif; }
+.tour-tooltip .tour-step { font-size: var(--text-xs); color: var(--text-muted); margin-left: auto; }
+.tour-tooltip .tour-btn { padding: 0.35rem 0.85rem; border-radius: 6px; font-size: var(--text-sm); font-weight: 600; cursor: pointer; border: none; font-family: 'DM Sans', sans-serif; }
 .tour-tooltip .tour-btn-next { background: var(--accent); color: #fff; }
 .tour-tooltip .tour-btn-next:hover { background: var(--accent-dark); }
 .tour-tooltip .tour-btn-skip { background: none; color: var(--text-muted); border: 1px solid var(--border); }
 .tour-tooltip .tour-btn-skip:hover { color: var(--text-primary); border-color: var(--text-muted); }
 @media print { .tour-overlay, .tour-tooltip, .tour-highlight { display: none !important; } }
+
+/* ── Micro-interactions ── */
+@media (prefers-reduced-motion: no-preference) {
+  /* Card hover lift */
+  .card {
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  }
+  .card:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+
+  /* Screen fade-in */
+  .screen.active {
+    animation: fadeIn var(--transition-slow) ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Tab panel fade */
+  .plan-tabpanel.active {
+    animation: fadeIn var(--transition-base) ease;
+  }
+
+  /* Checkbox bounce */
+  .check-item input[type="checkbox"]:checked {
+    animation: checkBounce var(--transition-base) ease;
+  }
+  @keyframes checkBounce {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.15); }
+    100% { transform: scale(1); }
+  }
+
+  /* Timeline item hover */
+  .tl-item {
+    transition: background var(--transition-fast);
+    border-radius: var(--radius-sm);
+  }
+  .tl-item:hover {
+    background: var(--surface-alt);
+  }
+
+  /* Chevron rotate (enhance existing) */
+  .checklist-section-header .chevron {
+    transition: transform var(--transition-base);
+  }
+}
 </style>
 </head>
 <body>
@@ -998,7 +1205,7 @@ body.dark .skip-link { background: #334155; }
   <header class="header">
     <a href="javascript:goHome()" class="header-logo-link" aria-label="Start new plan">
       <img src="logo.png" alt="DEXLab" class="header-logo" onerror="this.style.display='none';document.getElementById('logo-fallback').style.display='block'">
-      <div id="logo-fallback" style="display:none;font-family:'Fraunces',serif;font-size:1.6rem;font-weight:700;"><span style="color:var(--dex-blue)">DEX</span><span style="color:var(--lab-orange)">LAB</span></div>
+      <div id="logo-fallback" style="display:none;font-family:'Fraunces',serif;font-size:var(--text-2xl);font-weight:700;"><span style="color:var(--dex-blue)">DEX</span><span style="color:var(--lab-orange)">LAB</span></div>
     </a>
     <h1>Experiment Planner for Researchers</h1>
     <div class="subtitle">Backwards-plan your study.</div>
@@ -1026,20 +1233,20 @@ body.dark .skip-link { background: #334155; }
 
   <main id="main-content">
   <!-- localStorage notice (hidden by default) -->
-  <div class="ls-notice" id="ls-notice" style="display:none;">
+  <div class="ls-notice hidden" id="ls-notice">
     Private browsing detected &mdash; your progress won't be saved between sessions, but the tool works normally.
   </div>
 
   <!-- Screen 1: Role Selection -->
   <div class="screen active" id="screen-role">
-    <div class="card" style="text-align:center;margin-bottom:0.75rem;">
-      <p style="font-size:0.95rem;color:var(--text-primary);line-height:1.6;max-width:600px;margin:0 auto;">
+    <div class="card text-center mb-3">
+      <p style="font-size:var(--text-lg);line-height:1.6;max-width:600px;margin:0 auto;">
         This tool helps you plan your experiment from start to finish. Select your role and block period, and you'll get a <strong>personalised timeline</strong> with all key deadlines &mdash; SONA registration, ethics, lab booking, and more &mdash; including warnings for Dutch public holidays. You can check off tasks as you go, export milestones to your calendar, and share your plan via a link.
       </p>
     </div>
-    <div class="card" style="text-align:center;">
+    <div class="card text-center">
       <p class="section-title">I am a&hellip;</p>
-      <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.5rem;">Your role determines which milestones appear &mdash; PhD researchers get additional steps for ethics applications and pre-registration.</p>
+      <p class="form-hint mb-2">Your role determines which milestones appear &mdash; PhD researchers get additional steps for ethics applications and pre-registration.</p>
       <div class="role-buttons">
         <button class="role-btn" id="btn-master" onclick="selectRole('master')">
           <span class="role-label">Thesis track</span>
@@ -1062,7 +1269,7 @@ body.dark .skip-link { background: #334155; }
           <option value="">Choose&hellip;</option>
         </select>
       </div>
-      <div class="form-row" id="week-select-row" style="display:none;">
+      <div class="form-row hidden" id="week-select-row">
         <label for="week-select">Which week does your data collection start?</label>
         <select id="week-select" onchange="onWeekSelect()"></select>
       </div>
@@ -1081,13 +1288,13 @@ body.dark .skip-link { background: #334155; }
         <div class="date-range" id="confirm-range"></div>
       </div>
       <div class="yn-group">
-        <span style="font-size:0.85rem;">Adjust period length if needed:</span>
+        <span style="font-size:var(--text-base);">Adjust period length if needed:</span>
         <div class="stepper" role="group" aria-label="Adjust period length in weeks">
           <button onclick="adjustWeeks(-1)" aria-label="Decrease weeks">&minus;</button>
           <span class="stepper-value" id="weeks-display"></span>
           <button onclick="adjustWeeks(1)" aria-label="Increase weeks">+</button>
         </div>
-        <span style="font-size:0.8rem;color:var(--text-muted);">weeks</span>
+        <span class="form-hint-inline">weeks</span>
       </div>
       <div id="holiday-warning-container"></div>
     </div>
@@ -1106,24 +1313,24 @@ body.dark .skip-link { background: #334155; }
       </div>
       <div class="form-row">
         <label for="supervisor-email-input">Supervisor email (optional)</label>
-        <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.35rem;">Adds a button to send your supervisor a progress update with one click.</p>
+        <p class="form-hint" style="margin-bottom:0.35rem;">Adds a button to send your supervisor a progress update with one click.</p>
         <input type="email" id="supervisor-email-input" placeholder="e.g. m.supervisor@maastrichtuniversity.nl">
       </div>
     </div>
 
     <!-- Quick Estimate helper (all roles) -->
     <div class="card" id="quick-estimate-card">
-      <details class="checklist-section" id="quick-estimate-section" style="border:1.5px solid var(--accent);" ontoggle="if(this.open) updateQuickEstimate()">
-        <summary class="checklist-section-header" style="background:var(--accent-light);color:var(--accent-dark);">
+      <details class="checklist-section checklist-section-accent" id="quick-estimate-section" ontoggle="if(this.open) updateQuickEstimate()">
+        <summary class="checklist-section-header">
           <span>Estimate lab days <span class="checklist-section-count">optional — helps you plan data collection</span></span>
           <span class="chevron">&#9660;</span>
         </summary>
         <div class="checklist-section-body">
-          <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.75rem;line-height:1.5;">
+          <p class="form-hint mb-3">
             Estimate how many lab days you need. Leave fields blank if you don&rsquo;t know yet &mdash; defaults will be used. For a detailed timetable with blocked slots, use the full calculator on the Lab &amp; Booking tab after generating your plan.
           </p>
-          <p style="font-size:0.75rem;font-weight:600;color:var(--text-primary);margin-bottom:0.5rem;">Experiment setup</p>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+          <p class="section-subtitle">Experiment setup</p>
+          <div class="form-grid">
             <div class="form-row">
               <label for="qe-conditions">Number of conditions</label>
               <input type="number" id="qe-conditions" min="1" max="20" placeholder="2" inputmode="numeric" oninput="updateQuickEstimate()">
@@ -1145,8 +1352,8 @@ body.dark .skip-link { background: #334155; }
               <input type="number" id="qe-session-duration" min="5" max="240" placeholder="30" inputmode="numeric" oninput="updateQuickEstimate()">
             </div>
           </div>
-          <p style="font-size:0.75rem;font-weight:600;color:var(--text-primary);margin:0.75rem 0 0.5rem;">Lab schedule <span style="font-weight:400;color:var(--text-muted);">(optional &mdash; defaults shown)</span></p>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+          <p class="section-subtitle mt-3">Lab schedule <span style="font-weight:400;color:var(--text-muted);">(optional &mdash; defaults shown)</span></p>
+          <div class="form-grid">
             <div class="form-row">
               <label for="qe-per-timeslot">Participants per timeslot</label>
               <input type="number" id="qe-per-timeslot" min="1" max="50" placeholder="1" inputmode="numeric" oninput="updateQuickEstimate()">
@@ -1172,44 +1379,44 @@ body.dark .skip-link { background: #334155; }
               <input type="time" id="qe-lunch-start" value="12:00" oninput="updateQuickEstimate()">
             </div>
           </div>
-          <div id="qe-result" style="margin-top:0.75rem;padding:0.75rem;background:var(--accent-light);border:1px solid var(--border);border-radius:8px;display:none;font-size:0.85rem;"></div>
+          <div id="qe-result" class="result-box hidden mt-3" style="font-size:var(--text-base);"></div>
         </div>
       </details>
     </div>
 
     <!-- Thesis deadline and collection duration (master only) -->
-    <div class="card" id="thesis-deadline-card" style="display:none;">
+    <div class="card hidden" id="thesis-deadline-card">
       <div class="form-row">
         <label for="thesis-deadline-input">When is your thesis submission deadline?</label>
-        <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.5rem;line-height:1.5;">
+        <p class="form-hint mb-2">
           This adds milestones for data analysis, writing, supervisor feedback, and final submission so you can plan the full arc from experiment to hand-in.
         </p>
         <input type="date" id="thesis-deadline-input">
       </div>
 
-      <div class="form-row" style="margin-top:0.75rem;">
+      <div class="form-row mt-3">
         <label for="collection-days-input">How long will data collection take?</label>
-        <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.35rem;line-height:1.5;">
+        <p class="form-hint" style="margin-bottom:0.35rem;">
           Tip: Use the estimate tool above, or refine later with the full Lab Timetable Calculator on the plan page.
         </p>
-        <div style="display:flex;align-items:center;gap:0.5rem;">
-          <input type="number" id="collection-days-input" min="1" max="60" value="5" inputmode="numeric" style="width:5rem;" onchange="onCollectionDaysChange()">
-          <span style="font-size:0.85rem;color:var(--text-muted);">day(s)</span>
+        <div class="flex-row">
+          <input type="number" id="collection-days-input" min="1" max="60" value="5" inputmode="numeric" class="input-narrow" onchange="onCollectionDaysChange()">
+          <span class="form-hint-inline">day(s)</span>
         </div>
       </div>
-      <div class="form-row" style="margin-top:0.75rem;">
+      <div class="form-row mt-3">
         <label for="analysis-weeks-input">How long will data analysis take?</label>
-        <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.35rem;line-height:1.5;">
+        <p class="form-hint" style="margin-bottom:0.35rem;">
           Analysis starts one day after data collection ends. Default is 1 week.
         </p>
-        <div style="display:flex;align-items:center;gap:0.5rem;">
-          <input type="number" id="analysis-weeks-input" min="1" max="12" value="1" inputmode="numeric" style="width:5rem;">
-          <span style="font-size:0.85rem;color:var(--text-muted);">week(s)</span>
+        <div class="flex-row">
+          <input type="number" id="analysis-weeks-input" min="1" max="12" value="1" inputmode="numeric" class="input-narrow">
+          <span class="form-hint-inline">week(s)</span>
         </div>
       </div>
     </div>
 
-    <div class="card" style="text-align:center;padding:1rem;">
+    <div class="card text-center" style="padding:var(--space-4);">
       <button class="btn btn-primary" onclick="generatePlan()">Generate My Plan &rarr;</button>
     </div>
   </div>
@@ -1223,7 +1430,7 @@ body.dark .skip-link { background: #334155; }
       </div>
       <nav class="plan-actions" aria-label="Plan actions">
         <button class="btn btn-sm btn-primary" onclick="copyShareLink()">Copy Link</button>
-        <button class="btn btn-sm btn-orange" id="supervisor-update-btn" onclick="toggleSupervisorUpdate()" style="display:none;">Update Supervisor</button>
+        <button class="btn btn-sm btn-orange hidden" id="supervisor-update-btn" onclick="toggleSupervisorUpdate()">Update Supervisor</button>
         <button class="btn btn-sm btn-ghost" onclick="exportCalendar()">Export</button>
         <div class="overflow-menu" id="plan-overflow">
           <button class="overflow-toggle" onclick="toggleOverflow()" aria-expanded="false" aria-haspopup="true" aria-label="More actions">&hellip;</button>
@@ -1244,17 +1451,17 @@ body.dark .skip-link { background: #334155; }
     </div>
 
     <!-- Google Calendar export panel (contextual, outside tabs) -->
-    <div class="card" id="gcal-panel" style="display:none;">
-      <h3 style="font-family:'Fraunces',serif;font-size:1rem;margin-bottom:0.25rem;">Add to Google Calendar</h3>
-      <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.75rem;">Add your full experiment plan as one event, or add individual milestones below.</p>
-      <div style="margin-bottom:0.75rem;">
+    <div class="card hidden" id="gcal-panel">
+      <h3>Add to Google Calendar</h3>
+      <p class="form-hint mb-3">Add your full experiment plan as one event, or add individual milestones below.</p>
+      <div class="mb-3">
         <a id="gcal-all-link" class="btn btn-sm btn-primary" href="#" target="_blank" rel="noopener" style="text-decoration:none;">Add Full Plan to Google Calendar</a>
       </div>
-      <details style="margin-bottom:0.5rem;">
-        <summary style="font-size:0.8rem;font-weight:600;cursor:pointer;color:var(--text-muted);">Or add individual milestones</summary>
-        <div id="gcal-list" style="margin-top:0.5rem;"></div>
+      <details class="mb-2">
+        <summary style="font-size:var(--text-sm);font-weight:600;cursor:pointer;color:var(--text-muted);">Or add individual milestones</summary>
+        <div id="gcal-list" class="mt-3"></div>
       </details>
-      <div style="margin-top:0.75rem;text-align:right;">
+      <div class="mt-3" style="text-align:right;">
         <button class="btn btn-sm btn-ghost" onclick="document.getElementById('gcal-panel').style.display='none'">Close</button>
       </div>
     </div>
@@ -1263,16 +1470,16 @@ body.dark .skip-link { background: #334155; }
     <div class="progress-bar-container"><div class="progress-bar" id="progress-bar"></div></div>
 
     <!-- Supervisor update panel (contextual, outside tabs) -->
-    <div class="card" id="supervisor-panel" style="display:none;">
-      <p class="section-title" style="margin-bottom:0.5rem;">Send Update to Supervisor</p>
-      <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.75rem;line-height:1.5;">
+    <div class="card hidden" id="supervisor-panel">
+      <p class="section-title mb-2">Send Update to Supervisor</p>
+      <p class="form-hint mb-3">
         Your progress summary and plan link will be included automatically. Add a personal note below if you'd like.
       </p>
       <div class="form-row">
-        <label for="supervisor-note" style="font-size:0.8rem;">Note (optional)</label>
-        <textarea id="supervisor-note" rows="3" placeholder="e.g. I finished data collection — could we schedule a meeting to discuss the results?" style="width:100%;padding:0.6rem 0.75rem;background:var(--surface-alt);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-family:'DM Sans',sans-serif;font-size:0.85rem;resize:vertical;"></textarea>
+        <label for="supervisor-note" class="label-sm">Note (optional)</label>
+        <textarea id="supervisor-note" class="textarea" rows="3" placeholder="e.g. I finished data collection — could we schedule a meeting to discuss the results?"></textarea>
       </div>
-      <div style="display:flex;gap:0.5rem;margin-top:0.75rem;">
+      <div class="flex-actions mt-3">
         <button class="btn btn-sm btn-primary" onclick="sendSupervisorEmail()">Open in Email</button>
         <button class="btn btn-sm btn-ghost" onclick="copySupervisorUpdate()">Copy to Clipboard</button>
         <button class="btn btn-sm btn-ghost" onclick="toggleSupervisorUpdate()">Cancel</button>
@@ -1284,47 +1491,47 @@ body.dark .skip-link { background: #334155; }
       <button class="plan-tab" role="tab" id="tab-overview" aria-selected="true" aria-controls="panel-overview" onclick="switchPlanTab('overview')">Overview</button>
       <button class="plan-tab" role="tab" id="tab-milestones" aria-selected="false" aria-controls="panel-milestones" onclick="switchPlanTab('milestones')">Milestones</button>
       <button class="plan-tab" role="tab" id="tab-checklist" aria-selected="false" aria-controls="panel-checklist" onclick="switchPlanTab('checklist')">Checklist</button>
-      <button class="plan-tab" role="tab" id="tab-lab" aria-selected="false" aria-controls="panel-lab" onclick="switchPlanTab('lab')">Lab &amp; Booking<span id="lab-tab-dot" style="display:none;color:var(--lab-orange);margin-left:0.3rem;font-size:0.6rem;vertical-align:super;">&#9679;</span></button>
+      <button class="plan-tab" role="tab" id="tab-lab" aria-selected="false" aria-controls="panel-lab" onclick="switchPlanTab('lab')">Lab &amp; Booking<span id="lab-tab-dot" class="hidden" style="color:var(--lab-orange);margin-left:0.3rem;font-size:var(--text-xs);vertical-align:super;">&#9679;</span></button>
     </div>
 
     <!-- ═══ Tab Panel: Overview ═══ -->
     <div class="plan-tabpanel active" role="tabpanel" id="panel-overview" aria-labelledby="tab-overview">
       <!-- Date summary (editable) -->
       <div class="card" id="plan-dates-card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
-          <p class="section-title" style="margin:0;">Key Dates</p>
+        <div class="flex-row-between mb-2">
+          <p class="section-title mb-0">Key Dates</p>
           <button class="btn btn-sm btn-ghost" id="edit-dates-btn" onclick="toggleDateEdit()">Edit</button>
         </div>
         <div id="plan-dates-display"></div>
-        <div id="plan-dates-edit" style="display:none;">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-top:0.75rem;">
+        <div id="plan-dates-edit" class="hidden">
+          <div class="form-grid mt-3">
             <div class="form-row">
-              <label for="edit-bp-start" style="font-size:0.8rem;">Block period start</label>
+              <label for="edit-bp-start" class="label-sm">Block period start</label>
               <input type="date" id="edit-bp-start" onchange="onDateEditChange()">
             </div>
             <div class="form-row">
-              <label for="edit-week-start" style="font-size:0.8rem;">Data collection week</label>
+              <label for="edit-week-start" class="label-sm">Data collection week</label>
               <input type="date" id="edit-week-start" onchange="onDateEditChange()">
             </div>
-            <div class="form-row" id="edit-thesis-row" style="display:none;">
-              <label for="edit-thesis-deadline" style="font-size:0.8rem;">Thesis submission deadline</label>
+            <div class="form-row hidden" id="edit-thesis-row">
+              <label for="edit-thesis-deadline" class="label-sm">Thesis submission deadline</label>
               <input type="date" id="edit-thesis-deadline" onchange="onDateEditChange()">
             </div>
           </div>
         </div>
-        <div id="dates-changed-banner" style="display:none;margin-top:0.75rem;padding:0.6rem 0.85rem;background:var(--lab-orange-light);border:1px solid rgba(232,99,43,0.25);border-radius:8px;font-size:0.8rem;color:var(--lab-orange);">
+        <div id="dates-changed-banner" class="notice notice-warning hidden mt-3">
           Dates updated — your plan has been recalculated. <a href="javascript:downloadICS()" style="color:var(--lab-orange);font-weight:600;">Re-download your calendar</a> to keep it in sync.
         </div>
-        <div style="margin-top:0.75rem;display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center;">
+        <div class="flex-row mt-3" style="flex-wrap:wrap;">
           <button class="btn btn-sm btn-ghost" onclick="shiftSchedule()" title="Shift data collection (and everything anchored to it) by N days">Shift schedule &hellip;</button>
-          <span style="font-size:0.75rem;color:var(--text-muted);">Behind schedule? Shift data collection by N days &mdash; downstream milestones move with it.</span>
+          <span style="font-size:var(--text-xs);color:var(--text-muted);">Behind schedule? Shift data collection by N days &mdash; downstream milestones move with it.</span>
         </div>
       </div>
 
       <!-- Workload rollup -->
-      <div class="card" id="workload-card" style="display:none;">
-        <p class="section-title" style="margin-bottom:0.5rem;">Estimated Workload</p>
-        <div id="workload-content" style="font-size:0.85rem;"></div>
+      <div class="card hidden" id="workload-card">
+        <p class="section-title mb-2">Estimated Workload</p>
+        <div id="workload-content" style="font-size:var(--text-base);"></div>
       </div>
 
       <!-- Timeline -->
@@ -1347,25 +1554,25 @@ body.dark .skip-link { background: #334155; }
 
       <!-- Custom milestones -->
       <div class="card" id="custom-milestones-card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
-          <p class="section-title" style="margin:0;">Your Custom Milestones</p>
+        <div class="flex-row-between mb-2">
+          <p class="section-title mb-0">Your Custom Milestones</p>
           <button class="btn btn-sm btn-ghost" onclick="openCustomForm()">+ Add milestone</button>
         </div>
-        <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.5rem;line-height:1.5;">
+        <p class="form-hint mb-2">
           Add ad-hoc items (extra meetings, unplanned delays, supervisor calls, etc.). They appear in the timeline and checklist alongside the standard milestones.
         </p>
-        <div id="custom-form" style="display:none;padding:0.75rem;background:var(--surface-alt);border:1px solid var(--border);border-radius:8px;margin-bottom:0.75rem;">
+        <div id="custom-form" class="inline-form hidden mb-3">
           <input type="hidden" id="cm-edit-id" value="">
-          <div style="display:grid;grid-template-columns:2fr 1fr;gap:0.5rem;margin-bottom:0.5rem;">
-            <div class="form-row"><label for="cm-label" style="font-size:0.8rem;">Label</label>
+          <div class="form-grid-wide mb-2">
+            <div class="form-row"><label for="cm-label" class="label-sm">Label</label>
               <input type="text" id="cm-label" placeholder="e.g. Meeting with supervisor" maxlength="80">
             </div>
-            <div class="form-row"><label for="cm-date" style="font-size:0.8rem;">Date</label>
+            <div class="form-row"><label for="cm-date" class="label-sm">Date</label>
               <input type="date" id="cm-date">
             </div>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem;margin-bottom:0.5rem;">
-            <div class="form-row"><label for="cm-section" style="font-size:0.8rem;">Phase</label>
+          <div class="form-grid-3 mb-2">
+            <div class="form-row"><label for="cm-section" class="label-sm">Phase</label>
               <select id="cm-section">
                 <option value="phase1_before_sona">Phase 1 \u2014 Before SONA</option>
                 <option value="phase2_sona">Phase 2 \u2014 SONA setup</option>
@@ -1374,35 +1581,35 @@ body.dark .skip-link { background: #334155; }
                 <option value="phase5_thesis">Phase 5 \u2014 Analysis &amp; writing</option>
               </select>
             </div>
-            <div class="form-row"><label for="cm-duration" style="font-size:0.8rem;">Time needed (min)</label>
+            <div class="form-row"><label for="cm-duration" class="label-sm">Time needed (min)</label>
               <input type="number" id="cm-duration" min="0" max="2400" placeholder="e.g. 60">
             </div>
             <div class="form-row" style="align-self:end;">
-              <span style="font-size:0.75rem;color:var(--text-muted);">Leave blank if unsure.</span>
+              <span style="font-size:var(--text-xs);color:var(--text-muted);">Leave blank if unsure.</span>
             </div>
           </div>
-          <div class="form-row" style="margin-bottom:0.5rem;">
-            <label for="cm-note" style="font-size:0.8rem;">Note (optional)</label>
-            <textarea id="cm-note" rows="2" maxlength="300" style="width:100%;padding:0.5rem;background:var(--surface);border:1px solid var(--border);border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.85rem;resize:vertical;"></textarea>
+          <div class="form-row mb-2">
+            <label for="cm-note" class="label-sm">Note (optional)</label>
+            <textarea id="cm-note" class="textarea" rows="2" maxlength="300" style="background:var(--surface);border-radius:6px;"></textarea>
           </div>
-          <div style="display:flex;gap:0.5rem;">
+          <div class="flex-actions">
             <button class="btn btn-sm btn-primary" onclick="saveCustomMilestone()">Save</button>
             <button class="btn btn-sm btn-ghost" onclick="closeCustomForm()">Cancel</button>
           </div>
         </div>
-        <div id="custom-list" style="font-size:0.85rem;"></div>
+        <div id="custom-list" style="font-size:var(--text-base);"></div>
       </div>
 
       <!-- Hidden milestones -->
-      <div class="card" id="hidden-milestones-card" style="display:none;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
-          <p class="section-title" style="margin:0;">Hidden Milestones</p>
-          <button class="btn btn-sm btn-ghost" onclick="var b=document.getElementById('hidden-list');b.style.display=b.style.display==='none'?'block':'none';this.textContent=b.style.display==='none'?'Show':'Hide';">Show</button>
+      <div class="card hidden" id="hidden-milestones-card">
+        <div class="flex-row-between mb-2">
+          <p class="section-title mb-0">Hidden Milestones</p>
+          <button class="btn btn-sm btn-ghost" onclick="var b=document.getElementById('hidden-list');var vis=getComputedStyle(b).display!=='none';b.style.display=vis?'none':'block';this.textContent=vis?'Show':'Hide';">Show</button>
         </div>
-        <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.5rem;line-height:1.5;">
+        <p class="form-hint mb-2">
           These items won&#x2019;t appear in your timeline, checklist, or calendar until restored.
         </p>
-        <div id="hidden-list" style="display:none;font-size:0.85rem;"></div>
+        <div id="hidden-list" class="hidden" style="font-size:var(--text-base);"></div>
       </div>
     </div>
 
@@ -1421,11 +1628,11 @@ body.dark .skip-link { background: #334155; }
         <span class="chevron">&#9660;</span>
       </summary>
       <div class="checklist-section-body">
-        <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:1rem;line-height:1.5;">
+        <p class="form-hint mb-4">
           How many participants do you need? How many lab days should you book? Fill this in <strong>before</strong> requesting participants on SONA and booking the lab &mdash; the results feed into your plan.
         </p>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+        <div class="form-grid">
           <div class="form-row">
             <label for="calc-conditions">Number of conditions</label>
             <input type="number" id="calc-conditions" min="1" max="20" value="2" inputmode="numeric" onchange="updateCalc()">
@@ -1451,7 +1658,7 @@ body.dark .skip-link { background: #334155; }
             <input type="number" id="calc-per-timeslot" min="1" max="50" value="1" inputmode="numeric" onchange="updateCalc()">
           </div>
           <div class="form-row">
-            <label for="calc-buffer" style="display:flex;align-items:center;gap:0.3rem;">Buffer between sessions (min) <span title="Only set this above 0 if you need substantial time between timeslots, e.g. to reset equipment or clean the lab." style="cursor:help;display:inline-flex;align-items:center;justify-content:center;width:1rem;height:1rem;border-radius:50%;background:var(--border);color:var(--text-muted);font-size:0.65rem;font-weight:700;line-height:1;">?</span></label>
+            <label for="calc-buffer" class="flex-row" style="gap:0.3rem;">Buffer between sessions (min) <span title="Only set this above 0 if you need substantial time between timeslots, e.g. to reset equipment or clean the lab." class="info-pill">?</span></label>
             <input type="number" id="calc-buffer" min="0" max="30" value="0" inputmode="numeric" onchange="updateCalc()">
           </div>
           <div class="form-row">
@@ -1473,41 +1680,41 @@ body.dark .skip-link { background: #334155; }
         </div>
 
         <!-- Calculator Result -->
-        <div id="calc-result" style="margin-top:1rem;padding:1rem;background:var(--accent-light);border:1px solid var(--border);border-radius:8px;display:none;">
+        <div id="calc-result" class="result-box hidden mt-4" style="padding:var(--space-4);">
         </div>
 
         <!-- Blocked Time Slots -->
-        <div id="blocked-slots-section" style="margin-top:1rem;display:none;">
-          <p style="font-size:0.85rem;font-weight:600;margin-bottom:0.3rem;">Blocked Time Slots</p>
-          <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.75rem;line-height:1.5;">
+        <div id="blocked-slots-section" class="hidden mt-4">
+          <p class="section-subtitle" style="margin-bottom:0.3rem;">Blocked Time Slots</p>
+          <p class="form-hint mb-3">
             Block out times when you can&rsquo;t run participants (e.g., tutorial, appointment). The timetable will skip those slots on the specified lab day.
           </p>
-          <div id="blocked-slots-list" style="margin-bottom:0.5rem;"></div>
-          <div id="blocked-slot-form" style="display:none;padding:0.75rem;background:var(--surface-alt);border:1px solid var(--border);border-radius:8px;margin-bottom:0.75rem;">
-            <div style="display:flex;gap:1rem;margin-bottom:0.5rem;align-items:center;">
-              <label style="font-size:0.8rem;font-weight:600;margin:0;">Applies to:</label>
-              <label style="font-size:0.8rem;margin:0;cursor:pointer;display:flex;align-items:center;gap:0.3rem;">
+          <div id="blocked-slots-list" class="mb-2"></div>
+          <div id="blocked-slot-form" class="inline-form hidden mb-3">
+            <div class="flex-row mb-2" style="gap:var(--space-4);">
+              <label class="label-sm" style="font-weight:600;margin:0;">Applies to:</label>
+              <label class="label-sm flex-row" style="margin:0;cursor:pointer;gap:0.3rem;">
                 <input type="radio" name="bs-scope" value="single" checked onchange="onBsScopeChange()"> This day only
               </label>
-              <label style="font-size:0.8rem;margin:0;cursor:pointer;display:flex;align-items:center;gap:0.3rem;">
+              <label class="label-sm flex-row" style="margin:0;cursor:pointer;gap:0.3rem;">
                 <input type="radio" name="bs-scope" value="every"> Every lab day
               </label>
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr 2fr;gap:0.5rem;align-items:end;">
-              <div class="form-row" id="bs-day-row"><label for="bs-day" style="font-size:0.8rem;">Lab day</label>
+            <div class="form-grid-4">
+              <div class="form-row" id="bs-day-row"><label for="bs-day" class="label-sm">Lab day</label>
                 <select id="bs-day"></select>
               </div>
-              <div class="form-row"><label for="bs-start" style="font-size:0.8rem;">From</label>
+              <div class="form-row"><label for="bs-start" class="label-sm">From</label>
                 <input type="time" id="bs-start" value="10:00">
               </div>
-              <div class="form-row"><label for="bs-end" style="font-size:0.8rem;">Until</label>
+              <div class="form-row"><label for="bs-end" class="label-sm">Until</label>
                 <input type="time" id="bs-end" value="12:00">
               </div>
-              <div class="form-row"><label for="bs-label" style="font-size:0.8rem;">Reason (optional)</label>
+              <div class="form-row"><label for="bs-label" class="label-sm">Reason (optional)</label>
                 <input type="text" id="bs-label" placeholder="e.g. Doctor's appointment" maxlength="60">
               </div>
             </div>
-            <div style="display:flex;gap:0.5rem;margin-top:0.5rem;">
+            <div class="flex-actions" style="margin-top:var(--space-2);">
               <button type="button" class="btn btn-sm btn-primary" onclick="saveBlockedSlot()">Add Block</button>
               <button type="button" class="btn btn-sm btn-ghost" onclick="closeBlockedSlotForm()">Cancel</button>
             </div>
@@ -1518,7 +1725,7 @@ body.dark .skip-link { background: #334155; }
     </details>
 
     <!-- Lab summary (if calculator was used) -->
-    <div class="card" id="plan-lab-summary" style="display:none;">
+    <div class="card hidden" id="plan-lab-summary">
       <p class="section-title">Lab Booking Summary</p>
       <div id="plan-lab-content"></div>
     </div>
@@ -1526,13 +1733,13 @@ body.dark .skip-link { background: #334155; }
     <!-- Resource Booker -->
     <div class="card" id="resource-booker-card">
       <p class="section-title">Book the DEXLab &amp; Equipment</p>
-      <p style="font-size:0.85rem;color:var(--text-secondary);line-height:1.5;margin-bottom:0.5rem;">
+      <p style="font-size:var(--text-base);color:var(--text-secondary);line-height:1.5;margin-bottom:0.5rem;">
         The lab room and equipment must be booked <strong>separately</strong> via Resource Booker. Submit your bookings at least <strong>2 days in advance</strong> so the DEXLab Manager can approve them.
       </p>
-      <p id="resource-booker-master-note" style="display:none;font-size:0.8rem;color:var(--text-muted);line-height:1.5;margin-bottom:0.75rem;">
+      <p id="resource-booker-master-note" class="form-hint hidden mb-3">
         As a Master thesis student, ask your supervisor to make the booking for you if you don't have access.
       </p>
-      <p id="resource-booker-phd-note" style="display:none;font-size:0.8rem;color:var(--text-muted);line-height:1.5;margin-bottom:0.75rem;">
+      <p id="resource-booker-phd-note" class="form-hint hidden mb-3">
         As a DEXLab TIP student, you can book the lab and equipment yourself.
       </p>
       <a class="btn btn-sm btn-primary" href="https://resourcebooker.maastrichtuniversity.nl/" target="_blank" rel="noopener" style="text-decoration:none;">Open Resource Booker &rarr;</a>
@@ -1540,15 +1747,15 @@ body.dark .skip-link { background: #334155; }
     </div>
 
     <!-- Disclaimer -->
-    <div style="margin-top:1.5rem;padding:0.75rem 1rem;background:var(--surface-alt);border:1px solid var(--border);border-radius:8px;font-size:0.75rem;color:var(--text-muted);line-height:1.5;">
+    <div class="notice notice-info" style="margin-top:var(--space-6);font-size:var(--text-xs);">
       This is an internal DEXLab planning tool. No rights can be derived from the suggested deadlines. Always align with your supervisor on actual timelines and requirements.
     </div>
 
     <!-- Completion prompt -->
-    <div id="completion-prompt" style="display:none;margin-top:1rem;padding:1rem;background:var(--accent-light);border:1px solid var(--accent);border-radius:8px;text-align:center;">
-      <p style="font-size:1rem;font-weight:600;margin-bottom:0.5rem;">You've completed your plan!</p>
-      <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.75rem;">How was this tool? Your feedback helps us improve it for future students.</p>
-      <div style="display:flex;gap:0.5rem;justify-content:center;">
+    <div id="completion-prompt" class="result-box hidden text-center mt-4" style="border-color:var(--accent);">
+      <p style="font-size:var(--text-lg);font-weight:600;" class="mb-2">You've completed your plan!</p>
+      <p class="form-hint mb-3">How was this tool? Your feedback helps us improve it for future students.</p>
+      <div class="flex-center">
         <a class="btn btn-sm btn-primary" href="#" onclick="openFeedback();return false;" style="text-decoration:none;">Send Feedback</a>
         <button type="button" class="btn btn-sm btn-ghost" onclick="dismissCompletion()">Maybe Later</button>
       </div>
@@ -2061,7 +2268,7 @@ function updateCalc() {
   const labMinutes = endMin - startMin;
   if (labMinutes <= 0) {
     document.getElementById('calc-result').style.display = 'block';
-    document.getElementById('calc-result').innerHTML = '<p style="color:var(--danger);font-size:0.85rem;">Lab end time must be after start time. Use HH:MM format (e.g. 09:00).</p>';
+    document.getElementById('calc-result').innerHTML = '<p style="color:var(--danger);">Lab end time must be after start time. Use HH:MM format (e.g. 09:00).</p>';
     return;
   }
 
@@ -2150,34 +2357,34 @@ function updateCalc() {
       for (let s = 0; s < daySlotsNeeded; s++) {
         const slot = effectiveSlots[s];
         const pInSlot = Math.min(perTimeslot, participantsRemaining - s * perTimeslot);
-        allItems.push({ type: 'participant', sortTime: slot.start, html: `<span class="mono" style="display:inline-block;background:var(--surface-alt);border:1px solid var(--border);border-radius:4px;padding:0.15rem 0.4rem;margin:0.15rem 0.2rem;font-size:0.75rem;white-space:nowrap;">${fmtTime(slot.start)}\u2013${fmtTime(slot.start + sessionMin)}${perTimeslot > 1 ? ' (' + pInSlot + 'p)' : ''}</span>` });
+        allItems.push({ type: 'participant', sortTime: slot.start, html: `<span class="mono slot-chip slot-chip-default">${fmtTime(slot.start)}\u2013${fmtTime(slot.start + sessionMin)}${perTimeslot > 1 ? ' (' + pInSlot + 'p)' : ''}</span>` });
       }
       if (lunch > 0) {
-        allItems.push({ type: 'lunch', sortTime: lunchStartMin, html: `<span style="display:inline-block;background:var(--lab-orange-light);border:1px solid rgba(232,99,43,0.2);border-radius:4px;padding:0.15rem 0.4rem;margin:0.15rem 0.2rem;font-size:0.7rem;white-space:nowrap;color:var(--lab-orange);">lunch ${fmtTime(lunchStartMin)}\u2013${fmtTime(lunchEnd)}</span>` });
+        allItems.push({ type: 'lunch', sortTime: lunchStartMin, html: `<span class="slot-chip slot-chip-lunch">lunch ${fmtTime(lunchStartMin)}\u2013${fmtTime(lunchEnd)}</span>` });
       }
       dayBlocks.forEach(b => {
-        allItems.push({ type: 'blocked', sortTime: b.startMin, html: `<span style="display:inline-block;background:var(--danger-light, #fde8e8);border:1px solid var(--danger);border-radius:4px;padding:0.15rem 0.4rem;margin:0.15rem 0.2rem;font-size:0.7rem;white-space:nowrap;color:var(--danger);opacity:0.85;">\u2715 ${fmtTime(b.startMin)}\u2013${fmtTime(b.endMin)}${b.label ? ' ' + escapeHTML(b.label) : ''}</span>` });
+        allItems.push({ type: 'blocked', sortTime: b.startMin, html: `<span class="slot-chip slot-chip-blocked">\u2715 ${fmtTime(b.startMin)}\u2013${fmtTime(b.endMin)}${b.label ? ' ' + escapeHTML(b.label) : ''}</span>` });
       });
       allItems.sort((a, b) => a.sortTime - b.sortTime);
       const slotLabels = allItems.map(item => item.html).join('');
       const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-      dayRows += `<tr><td style="white-space:nowrap;vertical-align:top;padding:0.35rem 0.75rem 0.35rem 0;font-size:0.8rem;border-bottom:1px solid var(--border-light);"><strong>Day ${day}</strong><br><span class="mono" style="font-size:0.75rem;color:var(--text-muted);">${weekdays[d.getDay()]}, ${formatDateShort(d)}</span></td><td style="padding:0.35rem 0;border-bottom:1px solid var(--border-light);line-height:1.8;">${slotLabels}</td><td class="mono" style="vertical-align:top;padding:0.35rem 0 0.35rem 0.75rem;font-size:0.8rem;border-bottom:1px solid var(--border-light);white-space:nowrap;">${dayParticipants} participant${dayParticipants !== 1 ? 's' : ''}</td></tr>`;
+      dayRows += `<tr><td class="tt-day-cell"><strong>Day ${day}</strong><br><span class="mono form-hint-inline">${weekdays[d.getDay()]}, ${formatDateShort(d)}</span></td><td class="tt-slots-cell">${slotLabels}</td><td class="mono tt-total-cell">${dayParticipants} participant${dayParticipants !== 1 ? 's' : ''}</td></tr>`;
       participantsRemaining -= dayParticipants;
       d = addDays(d, 1);
     }
     const ttOpen = timetableWasOpen ? 'block' : 'none';
     const ttChev = timetableWasOpen ? '\u25BC' : '\u25B6';
     timetableHTML = `
-      <div style="margin-top:1rem;">
-        <button onclick="var b=document.getElementById('timetable-body');b.style.display=b.style.display==='none'?'block':'none';this.querySelector('.chev').textContent=b.style.display==='none'?'\u25B6':'\u25BC';" style="background:none;border:none;cursor:pointer;font-size:0.85rem;font-weight:600;color:var(--accent-dark);font-family:'DM Sans',sans-serif;padding:0;display:flex;align-items:center;gap:0.4rem;">
-          <span class="chev" style="font-size:0.7rem;">${ttChev}</span> Timetable overview
+      <div class="mt-4">
+        <button class="toggle-btn" onclick="var b=document.getElementById('timetable-body');b.style.display=b.style.display==='none'?'block':'none';this.querySelector('.chev').textContent=b.style.display==='none'?'\u25B6':'\u25BC';">
+          <span class="chev">${ttChev}</span> Timetable overview
         </button>
-        <div id="timetable-body" style="display:${ttOpen};margin-top:0.5rem;overflow-x:auto;">
-          <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
-            <thead><tr><th style="text-align:left;padding:0.35rem 0.75rem 0.35rem 0;border-bottom:2px solid var(--border);font-size:0.8rem;">Day</th><th style="text-align:left;padding:0.35rem 0;border-bottom:2px solid var(--border);font-size:0.8rem;">Timeslots</th><th style="text-align:left;padding:0.35rem 0 0.35rem 0.75rem;border-bottom:2px solid var(--border);font-size:0.8rem;">Total</th></tr></thead>
+        <div id="timetable-body" class="mt-3" style="display:${ttOpen};overflow-x:auto;">
+          <table class="tt-table">
+            <thead><tr><th>Day</th><th>Timeslots</th><th>Total</th></tr></thead>
             <tbody>${dayRows}</tbody>
           </table>
-          <p style="font-size:0.7rem;color:var(--text-muted);margin-top:0.5rem;">Weekends and public holidays are skipped.</p>
+          <p class="form-hint mt-3">Weekends and public holidays are skipped.</p>
         </div>
       </div>`;
   }
@@ -2185,16 +2392,16 @@ function updateCalc() {
   const result = document.getElementById('calc-result');
   result.style.display = 'block';
   result.innerHTML = `
-    <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.5rem;">${designLabel}</p>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem 1.5rem;font-size:0.9rem;">
+    <p class="form-hint mb-2">${designLabel}</p>
+    <div class="form-grid" style="gap:0.5rem 1.5rem;font-size:var(--text-lg);">
       <div><strong>Total participants needed</strong></div><div class="mono">${totalN}</div>
       <div><strong>Usable lab time per day</strong></div><div class="mono">${Math.floor(usableMinutes / 60)}h ${usableMinutes % 60}m</div>
       <div><strong>Timeslots per day</strong></div><div class="mono">${slotsPerDay} slots \u00D7 ${perTimeslot} participant${perTimeslot > 1 ? 's' : ''} = ${participantsPerDay}/day</div>
-      <div><strong>Total lab days needed</strong></div><div class="mono" style="font-weight:700;color:var(--accent-dark);">${totalDays} day${totalDays !== 1 ? 's' : ''}</div>
+      <div><strong>Total lab days needed</strong></div><div class="mono result-value-highlight">${totalDays} day${totalDays !== 1 ? 's' : ''}</div>
     </div>
-    <p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.75rem;line-height:1.5;">
+    <p class="form-hint mt-3">
       \u2192 Book the lab and equipment for at least <strong>${totalDays} day${totalDays !== 1 ? 's' : ''}</strong>. Consider adding 1\u20132 extra days for no-shows and technical issues. Each session is ${sessionMin} min${buffer > 0 ? ` + ${buffer} min buffer` : ''} = ${slotDuration} min per slot. Coordinate with other researchers weeks in advance \u2014 the lab may already be booked by others planning experiments in the same period.
-    </p>${totalDays > baseTotalDays ? `<div class="holiday-warning" style="margin-top:0.75rem;"><span class="hw-icon">\u26A0\uFE0F</span> Blocked time slots reduce capacity. Without blocks: ${baseTotalDays} days. With blocks: <strong>${totalDays} days</strong>.</div>` : ''}${timetableHTML}`;
+    </p>${totalDays > baseTotalDays ? `<div class="holiday-warning mt-3"><span class="hw-icon">\u26A0\uFE0F</span> Blocked time slots reduce capacity. Without blocks: ${baseTotalDays} days. With blocks: <strong>${totalDays} days</strong>.</div>` : ''}${timetableHTML}`;
 
   // Show/hide blocked-slots section and populate day dropdown
   const bsSection = document.getElementById('blocked-slots-section');
@@ -2253,9 +2460,9 @@ function showCalcUpdateBanner() {
   if (!document.getElementById('screen-plan').classList.contains('active') && !document.querySelector('#timeline-list li')) return;
   var banner = document.createElement('div');
   banner.id = 'calc-update-banner';
-  banner.style.cssText = 'margin-top:0.75rem;padding:0.75rem 1rem;background:var(--lab-orange-light);border:1.5px solid var(--lab-orange);border-radius:8px;display:flex;align-items:center;justify-content:space-between;gap:0.75rem;font-size:0.85rem;color:var(--lab-orange-dark);';
+  banner.className = 'calc-update-banner';
   banner.innerHTML = '<span><strong>Unsaved changes</strong> — your plan milestones and timeline won\u2019t reflect the new calculator values until you update.</span>' +
-    '<div style="display:flex;gap:0.5rem;flex-shrink:0;">' +
+    '<div class="flex-actions" style="flex-shrink:0;">' +
     '<button class="btn btn-sm btn-orange" onclick="applyCalcChanges()">Update plan</button>' +
     '<button class="btn btn-sm btn-ghost" onclick="discardCalcChanges()">Discard</button>' +
     '</div>';
@@ -2322,7 +2529,7 @@ function closeBlockedSlotForm() {
 function saveBlockedSlot() {
   const startVal = document.getElementById('bs-start').value;
   const endVal = document.getElementById('bs-end').value;
-  const label = document.getElementById('bs-label').value.trim();
+  const label = escapeHtml(document.getElementById('bs-label').value.trim());
   const startMatch = startVal.match(/^(\d{1,2}):(\d{2})$/);
   const endMatch = endVal.match(/^(\d{1,2}):(\d{2})$/);
   if (!startMatch || !endMatch) return;
@@ -2393,22 +2600,22 @@ function renderBlockedSlotsList() {
   groups.forEach((items, groupId) => {
     const first = items[0];
     const dayCount = items.length;
-    html += `<div style="display:flex;align-items:center;gap:0.5rem;padding:0.3rem 0;font-size:0.82rem;">
+    html += `<div class="flex-row" style="padding:0.3rem 0;font-size:var(--text-sm);">
       <span class="mono" style="color:var(--lab-orange);font-weight:600;">Every day</span>
-      <span style="font-size:0.7rem;color:var(--text-muted);">(${dayCount} days)</span>
+      <span style="font-size:var(--text-xs);color:var(--text-muted);">(${dayCount} days)</span>
       <span class="mono">${fmtTime(first.startMin)}\u2013${fmtTime(first.endMin)}</span>
-      <span style="color:var(--text-muted);">${escapeHTML(first.label || '')}</span>
-      <button type="button" data-group-id="${escapeHTML(groupId)}" onclick="removeBlockedGroup(this.dataset.groupId)" style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:0.9rem;padding:0.1rem 0.3rem;line-height:1;" aria-label="Remove recurring blocked slots">\u00D7</button>
+      <span class="form-hint-inline">${escapeHTML(first.label || '')}</span>
+      <button type="button" data-group-id="${escapeHTML(groupId)}" onclick="removeBlockedGroup(this.dataset.groupId)" class="remove-btn" aria-label="Remove recurring blocked slots">\u00D7</button>
     </div>`;
   });
 
   // Render single blocks
   singles.forEach(b => {
-    html += `<div style="display:flex;align-items:center;gap:0.5rem;padding:0.3rem 0;font-size:0.82rem;">
+    html += `<div class="flex-row" style="padding:0.3rem 0;font-size:var(--text-sm);">
       <span class="mono" style="color:var(--danger);font-weight:600;">Day ${b.dayIndex}</span>
       <span class="mono">${fmtTime(b.startMin)}\u2013${fmtTime(b.endMin)}</span>
-      <span style="color:var(--text-muted);">${escapeHTML(b.label || '')}</span>
-      <button type="button" data-slot-id="${escapeHTML(b.id)}" onclick="removeBlockedSlot(this.dataset.slotId)" style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:0.9rem;padding:0.1rem 0.3rem;line-height:1;" aria-label="Remove blocked slot">\u00D7</button>
+      <span class="form-hint-inline">${escapeHTML(b.label || '')}</span>
+      <button type="button" data-slot-id="${escapeHTML(b.id)}" onclick="removeBlockedSlot(this.dataset.slotId)" class="remove-btn" aria-label="Remove blocked slot">\u00D7</button>
     </div>`;
   });
 
@@ -2970,11 +3177,11 @@ function showCalcConfirmModal() {
   if (existing) existing.remove();
   var overlay = document.createElement('div');
   overlay.id = 'calc-confirm-overlay';
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;font-family:"DM Sans",sans-serif;';
-  overlay.innerHTML = '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;max-width:380px;width:90%;box-shadow:0 12px 40px rgba(0,0,0,0.2);">' +
-    '<h3 style="margin:0 0 0.5rem;font-family:Fraunces,serif;font-size:1.1rem;color:var(--lab-orange);">Unsaved calculator changes</h3>' +
-    '<p style="margin:0 0 1.25rem;font-size:0.85rem;color:var(--text-secondary);line-height:1.5;">You\u2019ve changed values in the Lab Timetable Calculator. Update your plan to recalculate milestones and timeline?</p>' +
-    '<div style="display:flex;gap:0.5rem;justify-content:flex-end;">' +
+  overlay.className = 'calc-confirm-overlay';
+  overlay.innerHTML = '<div class="calc-confirm-box">' +
+    '<h3>Unsaved calculator changes</h3>' +
+    '<p class="form-hint mb-4">You\u2019ve changed values in the Lab Timetable Calculator. Update your plan to recalculate milestones and timeline?</p>' +
+    '<div class="flex-actions" style="justify-content:flex-end;">' +
     '<button class="btn btn-sm btn-ghost" onclick="calcConfirmDiscard()" style="color:var(--text-muted);">Discard changes</button>' +
     '<button class="btn btn-sm btn-ghost" onclick="calcConfirmCancel()">Go back</button>' +
     '<button class="btn btn-sm btn-orange" onclick="calcConfirmSave()">Update plan</button>' +
@@ -3180,7 +3387,7 @@ function showConfirmation() {
   let confirmHTML = `<span class="check">\u2713</span> <strong>${label}</strong> runs <strong>${state.bpWeeks} weeks</strong>`;
   if (state.weekStart && state.weekStart !== state.bpStart) {
     const ws = parseDate(state.weekStart);
-    confirmHTML += `<br><span style="font-size:0.85rem;">Your data collection starts: <strong>${formatDate(ws)}</strong></span>`;
+    confirmHTML += `<br><span style="font-size:var(--text-base);">Your data collection starts: <strong>${formatDate(ws)}</strong></span>`;
   }
   document.getElementById('confirm-text').innerHTML = confirmHTML;
   document.getElementById('confirm-range').textContent = `Block period: ${formatDate(bpStart)}  \u2192  ${formatDate(bpEnd)}`;
@@ -3267,13 +3474,13 @@ function renderDatesDisplay() {
   // Use the milestone engine so the displayed end date matches the timeline.
   const dc = computeMilestones().find(m => m.id === 'data_collection');
   const collEnd = dc && dc.endDate ? dc.endDate : addDays(weekStart, cd - 1);
-  let html = `<div style="display:grid;grid-template-columns:auto 1fr;gap:0.25rem 1rem;font-size:0.85rem;">`;
-  html += `<span style="color:var(--text-muted);">Block period</span><span class="mono">${formatDate(bpStart)} \u2192 ${formatDate(bpEnd)}</span>`;
+  let html = `<div class="data-grid">`;
+  html += `<span class="form-hint-inline">Block period</span><span class="mono">${formatDate(bpStart)} \u2192 ${formatDate(bpEnd)}</span>`;
   if (state.weekStart && state.weekStart !== state.bpStart) {
-    html += `<span style="color:var(--text-muted);">Data collection</span><span class="mono">${formatDate(weekStart)} \u2192 ${formatDate(collEnd)} (${cd} day${cd !== 1 ? 's' : ''})</span>`;
+    html += `<span class="form-hint-inline">Data collection</span><span class="mono">${formatDate(weekStart)} \u2192 ${formatDate(collEnd)} (${cd} day${cd !== 1 ? 's' : ''})</span>`;
   }
   if (state.thesisDeadline) {
-    html += `<span style="color:var(--text-muted);">Thesis deadline</span><span class="mono" style="font-weight:600;color:var(--accent-dark);">${formatDate(parseDate(state.thesisDeadline))}</span>`;
+    html += `<span class="form-hint-inline">Thesis deadline</span><span class="mono result-value-highlight">${formatDate(parseDate(state.thesisDeadline))}</span>`;
   }
   html += `</div>`;
   document.getElementById('plan-dates-display').innerHTML = html;
@@ -3317,7 +3524,7 @@ function renderHiddenList() {
     if (c) return c.label + ' (custom)';
     return id;
   };
-  list.innerHTML = ids.map(id => `<div style="display:flex;align-items:center;justify-content:space-between;padding:0.3rem 0;border-bottom:1px solid var(--border-light);">
+  list.innerHTML = ids.map(id => `<div class="hidden-item">
     <span>${escapeHtml(resolve(id))}</span>
     <button class="btn btn-sm btn-ghost" onclick="restoreMilestone('${id}')">Restore</button>
   </div>`).join('');
@@ -3388,13 +3595,15 @@ function saveCustomMilestone() {
   const durationMin = parseInt(document.getElementById('cm-duration').value) || 0;
   const note = document.getElementById('cm-note').value.trim();
   const editId = document.getElementById('cm-edit-id').value;
+  const safeLabel = escapeHtml(label);
+  const safeNote = escapeHtml(note);
   if (!state.customMilestones) state.customMilestones = [];
   if (editId) {
     const idx = state.customMilestones.findIndex(c => c.id === editId);
-    if (idx !== -1) state.customMilestones[idx] = { id: editId, label, date, section, durationMin, note };
+    if (idx !== -1) state.customMilestones[idx] = { id: editId, label: safeLabel, date, section, durationMin, note: safeNote };
   } else {
     const id = 'custom_' + Date.now().toString(36);
-    state.customMilestones.push({ id, label, date, section, durationMin, note });
+    state.customMilestones.push({ id, label: safeLabel, date, section, durationMin, note: safeNote });
   }
   saveState();
   history.replaceState(null, '', '#' + encodeState());
@@ -3422,15 +3631,15 @@ function renderCustomList() {
   const list = document.getElementById('custom-list');
   const items = state.customMilestones || [];
   if (items.length === 0) {
-    list.innerHTML = '<p style="font-size:0.8rem;color:var(--text-muted);margin:0;">No custom milestones yet.</p>';
+    list.innerHTML = '<p class="form-hint" style="margin:0;">No custom milestones yet.</p>';
     return;
   }
   const sorted = [...items].sort((a,b) => (a.date || '').localeCompare(b.date || ''));
   list.innerHTML = sorted.map(c => {
     const dur = formatDuration(c.durationMin);
     return `<div style="display:flex;align-items:center;justify-content:space-between;padding:0.35rem 0;border-bottom:1px solid var(--border-light);">
-      <div><strong>${escapeHtml(c.label)}</strong>${dur ? ` <span style="color:var(--text-muted);font-size:0.75rem;">\u00B7 ${dur}</span>` : ''}<br>
-        <span class="mono" style="font-size:0.75rem;color:var(--text-muted);">${formatDate(parseDate(c.date))}</span>
+      <div><strong>${escapeHtml(c.label)}</strong>${dur ? ` <span style="color:var(--text-muted);font-size:var(--text-xs);">\u00B7 ${dur}</span>` : ''}<br>
+        <span class="mono" style="font-size:var(--text-xs);color:var(--text-muted);">${formatDate(parseDate(c.date))}</span>
       </div>
       <div style="display:flex;gap:0.25rem;">
         <button class="btn btn-sm btn-ghost" onclick="editCustomMilestone('${c.id}')">Edit</button>
@@ -3488,17 +3697,17 @@ function renderWorkload() {
   });
   const weeks = [...buckets.values()].sort((a,b) => a.start - b.start).slice(0, 4);
   const totalAll = upcoming.reduce((s,m) => s + m.durationMin, 0);
-  let html = `<p style="margin:0 0 0.5rem 0;color:var(--text-muted);">Outstanding items with a time estimate: <strong>${formatDuration(totalAll)}</strong> across ${upcoming.length} task${upcoming.length !== 1 ? 's' : ''}.</p>`;
-  html += '<div style="display:grid;grid-template-columns:auto 1fr auto;gap:0.35rem 0.75rem;">';
+  let html = `<p class="form-hint-inline mb-2">Outstanding items with a time estimate: <strong>${formatDuration(totalAll)}</strong> across ${upcoming.length} task${upcoming.length !== 1 ? 's' : ''}.</p>`;
+  html += '<div class="data-grid-3">';
   weeks.forEach(w => {
     const endOfWeek = addDays(w.start, 6);
     const labels = w.items.map(i => escapeHtml(i.label)).join(', ');
-    html += `<span class="mono" style="color:var(--text-muted);">Week of ${formatDateShort(w.start)}</span>`;
-    html += `<span style="color:var(--text-secondary);">${labels}</span>`;
-    html += `<span class="mono" style="font-weight:600;color:var(--accent-dark);">${formatDuration(w.total)}</span>`;
+    html += `<span class="mono form-hint-inline">Week of ${formatDateShort(w.start)}</span>`;
+    html += `<span class="form-hint-inline" style="color:var(--text-secondary);">${labels}</span>`;
+    html += `<span class="mono result-value-highlight">${formatDuration(w.total)}</span>`;
   });
   html += '</div>';
-  if (buckets.size > weeks.length) html += `<p style="margin:0.5rem 0 0 0;font-size:0.75rem;color:var(--text-muted);">(+ ${buckets.size - weeks.length} more week${buckets.size - weeks.length !== 1 ? 's' : ''} with estimates)</p>`;
+  if (buckets.size > weeks.length) html += `<p class="form-hint-inline mt-3" style="font-size:var(--text-xs);">(+ ${buckets.size - weeks.length} more week${buckets.size - weeks.length !== 1 ? 's' : ''} with estimates)</p>`;
   content.innerHTML = html;
 }
 
@@ -3537,10 +3746,10 @@ function showBookmarkReminder() {
   div.id = 'bookmark-reminder';
   div.className = 'bookmark-reminder';
   div.innerHTML = `
-    <div style="display:flex;align-items:flex-start;gap:0.75rem;">
-      <div style="flex:1;">
+    <div class="flex-row" style="align-items:flex-start;">
+      <div style="flex:1">
         <strong>Bookmark this page to save your plan</strong>
-        <p style="font-size:0.8rem;color:var(--text-muted);margin-top:0.2rem;">Press <kbd style="background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:0.1rem 0.35rem;font-size:0.75rem;">Ctrl+D</kbd> (or <kbd style="background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:0.1rem 0.35rem;font-size:0.75rem;">\u2318+D</kbd> on Mac) to bookmark, or click Copy Link to save the URL elsewhere.</p>
+        <p class="form-hint" style="margin-top:0.2rem;">Press <kbd class="kbd">Ctrl+D</kbd> (or <kbd class="kbd">\u2318+D</kbd> on Mac) to bookmark, or click Copy Link to save the URL elsewhere.</p>
       </div>
       <button class="btn btn-sm btn-primary" onclick="copyShareLink();this.parentElement.parentElement.remove();">Copy Link</button>
       <button class="btn btn-sm btn-ghost" onclick="this.parentElement.parentElement.remove();" style="padding:0.4rem 0.6rem;">\u2715</button>
@@ -3613,7 +3822,7 @@ function renderPlan() {
   }
   var labTabDot = document.getElementById('lab-tab-dot');
   if (!state.labCalc) {
-    labNudge.style.cssText = 'padding:0.6rem 0.75rem;background:var(--lab-orange-light);border:1px solid var(--lab-orange);border-radius:8px;margin-bottom:0.75rem;font-size:0.8rem;color:var(--lab-orange-dark);line-height:1.5;';
+    labNudge.className = 'lab-nudge';
     labNudge.innerHTML = state.quickEstimate
       ? 'Your quick estimate suggests <strong>' + state.quickEstimate.days + ' lab day' + (state.quickEstimate.days !== 1 ? 's' : '') + '</strong>. Open the full calculator below to fine-tune with lab hours, lunch breaks, and blocked time slots.'
       : 'Use the Lab Timetable Calculator below to figure out how many days you need. It generates a detailed timetable with timeslots.';
@@ -3630,24 +3839,24 @@ function renderPlan() {
     const lc = state.labCalc;
     labSummary.style.display = 'block';
     labContent.innerHTML = `
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem 1.5rem;font-size:0.85rem;">
+      <div class="form-grid" style="gap:0.4rem 1.5rem;font-size:var(--text-base);">
         <div>Total participants</div><div class="mono"><strong>${lc.totalN}</strong></div>
         <div>Design</div><div class="mono">${lc.design === 'within' ? 'Within-subject' : lc.design === 'mixed' ? 'Mixed' : 'Between-subject'} (${lc.conditions} conditions)</div>
         <div>Participants per day</div><div class="mono">${lc.participantsPerDay}</div>
-        <div>Lab days needed</div><div class="mono" style="font-weight:700;color:var(--accent-dark);">${lc.totalDays} day${lc.totalDays !== 1 ? 's' : ''}</div>
+        <div>Lab days needed</div><div class="mono result-value-highlight">${lc.totalDays} day${lc.totalDays !== 1 ? 's' : ''}</div>
       </div>
-      <p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem;">Book the lab and equipment for at least ${lc.totalDays} day${lc.totalDays !== 1 ? 's' : ''}. Consider adding 1\u20132 extra days for no-shows.</p>`;
+      <p class="form-hint mt-3">Book the lab and equipment for at least ${lc.totalDays} day${lc.totalDays !== 1 ? 's' : ''}. Consider adding 1\u20132 extra days for no-shows.</p>`;
   } else if (state.quickEstimate && typeof state.quickEstimate.days === 'number') {
     const qe = state.quickEstimate;
     const designLabel = qe.design === 'within' ? 'Within-subject' : qe.design === 'mixed' ? 'Mixed' : 'Between-subject';
     labSummary.style.display = 'block';
     labContent.innerHTML = `
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem 1.5rem;font-size:0.85rem;">
+      <div class="form-grid" style="gap:0.4rem 1.5rem;font-size:var(--text-base);">
         <div>Total participants</div><div class="mono"><strong>${qe.totalN}</strong></div>
         <div>Design</div><div class="mono">${designLabel} (${qe.conditions} conditions)</div>
-        <div>Lab days needed</div><div class="mono" style="font-weight:700;color:var(--accent-dark);">\u2248 ${qe.days} day${qe.days !== 1 ? 's' : ''}</div>
+        <div>Lab days needed</div><div class="mono result-value-highlight">\u2248 ${qe.days} day${qe.days !== 1 ? 's' : ''}</div>
       </div>
-      <p style="font-size:0.75rem;color:var(--lab-orange);margin-top:0.5rem;">This is a quick estimate. Use the full Lab Timetable Calculator above for a detailed timetable with blocked slots and exact scheduling.</p>`;
+      <p class="form-hint mt-3" style="color:var(--lab-orange);">This is a quick estimate. Use the full Lab Timetable Calculator above for a detailed timetable with blocked slots and exact scheduling.</p>`;
   } else {
     labSummary.style.display = 'none';
   }
@@ -3692,7 +3901,7 @@ function renderTimeline(milestones, holidays, today) {
     li.innerHTML = `
       <div class="tl-dot${isOverdue ? '' : (isPast ? ' past' : '')}${isHoliday ? ' holiday' : ''}"></div>
       <span class="tl-date">${formatDateShort(item.date)}</span>
-      <span class="tl-label">${item.label}${isOverdue ? ' \u2014 OVERDUE' : ''}${(item.id && (item.id === 'data_collection' || item.id.startsWith('lab_day_'))) ? ' <a href="javascript:scrollToTimetable()" style="font-size:0.7rem;color:var(--text-muted);text-decoration:none;" onmouseover="this.style.textDecoration=\'underline\'" onmouseout="this.style.textDecoration=\'none\'">(view timetable)</a>' : ''}</span>`;
+      <span class="tl-label">${item.label}${isOverdue ? ' \u2014 OVERDUE' : ''}${(item.id && (item.id === 'data_collection' || item.id.startsWith('lab_day_'))) ? ' <a href="javascript:scrollToTimetable()" style="font-size:var(--text-xs);color:var(--text-muted);text-decoration:none;" onmouseover="this.style.textDecoration=\'underline\'" onmouseout="this.style.textDecoration=\'none\'">(view timetable)</a>' : ''}</span>`;
     list.appendChild(li);
   });
 
@@ -3717,9 +3926,9 @@ function renderMilestoneTable(milestones, today) {
     else if (diff <= 7) { statusClass = 'status-urgent'; statusText = `\u26A0 ${diff} day${diff !== 1 ? 's' : ''}`; }
     else { statusClass = 'status-ok'; statusText = `\u2014 ${diff} days`; }
     const durLabel = formatDuration(m.durationMin);
-    const durBadge = durLabel ? ` <span style="color:var(--text-muted);font-size:0.75rem;">\u00B7 ${durLabel}</span>` : '';
+    const durBadge = durLabel ? ` <span style="color:var(--text-muted);font-size:var(--text-xs);">\u00B7 ${durLabel}</span>` : '';
     tr.innerHTML = `
-      <td>${m.label}${m.optional ? ' <span style="color:var(--text-muted);font-size:0.75rem;">(optional)</span>' : ''}${durBadge}${(m.id === 'data_collection' || (m.id && m.id.startsWith('lab_day_'))) ? ' <a href="javascript:scrollToTimetable()" style="font-size:0.7rem;color:var(--text-muted);text-decoration:none;" onmouseover="this.style.textDecoration=\'underline\'" onmouseout="this.style.textDecoration=\'none\'">(view timetable)</a>' : ''}</td>
+      <td>${m.label}${m.optional ? ' <span class="form-hint-inline">(optional)</span>' : ''}${durBadge}${(m.id === 'data_collection' || (m.id && m.id.startsWith('lab_day_'))) ? ' <a href="javascript:scrollToTimetable()" style="font-size:var(--text-xs);color:var(--text-muted);text-decoration:none;" onmouseover="this.style.textDecoration=\'underline\'" onmouseout="this.style.textDecoration=\'none\'">(view timetable)</a>' : ''}</td>
       <td class="ms-date">${formatDate(m.date)}</td>
       <td class="${statusClass}">${statusText}</td>`;
     tbody.appendChild(tr);
@@ -3764,24 +3973,24 @@ function renderChecklist(milestones, today) {
       const item = document.createElement('div');
       item.className = `check-item${m.keyDate ? ' key-date-item' : ''}`;
       const durLabel = formatDuration(m.durationMin);
-      const durBadge = durLabel ? ` <span style="color:var(--text-muted);font-size:0.75rem;font-weight:400;">\u00B7 ${durLabel}</span>` : '';
-      const customBadge = m.custom ? ` <span style="background:var(--surface-alt);border:1px solid var(--border);border-radius:4px;padding:0 0.35rem;font-size:0.7rem;color:var(--text-muted);margin-left:0.25rem;">custom</span>` : '';
-      const overrideBadge = m.overridden ? ` <span style="background:var(--lab-orange-light);border:1px solid rgba(232,99,43,0.25);color:var(--lab-orange);border-radius:4px;padding:0 0.35rem;font-size:0.7rem;margin-left:0.25rem;">date edited</span>` : '';
-      const btnStyle = 'background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:0.75rem;padding:0 0.3rem;';
+      const durBadge = durLabel ? ` <span style="color:var(--text-muted);font-size:var(--text-xs);font-weight:400;">\u00B7 ${durLabel}</span>` : '';
+      const customBadge = m.custom ? ` <span class="badge-tag">custom</span>` : '';
+      const overrideBadge = m.overridden ? ` <span class="badge-tag badge-tag-warning">date edited</span>` : '';
+      // Action buttons use .action-btn class
       let actions = '';
       // Date edit UI (inline input if this row is being edited)
       if (_editingDateId === m.id) {
-        actions += `<input type="date" id="date-edit-input-${m.id}" value="${toISO(m.date)}" style="font-size:0.75rem;padding:0.1rem 0.3rem;">`;
-        actions += `<button onclick="saveDateOverride('${m.id}')" style="${btnStyle}color:var(--accent-dark);">Save</button>`;
-        actions += `<button onclick="cancelDateOverride()" style="${btnStyle}">Cancel</button>`;
+        actions += `<input type="date" id="date-edit-input-${m.id}" value="${toISO(m.date)}" style="font-size:var(--text-xs);padding:0.1rem 0.3rem;">`;
+        actions += `<button onclick="saveDateOverride('${m.id}')" class="action-btn action-btn-accent">Save</button>`;
+        actions += `<button onclick="cancelDateOverride()" class="action-btn">Cancel</button>`;
       } else {
-        actions += `<button onclick="startDateOverride('${m.id}')" style="${btnStyle}" title="Edit the date for this milestone">Edit date</button>`;
-        if (m.overridden) actions += `<button onclick="resetDateOverride('${m.id}')" style="${btnStyle}" title="Reset to computed date">Reset</button>`;
+        actions += `<button onclick="startDateOverride('${m.id}')" class="action-btn" title="Edit the date for this milestone">Edit date</button>`;
+        if (m.overridden) actions += `<button onclick="resetDateOverride('${m.id}')" class="action-btn" title="Reset to computed date">Reset</button>`;
       }
       if (m.custom) {
-        actions += `<button onclick="editCustomMilestone('${m.id}')" style="${btnStyle}">Edit</button><button onclick="deleteCustomMilestone('${m.id}')" style="${btnStyle}">Delete</button>`;
+        actions += `<button onclick="editCustomMilestone('${m.id}')" class="action-btn">Edit</button><button onclick="deleteCustomMilestone('${m.id}')" class="action-btn">Delete</button>`;
       } else if (!m.labDay) {
-        actions += `<button onclick="hideMilestone('${m.id}')" style="${btnStyle}" title="Hide this milestone">Hide</button>`;
+        actions += `<button onclick="hideMilestone('${m.id}')" class="action-btn" title="Hide this milestone">Hide</button>`;
       }
       item.innerHTML = `
         <input type="checkbox" id="check-${m.id}" ${checked ? 'checked' : ''} onchange="toggleCheck('${m.id}')">
@@ -4108,9 +4317,9 @@ function showTourPausedBanner() {
   if (existing) return; // already showing
   var banner = document.createElement('div');
   banner.id = 'tour-paused-banner';
-  banner.style.cssText = 'position:fixed;bottom:1rem;left:50%;transform:translateX(-50%);z-index:10001;background:var(--accent);color:#fff;padding:0.5rem 1rem;border-radius:8px;font-size:0.8rem;font-family:"DM Sans",sans-serif;box-shadow:0 4px 12px rgba(0,0,0,0.15);display:flex;align-items:center;gap:0.75rem;';
+  banner.className = 'tour-banner';
   banner.innerHTML = '<span>Tour paused — continue to the next step to see more tips</span>' +
-    '<button onclick="endTour()" style="background:rgba(255,255,255,0.2);border:none;color:#fff;padding:0.25rem 0.5rem;border-radius:4px;cursor:pointer;font-size:0.75rem;font-family:inherit;">Dismiss</button>';
+    '<button onclick="endTour()">Dismiss</button>';
   document.body.appendChild(banner);
 }
 
