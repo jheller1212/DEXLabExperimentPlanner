@@ -3490,7 +3490,7 @@ function saveDateOverride(id) {
 
   // If the date actually changed, offer to shift subsequent milestones
   if (deltaDays !== 0 && current) {
-    const subsequent = milestones.filter(m => m.id !== id && !m.labDay && m.date >= oldDate);
+    const subsequent = milestones.filter(m => m.id !== id && !m.labDay && m.id !== 'thesis_submission' && m.date >= oldDate);
     if (subsequent.length > 0) {
       _pendingShift = { deltaDays, subsequent, id };
       _editingDateId = null;
@@ -3929,16 +3929,19 @@ function renderMilestoneTable(milestones, today) {
     const durLabel = formatDuration(m.durationMin);
     const durBadge = durLabel ? ` <span style="color:var(--text-muted);font-size:var(--text-xs);">\u00B7 ${durLabel}</span>` : '';
     const overrideBadge = m.overridden ? ' <span class="badge-tag badge-tag-warning">edited</span>' : '';
-    // Date cell: inline edit or clickable date
+    // Date cell: inline edit or clickable date (thesis_submission is fixed by university)
     let dateCell;
-    if (_editingDateId === m.id) {
+    const isFixed = m.id === 'thesis_submission';
+    if (!isFixed && _editingDateId === m.id) {
       dateCell = `<input type="date" id="date-edit-input-${m.id}" value="${toISO(m.date)}" style="font-size:var(--text-xs);padding:0.1rem 0.3rem;width:auto;">` +
         `<button onclick="saveDateOverride('${m.id}')" class="action-btn action-btn-accent">Save</button>` +
         `<button onclick="cancelDateOverride()" class="action-btn">Cancel</button>` +
         (m.overridden ? `<button onclick="resetDateOverride('${m.id}')" class="action-btn" title="Reset to computed date">Reset</button>` : '');
-    } else {
+    } else if (!isFixed) {
       dateCell = `<span onclick="startDateOverride('${m.id}')" style="cursor:pointer;border-bottom:1px dashed var(--border);" title="Click to edit date">${formatDate(m.date)}</span>${overrideBadge}` +
         (m.overridden ? ` <button onclick="resetDateOverride('${m.id}')" class="action-btn" title="Reset to computed date" style="font-size:var(--text-xs);">Reset</button>` : '');
+    } else {
+      dateCell = `<span title="Fixed by university">${formatDate(m.date)}</span> <span class="badge-tag">fixed</span>`;
     }
     tr.innerHTML = `
       <td>${m.label}${m.optional ? ' <span class="form-hint-inline">(optional)</span>' : ''}${durBadge}${(m.id === 'data_collection' || (m.id && m.id.startsWith('lab_day_'))) ? ' <a href="javascript:scrollToTimetable()" style="font-size:var(--text-xs);color:var(--text-muted);text-decoration:none;" onmouseover="this.style.textDecoration=\'underline\'" onmouseout="this.style.textDecoration=\'none\'">(view timetable)</a>' : ''}</td>
@@ -3991,14 +3994,17 @@ function renderChecklist(milestones, today) {
       const overrideBadge = m.overridden ? ` <span class="badge-tag badge-tag-warning">date edited</span>` : '';
       // Action buttons use .action-btn class
       let actions = '';
-      // Date edit UI (inline input if this row is being edited)
-      if (_editingDateId === m.id) {
+      const isFixedMs = m.id === 'thesis_submission';
+      // Date edit UI (inline input if this row is being edited; thesis_submission is fixed)
+      if (!isFixedMs && _editingDateId === m.id) {
         actions += `<input type="date" id="date-edit-input-${m.id}" value="${toISO(m.date)}" style="font-size:var(--text-xs);padding:0.1rem 0.3rem;">`;
         actions += `<button onclick="saveDateOverride('${m.id}')" class="action-btn action-btn-accent">Save</button>`;
         actions += `<button onclick="cancelDateOverride()" class="action-btn">Cancel</button>`;
-      } else {
+      } else if (!isFixedMs) {
         actions += `<button onclick="startDateOverride('${m.id}')" class="action-btn" title="Edit the date for this milestone">Edit date</button>`;
         if (m.overridden) actions += `<button onclick="resetDateOverride('${m.id}')" class="action-btn" title="Reset to computed date">Reset</button>`;
+      } else {
+        actions += `<span class="badge-tag" title="Fixed by university">fixed</span>`;
       }
       if (m.custom) {
         actions += `<button onclick="editCustomMilestone('${m.id}')" class="action-btn">Edit</button><button onclick="deleteCustomMilestone('${m.id}')" class="action-btn">Delete</button>`;
