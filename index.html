@@ -2028,22 +2028,69 @@ function computeMilestones() {
     return { ...m, date, label };
   });
 
-  // Ensure first_draft never precedes analysis_complete — compress equally if needed
+  // ── Enforce strict sequential ordering for thesis-phase milestones ──
+  // These milestones have hard dependencies: each must come after the previous.
+  // When the timeline is tight (e.g. long data collection), they get proportionally
+  // compressed into the available window between collection end and thesis deadline.
   if (thesisDate && state.role === 'master') {
-    const analysisMs = result.find(m => m.id === 'analysis_complete');
-    const draftMs = result.find(m => m.id === 'first_draft');
-    if (analysisMs && draftMs && draftMs.date <= analysisMs.date) {
-      // Split available time between analysis and writing equally
-      const collectionEnd = analysisMs.date; // original analysis end
-      const totalAvailable = Math.round((thesisDate - collectionEndDate) / (1000 * 60 * 60 * 24));
-      // first_draft is -21d from thesis, so writing phase = 21d. Split remaining time equally.
-      const halfWindow = Math.max(7, Math.floor(totalAvailable / 2));
-      analysisMs.date = addDays(collectionEndDate, halfWindow);
-      draftMs.date = addDays(analysisMs.date, 1);
-      // Also adjust data_cleaning to not exceed analysis_complete
-      const cleaningMs = result.find(m => m.id === 'data_cleaning');
-      if (cleaningMs && cleaningMs.date > analysisMs.date) {
-        cleaningMs.date = nextWorkingDay(addDays(collectionEndDate, 1), holidaySet);
+    const THESIS_CHAIN = ['data_cleaning', 'analysis_complete', 'first_draft', 'supervisor_feedback', 'revision_complete', 'final_check'];
+    const chainMs = THESIS_CHAIN.map(id => result.find(m => m.id === id)).filter(Boolean);
+
+    if (chainMs.length > 1) {
+      // Check if any milestone in the chain is out of order
+      let needsFix = false;
+      for (let i = 1; i < chainMs.length; i++) {
+        if (chainMs[i].date <= chainMs[i - 1].date) { needsFix = true; break; }
+      }
+      // Also check if any milestone lands after thesis deadline
+      if (!needsFix) {
+        needsFix = chainMs.some(m => m.date >= thesisDate);
+      }
+
+      if (needsFix) {
+        // Total available days between collection end and thesis deadline
+        const totalDaysAvailable = Math.max(chainMs.length + 1, Math.round((thesisDate - collectionEndDate) / (1000 * 60 * 60 * 24)));
+
+        // Assign weights based on original intended duration (days between computed dates)
+        // Use the original offsets to determine relative proportions
+        const idealGaps = [];
+        for (let i = 0; i < chainMs.length; i++) {
+          if (i === 0) {
+            idealGaps.push(1); // data_cleaning: 1 day after collection
+          } else {
+            // Gap between this milestone and the previous one in the ideal plan
+            const prevIdeal = MILESTONES.find(m => m.id === THESIS_CHAIN[i - 1]);
+            const currIdeal = MILESTONES.find(m => m.id === THESIS_CHAIN[i]);
+            if (prevIdeal && currIdeal) {
+              // Estimate ideal gap from offset differences
+              let gap;
+              if (prevIdeal.relativeTo === currIdeal.relativeTo) {
+                gap = Math.abs(currIdeal.offsetDays - prevIdeal.offsetDays);
+              } else {
+                // Different anchors — use a reasonable default
+                gap = 7;
+              }
+              idealGaps.push(Math.max(1, gap));
+            } else {
+              idealGaps.push(7);
+            }
+          }
+        }
+        // Leave at least 1 day before thesis for the last milestone
+        const totalIdealGaps = idealGaps.reduce((s, g) => s + g, 0) + 1;
+        const scale = Math.min(1, (totalDaysAvailable - 1) / totalIdealGaps);
+
+        let cursor = new Date(collectionEndDate);
+        chainMs.forEach((m, i) => {
+          const gap = Math.max(1, Math.round(idealGaps[i] * scale));
+          cursor = addDays(cursor, gap);
+          // Never exceed thesis deadline - remaining milestones need space
+          const remaining = chainMs.length - i - 1;
+          const latestAllowed = addDays(thesisDate, -(remaining + 1));
+          if (cursor > latestAllowed) cursor = new Date(latestAllowed);
+          m.date = new Date(cursor);
+          m.compressed = true;
+        });
       }
     }
   }
@@ -4129,7 +4176,7 @@ function renderMilestoneTable(milestones, today) {
       dateCell = `<span title="Fixed by university">${formatDate(m.date)}</span> <span class="badge-tag">fixed</span>`;
     }
     tr.innerHTML = `
-      <td>${m.label}${m.optional ? ' <span class="form-hint-inline">(optional)</span>' : ''}${durBadge}${(m.id === 'data_collection' || (m.id && m.id.startsWith('lab_day_'))) ? ' <a href="javascript:scrollToTimetable()" style="font-size:var(--text-xs);color:var(--text-muted);text-decoration:none;" onmouseover="this.style.textDecoration=\'underline\'" onmouseout="this.style.textDecoration=\'none\'">(view timetable)</a>' : ''}</td>
+      <td>${m.label}${m.optional ? ' <span class="form-hint-inline">(optional)</span>' : ''}${m.compressed ? ' <span class="badge-tag badge-tag-warning">compressed</span>' : ''}${durBadge}${(m.id === 'data_collection' || (m.id && m.id.startsWith('lab_day_'))) ? ' <a href="javascript:scrollToTimetable()" style="font-size:var(--text-xs);color:var(--text-muted);text-decoration:none;" onmouseover="this.style.textDecoration=\'underline\'" onmouseout="this.style.textDecoration=\'none\'">(view timetable)</a>' : ''}</td>
       <td class="ms-date">${dateCell}</td>
       <td class="${statusClass}">${statusText}</td>`;
     tbody.appendChild(tr);
@@ -4176,6 +4223,7 @@ function renderChecklist(milestones, today) {
       const durLabel = formatDuration(m.durationMin);
       const durBadge = durLabel ? ` <span style="color:var(--text-muted);font-size:var(--text-xs);font-weight:400;">\u00B7 ${durLabel}</span>` : '';
       const customBadge = m.custom ? ` <span class="badge-tag">custom</span>` : '';
+      const compressedBadge = m.compressed ? ` <span class="badge-tag badge-tag-warning" title="Date adjusted to fit before thesis deadline">compressed</span>` : '';
       const overrideBadge = m.overridden ? ` <span class="badge-tag badge-tag-warning">date edited</span>` : '';
       // Action buttons use .action-btn class
       let actions = '';
@@ -4199,7 +4247,7 @@ function renderChecklist(milestones, today) {
       item.innerHTML = `
         <input type="checkbox" id="check-${m.id}" ${checked ? 'checked' : ''} onchange="toggleCheck('${m.id}')">
         <div>
-          <label for="check-${m.id}" class="check-item-label${checked ? ' checked' : ''}">${m.label}${customBadge}${overrideBadge}${durBadge}</label>
+          <label for="check-${m.id}" class="check-item-label${checked ? ' checked' : ''}">${m.label}${customBadge}${compressedBadge}${overrideBadge}${durBadge}</label>
           <div class="check-item-date">Due: ${formatDate(m.date)} ${actions}</div>
           ${m.note ? `<div class="check-item-note">${m.note}${m.id === 'equipment_book' && state.labCalc && state.labCalc.totalDays ? ` Based on your calculator estimate, book for at least <strong>${state.labCalc.totalDays} lab day${state.labCalc.totalDays > 1 ? 's' : ''}</strong> (+ 1\u20132 buffer days for no-shows).` : ''}</div>` : ''}
         </div>`;
