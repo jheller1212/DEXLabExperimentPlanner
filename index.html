@@ -431,6 +431,13 @@ select { cursor: pointer; }
   transform: translateX(-50%) translateY(0);
   opacity: 1;
 }
+.toast.toast-warning { background: var(--warning); }
+.badge-tag-warning { background: #fef3c7; border-color: #f59e0b; color: #92400e; }
+.badge-tag-conflict { background: #fde8e8; border-color: var(--danger); color: var(--danger); }
+.buffer-indicator { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); font-size: var(--text-sm); font-weight: 500; }
+.buffer-ok { background: #dcfce7; color: #166534; }
+.buffer-tight { background: #fef3c7; color: #92400e; }
+.buffer-over { background: #fde8e8; color: var(--danger); }
 
 /* ── Bookmark reminder ── */
 .bookmark-reminder {
@@ -1522,6 +1529,7 @@ body.dark .skip-link { background: #334155; }
           <button class="btn btn-sm btn-ghost" onclick="shiftSchedule()" title="Shift data collection (and everything anchored to it) by N days">Shift schedule &hellip;</button>
           <span style="font-size:var(--text-xs);color:var(--text-muted);">Behind schedule? Shift data collection by N days &mdash; downstream milestones move with it.</span>
         </div>
+        <div id="buffer-indicator" class="hidden mt-3"></div>
       </div>
 
       <!-- Workload rollup -->
@@ -2602,11 +2610,13 @@ function renderBlockedSlotsList() {
   container.innerHTML = html;
 }
 
-function showToast(msg) {
+function showToast(msg, type) {
   const el = document.getElementById('toast');
   el.textContent = msg;
+  el.classList.remove('toast-warning');
+  if (type === 'warning') el.classList.add('toast-warning');
   el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 2500);
+  setTimeout(() => { el.classList.remove('show'); el.classList.remove('toast-warning'); }, type === 'warning' ? 4000 : 2500);
 }
 
 // ── Milestones ──
@@ -3488,17 +3498,18 @@ function saveDateOverride(id) {
 
   state.dateOverrides[id] = el.value;
 
-  // If the date actually changed, offer to shift subsequent milestones
+  // If the date actually changed, offer to shift related milestones
   if (deltaDays !== 0 && current) {
     const subsequent = milestones.filter(m => m.id !== id && !m.labDay && m.id !== 'thesis_submission' && m.date >= oldDate);
-    if (subsequent.length > 0) {
-      _pendingShift = { deltaDays, subsequent, id };
+    const preceding = deltaDays < 0 ? milestones.filter(m => m.id !== id && !m.labDay && m.id !== 'thesis_submission' && m.date <= oldDate && m.date >= newDate) : [];
+    if (subsequent.length > 0 || preceding.length > 0) {
+      _pendingShift = { deltaDays, subsequent, preceding, id };
       _editingDateId = null;
       _milestoneCacheKey = null;
       saveState();
       history.replaceState(null, '', '#' + encodeState());
       renderPlan();
-      showShiftModal(deltaDays, subsequent.length);
+      showShiftModal(deltaDays, subsequent.length, preceding.length);
       return;
     }
   }
@@ -3512,23 +3523,47 @@ function saveDateOverride(id) {
 
 var _pendingShift = null;
 
-function showShiftModal(deltaDays, count) {
+function showShiftModal(deltaDays, subsequentCount, precedingCount) {
   var existing = document.getElementById('shift-confirm-overlay');
   if (existing) existing.remove();
   var direction = deltaDays > 0 ? 'later' : 'earlier';
   var absDays = Math.abs(deltaDays);
+  var thesisDate = state.thesisDeadline ? parseDate(state.thesisDeadline) : null;
+
+  // Check if shifting would push milestones past thesis deadline
+  var wouldCompress = false;
+  if (thesisDate && deltaDays > 0 && _pendingShift) {
+    wouldCompress = _pendingShift.subsequent.some(function(m) {
+      return new Date(m.date.getTime() + deltaDays * 24 * 60 * 60 * 1000) > thesisDate;
+    });
+  }
+
+  var body = '<p class="form-hint mb-4">You moved this milestone <strong>' + absDays + ' day' + (absDays !== 1 ? 's' : '') + ' ' + direction + '</strong>.</p>';
+
+  if (wouldCompress) {
+    body += '<p class="form-hint mb-4" style="color:var(--warning);"><strong>\u26A0 Warning:</strong> Some milestones would land after your thesis deadline. They will be compressed to fit, but tasks will have less time between them.</p>';
+  }
+
+  var buttons = '<button class="btn btn-sm btn-ghost" onclick="shiftConfirmSkip()">Only this one</button>';
+  if (subsequentCount > 0) {
+    buttons += '<button class="btn btn-sm btn-primary" onclick="shiftConfirmApply()">' + (wouldCompress ? 'Shift & compress' : 'Shift') + ' ' + subsequentCount + ' after</button>';
+  }
+  if (precedingCount > 0 && deltaDays < 0) {
+    buttons += '<button class="btn btn-sm btn-outline" onclick="shiftConfirmBackward()">Compress ' + precedingCount + ' before</button>';
+  }
+
   var overlay = document.createElement('div');
   overlay.id = 'shift-confirm-overlay';
   overlay.style.cssText = 'position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;font-family:var(--font-sans);';
-  overlay.innerHTML = '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-6);max-width:400px;width:90%;box-shadow:var(--shadow-lg);">' +
-    '<h3 style="margin:0 0 var(--space-2);font-family:var(--font-serif);font-size:var(--text-lg);color:var(--navy);">Shift subsequent milestones?</h3>' +
-    '<p class="form-hint mb-4">You moved this milestone <strong>' + absDays + ' day' + (absDays !== 1 ? 's' : '') + ' ' + direction + '</strong>. Shift the <strong>' + count + ' milestone' + (count !== 1 ? 's' : '') + '</strong> after it by the same amount?</p>' +
-    '<div class="flex-actions" style="justify-content:flex-end;">' +
-    '<button class="btn btn-sm btn-ghost" onclick="shiftConfirmSkip()">Only this one</button>' +
-    '<button class="btn btn-sm btn-primary" onclick="shiftConfirmApply()">Shift all</button>' +
+  overlay.innerHTML = '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-6);max-width:420px;width:90%;box-shadow:var(--shadow-lg);">' +
+    '<h3 style="margin:0 0 var(--space-2);font-family:var(--font-serif);font-size:var(--text-lg);color:var(--navy);">Adjust related milestones?</h3>' +
+    body +
+    '<div class="flex-actions" style="justify-content:flex-end;flex-wrap:wrap;gap:var(--space-2);">' +
+    buttons +
     '</div></div>';
   document.body.appendChild(overlay);
-  overlay.querySelector('.btn-primary').focus();
+  var primary = overlay.querySelector('.btn-primary');
+  if (primary) primary.focus();
   overlay._escHandler = function(e) { if (e.key === 'Escape') shiftConfirmSkip(); };
   document.addEventListener('keydown', overlay._escHandler);
 }
@@ -3544,15 +3579,93 @@ function _removeShiftConfirm() {
 function shiftConfirmApply() {
   if (_pendingShift) {
     var delta = _pendingShift.deltaDays;
+    var thesisDate = state.thesisDeadline ? parseDate(state.thesisDeadline) : null;
+    var compressed = [];
     _pendingShift.subsequent.forEach(function(m) {
-      var d = new Date(m.date.getTime() + delta * 24 * 60 * 60 * 1000);
-      state.dateOverrides[m.id] = toISO(d);
+      var shifted = new Date(m.date.getTime() + delta * 24 * 60 * 60 * 1000);
+      // Compression: if milestone would land after thesis deadline, compress it
+      if (thesisDate && shifted > thesisDate) {
+        // Find the edited milestone's new date as the anchor
+        var anchorDate = parseDate(state.dateOverrides[_pendingShift.id]);
+        var totalWindow = Math.round((thesisDate - anchorDate) / (1000 * 60 * 60 * 24));
+        // Original distance from anchor
+        var origDistance = Math.round((m.date.getTime() + delta * 24 * 60 * 60 * 1000 - anchorDate.getTime()) / (1000 * 60 * 60 * 24));
+        // Total original span
+        var origSpan = Math.round((_pendingShift.subsequent[_pendingShift.subsequent.length - 1].date.getTime() + delta * 24 * 60 * 60 * 1000 - anchorDate.getTime()) / (1000 * 60 * 60 * 24));
+        if (origSpan > 0 && totalWindow > 0) {
+          // Proportionally compress into available window
+          var compressedDay = Math.round((origDistance / origSpan) * totalWindow);
+          // Enforce minimum gap based on durationMin (convert min to days, minimum 1 day gap)
+          shifted = addDays(anchorDate, Math.min(compressedDay, totalWindow));
+        } else {
+          shifted = new Date(thesisDate);
+        }
+        compressed.push(m.id);
+      }
+      state.dateOverrides[m.id] = toISO(shifted);
     });
+    // Enforce minimum gaps based on durationMin
+    var sortedIds = _pendingShift.subsequent.map(function(m) { return m.id; });
+    enforceMinGaps(sortedIds);
     _milestoneCacheKey = null;
     saveState();
     history.replaceState(null, '', '#' + encodeState());
     renderPlan();
-    showToast('Shifted ' + _pendingShift.subsequent.length + ' milestone' + (_pendingShift.subsequent.length !== 1 ? 's' : '') + '.');
+    if (compressed.length > 0) {
+      showToast('Shifted ' + _pendingShift.subsequent.length + ' milestone' + (_pendingShift.subsequent.length !== 1 ? 's' : '') + '. ' + compressed.length + ' compressed to fit before thesis deadline.', 'warning');
+    } else {
+      showToast('Shifted ' + _pendingShift.subsequent.length + ' milestone' + (_pendingShift.subsequent.length !== 1 ? 's' : '') + '.');
+    }
+  }
+  _pendingShift = null;
+  _removeShiftConfirm();
+}
+
+// Enforce minimum gaps between milestones based on durationMin
+function enforceMinGaps(ids) {
+  if (!ids || ids.length < 2) return;
+  // Build ordered list of dates
+  for (var i = 1; i < ids.length; i++) {
+    var prevDate = parseDate(state.dateOverrides[ids[i - 1]]);
+    var currDate = parseDate(state.dateOverrides[ids[i]]);
+    // Find the milestone definition to get durationMin
+    var prevMs = MILESTONES.find(function(m) { return m.id === ids[i - 1]; });
+    var minGapDays = 1; // minimum 1 day between milestones
+    if (prevMs && prevMs.durationMin) {
+      // Convert minutes to days (round up), minimum 1
+      minGapDays = Math.max(1, Math.ceil(prevMs.durationMin / (8 * 60))); // 8-hour work day
+    }
+    var actualGap = Math.round((currDate - prevDate) / (1000 * 60 * 60 * 24));
+    if (actualGap < minGapDays) {
+      // Push this milestone forward to maintain minimum gap
+      state.dateOverrides[ids[i]] = toISO(addDays(prevDate, minGapDays));
+    }
+  }
+}
+
+function shiftConfirmBackward() {
+  if (_pendingShift && _pendingShift.preceding && _pendingShift.preceding.length > 0) {
+    var editedDate = parseDate(state.dateOverrides[_pendingShift.id]);
+    // Compress preceding milestones proportionally into the window before the edited milestone
+    var preceding = _pendingShift.preceding.slice().sort(function(a, b) { return a.date - b.date; });
+    var firstDate = preceding[0].date;
+    var lastOrigDate = _pendingShift.preceding[_pendingShift.preceding.length - 1].date;
+    var origSpan = Math.round((lastOrigDate - firstDate) / (1000 * 60 * 60 * 24));
+    var availableWindow = Math.round((editedDate - firstDate) / (1000 * 60 * 60 * 24));
+    if (origSpan > 0 && availableWindow > 0) {
+      preceding.forEach(function(m) {
+        var origDistance = Math.round((m.date - firstDate) / (1000 * 60 * 60 * 24));
+        var compressedDay = Math.round((origDistance / origSpan) * availableWindow);
+        state.dateOverrides[m.id] = toISO(addDays(firstDate, Math.min(compressedDay, availableWindow)));
+      });
+    }
+    var ids = preceding.map(function(m) { return m.id; });
+    enforceMinGaps(ids);
+    _milestoneCacheKey = null;
+    saveState();
+    history.replaceState(null, '', '#' + encodeState());
+    renderPlan();
+    showToast('Compressed ' + preceding.length + ' preceding milestone' + (preceding.length !== 1 ? 's' : '') + '.');
   }
   _pendingShift = null;
   _removeShiftConfirm();
@@ -3712,6 +3825,54 @@ function renderWorkload() {
   content.innerHTML = html;
 }
 
+// ── Buffer indicator (days remaining before thesis deadline) ──
+function renderBufferIndicator(milestones) {
+  var el = document.getElementById('buffer-indicator');
+  if (!el || !state.thesisDeadline) { if (el) el.style.display = 'none'; return; }
+  var thesisDate = parseDate(state.thesisDeadline);
+  // Find the last non-thesis milestone
+  var nonThesis = milestones.filter(function(m) { return m.id !== 'thesis_submission' && !m.labDay; });
+  if (nonThesis.length === 0) { el.style.display = 'none'; return; }
+  var lastMilestone = nonThesis[nonThesis.length - 1]; // already sorted by date
+  var bufferDays = daysBetween(lastMilestone.date, thesisDate);
+  var cls, icon;
+  if (bufferDays >= 7) { cls = 'buffer-ok'; icon = '\u2705'; }
+  else if (bufferDays >= 1) { cls = 'buffer-tight'; icon = '\u26A0\uFE0F'; }
+  else { cls = 'buffer-over'; icon = '\u274C'; }
+  el.style.display = 'block';
+  el.className = 'buffer-indicator ' + cls;
+  if (bufferDays > 0) {
+    el.innerHTML = icon + ' <strong>' + bufferDays + ' buffer day' + (bufferDays !== 1 ? 's' : '') + '</strong> between last task and thesis deadline';
+  } else if (bufferDays === 0) {
+    el.innerHTML = icon + ' <strong>No buffer</strong> \u2014 last task is on your thesis deadline';
+  } else {
+    el.innerHTML = icon + ' <strong>' + Math.abs(bufferDays) + ' day' + (Math.abs(bufferDays) !== 1 ? 's' : '') + ' past deadline</strong> \u2014 some milestones extend beyond your thesis submission';
+  }
+}
+
+// ── Conflict detection (milestones too close together) ──
+function detectConflicts(milestones) {
+  var nonLab = milestones.filter(function(m) { return !m.labDay; });
+  for (var i = 1; i < nonLab.length; i++) {
+    var prev = nonLab[i - 1];
+    var curr = nonLab[i];
+    var gap = daysBetween(prev.date, curr.date);
+    // Check if gap is less than what the previous task needs (based on durationMin)
+    var minGap = 1;
+    if (prev.durationMin) {
+      minGap = Math.max(1, Math.ceil(prev.durationMin / (8 * 60))); // 8h work day
+    }
+    // Mark conflict on the current milestone's row
+    if (gap < minGap && gap >= 0) {
+      // Add conflict badge to milestone table and checklist
+      var tableCell = document.querySelector('#milestone-tbody tr:nth-child(' + (milestones.indexOf(curr) + 1) + ') td:first-child');
+      if (tableCell && !tableCell.querySelector('.badge-tag-conflict')) {
+        tableCell.innerHTML += ' <span class="badge-tag badge-tag-conflict" title="Only ' + gap + ' day' + (gap !== 1 ? 's' : '') + ' after previous task (' + escapeHtml(prev.label) + ') which needs ~' + minGap + ' day' + (minGap !== 1 ? 's' : '') + '">\u26A0 tight</span>';
+      }
+    }
+  }
+}
+
 // ── Screen 5: Plan Generation ──
 function generatePlan() {
   state.name = document.getElementById('name-input').value.trim();
@@ -3782,6 +3943,8 @@ function renderPlan() {
   renderCustomList();
   renderHiddenList();
   renderWorkload();
+  renderBufferIndicator(computed);
+  detectConflicts(computed);
 
   // Restore lab calculator fields if data exists (e.g. from shared URL)
   if (state.labCalc) {
