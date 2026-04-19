@@ -2774,6 +2774,8 @@ let state = {
   blockedSlots: [],
   checkedItems: [],
   lastUpdated: null,
+  calExportedHash: null,
+  calSequence: 0,
 };
 
 let hasLocalStorage = true;
@@ -3075,12 +3077,14 @@ function downloadICS() {
     'METHOD:PUBLISH',
   ];
 
+  const seq = state.calSequence || 0;
   computed.forEach(m => {
     const dateStr = toICSDateOnly(m.date);
     const uid = `${m.id}-${state.bpStart}@dexlab-planner`;
     const description = (m.note || '').replace(/\n/g, '\\n');
     ics.push('BEGIN:VEVENT');
     ics.push(`UID:${uid}`);
+    ics.push(`SEQUENCE:${seq}`);
     ics.push(`DTSTAMP:${stamp}`);
     ics.push(`DTSTART;VALUE=DATE:${dateStr}`);
     ics.push(`DTEND;VALUE=DATE:${dateStr}`);
@@ -3106,7 +3110,48 @@ function downloadICS() {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  showToast('Calendar file downloaded — open it to add milestones to your calendar.');
+
+  // Save a hash of exported milestone dates so we can detect changes
+  state.calExportedHash = getMilestoneHash(computed);
+  state.calSequence = seq + 1;
+  saveState();
+  _hideCalSyncBanner();
+  showToast('Calendar downloaded — open it to update your calendar. Events with the same name will be updated, not duplicated.');
+}
+
+function getMilestoneHash(milestones) {
+  return milestones.map(m => m.id + ':' + toISO(m.date)).join('|');
+}
+
+function checkCalSyncNeeded() {
+  if (!state.calExportedHash) return; // never exported
+  const computed = getCachedMilestones();
+  const currentHash = getMilestoneHash(computed);
+  if (currentHash !== state.calExportedHash) {
+    _showCalSyncBanner();
+  } else {
+    _hideCalSyncBanner();
+  }
+}
+
+function _showCalSyncBanner() {
+  if (document.getElementById('cal-sync-banner')) return;
+  const banner = document.createElement('div');
+  banner.id = 'cal-sync-banner';
+  banner.className = 'notice notice-warning mt-3';
+  banner.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);';
+  banner.innerHTML = '<span><strong>Calendar out of sync</strong> — your plan has changed since you last exported. Re-download to update your calendar events.</span>' +
+    '<div class="flex-actions" style="flex-shrink:0;">' +
+    '<button class="btn btn-sm btn-orange" onclick="downloadICS()">Re-download .ics</button>' +
+    '<button class="btn btn-sm btn-ghost" onclick="this.parentElement.parentElement.remove();">\u2715</button>' +
+    '</div>';
+  const overview = document.getElementById('panel-overview');
+  if (overview) overview.prepend(banner);
+}
+
+function _hideCalSyncBanner() {
+  const banner = document.getElementById('cal-sync-banner');
+  if (banner) banner.remove();
 }
 
 function toICSDate(d) {
@@ -4040,6 +4085,7 @@ function renderPlan() {
   renderWorkload();
   renderBufferIndicator(computed);
   detectConflicts(computed);
+  checkCalSyncNeeded();
 
   // Restore lab calculator fields if data exists (e.g. from shared URL)
   if (state.labCalc) {
@@ -4474,7 +4520,7 @@ function editSetup() {
 function resetState() {
   if (!confirm('This will permanently delete your plan and all checked items. Make sure you\'ve saved your link (Copy Link) if you want to keep it.\n\nReset everything?')) return;
   window.onbeforeunload = null;
-  state = { version: 1, role: null, name: "", studyTitle: "", bpStart: null, weekStart: null, bpWeeks: 8, thesisDeadline: null, supervisorEmail: "", manualLabDays: 0, collectionDays: 5, analysisWeeks: 1, customMilestones: [], hiddenMilestones: [], dateOverrides: {}, blockedSlots: [], checkedItems: [], lastUpdated: null };
+  state = { version: 1, role: null, name: "", studyTitle: "", bpStart: null, weekStart: null, bpWeeks: 8, thesisDeadline: null, supervisorEmail: "", manualLabDays: 0, collectionDays: 5, analysisWeeks: 1, customMilestones: [], hiddenMilestones: [], dateOverrides: {}, blockedSlots: [], checkedItems: [], lastUpdated: null, calExportedHash: null, calSequence: 0 };
   try { localStorage.removeItem("dexlab_planner_state"); } catch (e) {}
   history.replaceState(null, '', window.location.pathname);
   document.body.className = '';
@@ -4541,7 +4587,7 @@ function resetState() {
   } catch (err) {
     console.error('Init failed — clearing corrupted state and starting fresh:', err);
     try { localStorage.removeItem('dexlab_planner_state'); } catch (e) {}
-    state = { version: 1, role: null, name: "", studyTitle: "", bpStart: null, weekStart: null, bpWeeks: 8, thesisDeadline: null, supervisorEmail: "", manualLabDays: 0, collectionDays: 5, analysisWeeks: 1, customMilestones: [], hiddenMilestones: [], dateOverrides: {}, blockedSlots: [], checkedItems: [], lastUpdated: null };
+    state = { version: 1, role: null, name: "", studyTitle: "", bpStart: null, weekStart: null, bpWeeks: 8, thesisDeadline: null, supervisorEmail: "", manualLabDays: 0, collectionDays: 5, analysisWeeks: 1, customMilestones: [], hiddenMilestones: [], dateOverrides: {}, blockedSlots: [], checkedItems: [], lastUpdated: null, calExportedHash: null, calSequence: 0 };
     showScreen('screen-role');
   }
 })();
