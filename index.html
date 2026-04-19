@@ -1340,8 +1340,8 @@ body.dark .skip-link { background: #334155; }
               </select>
             </div>
             <div class="form-row">
-              <label for="qe-n-per-condition">Participants per condition</label>
-              <input type="number" id="qe-n-per-condition" min="1" max="500" placeholder="30" inputmode="numeric" oninput="updateQuickEstimate()">
+              <label for="qe-n-per-condition">Participants per condition <span class="info-pill" title="50 is the required minimum per condition. Recruit 10–20% more to account for no-shows or exclusions.">?</span></label>
+              <input type="number" id="qe-n-per-condition" min="1" max="500" placeholder="50" inputmode="numeric" oninput="updateQuickEstimate()">
             </div>
             <div class="form-row">
               <label for="qe-session-duration">Session duration (minutes)</label>
@@ -2159,7 +2159,7 @@ function updateQuickEstimate() {
   // Read values — use placeholder defaults when fields are blank
   const conditions = parseInt(document.getElementById('qe-conditions').value) || 2;
   const design = document.getElementById('qe-design').value;
-  const nPerCondition = parseInt(document.getElementById('qe-n-per-condition').value) || 30;
+  const nPerCondition = parseInt(document.getElementById('qe-n-per-condition').value) || 50;
   const sessionMin = parseInt(document.getElementById('qe-session-duration').value) || 30;
   const perTimeslot = parseInt(document.getElementById('qe-per-timeslot').value) || 1;
   const buffer = parseInt(document.getElementById('qe-buffer').value) || 0;
