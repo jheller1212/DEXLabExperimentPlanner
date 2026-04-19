@@ -2028,71 +2028,97 @@ function computeMilestones() {
     return { ...m, date, label };
   });
 
-  // ── Enforce strict sequential ordering for thesis-phase milestones ──
-  // These milestones have hard dependencies: each must come after the previous.
-  // When the timeline is tight (e.g. long data collection), they get proportionally
-  // compressed into the available window between collection end and thesis deadline.
-  if (thesisDate && state.role === 'master') {
-    const THESIS_CHAIN = ['data_cleaning', 'analysis_complete', 'first_draft', 'supervisor_feedback', 'revision_complete', 'final_check'];
-    const chainMs = THESIS_CHAIN.map(id => result.find(m => m.id === id)).filter(Boolean);
+  // ── Enforce strict sequential ordering for milestone chains ──
+  // Milestones in a chain must appear in order. When the timeline is tight,
+  // they get proportionally compressed into the available window.
+  // startDate = first possible date, deadlineDate = hard end boundary.
+  function enforceChainOrder(chainIds, startDate, deadlineDate) {
+    const chainMs = chainIds.map(id => result.find(m => m.id === id)).filter(Boolean);
+    if (chainMs.length < 2) return;
 
-    if (chainMs.length > 1) {
-      // Check if any milestone in the chain is out of order
-      let needsFix = false;
-      for (let i = 1; i < chainMs.length; i++) {
-        if (chainMs[i].date <= chainMs[i - 1].date) { needsFix = true; break; }
-      }
-      // Also check if any milestone lands after thesis deadline
-      if (!needsFix) {
-        needsFix = chainMs.some(m => m.date >= thesisDate);
-      }
+    // Check if any milestone is out of order or past the deadline
+    let needsFix = false;
+    for (let i = 1; i < chainMs.length; i++) {
+      if (chainMs[i].date <= chainMs[i - 1].date) { needsFix = true; break; }
+    }
+    if (!needsFix) {
+      needsFix = chainMs.some(m => m.date >= deadlineDate) || chainMs[0].date <= startDate;
+    }
+    if (!needsFix) return;
 
-      if (needsFix) {
-        // Total available days between collection end and thesis deadline
-        const totalDaysAvailable = Math.max(chainMs.length + 1, Math.round((thesisDate - collectionEndDate) / (1000 * 60 * 60 * 24)));
+    const totalDaysAvailable = Math.max(chainMs.length + 1, Math.round((deadlineDate - startDate) / (1000 * 60 * 60 * 24)));
 
-        // Assign weights based on original intended duration (days between computed dates)
-        // Use the original offsets to determine relative proportions
-        const idealGaps = [];
-        for (let i = 0; i < chainMs.length; i++) {
-          if (i === 0) {
-            idealGaps.push(1); // data_cleaning: 1 day after collection
-          } else {
-            // Gap between this milestone and the previous one in the ideal plan
-            const prevIdeal = MILESTONES.find(m => m.id === THESIS_CHAIN[i - 1]);
-            const currIdeal = MILESTONES.find(m => m.id === THESIS_CHAIN[i]);
-            if (prevIdeal && currIdeal) {
-              // Estimate ideal gap from offset differences
-              let gap;
-              if (prevIdeal.relativeTo === currIdeal.relativeTo) {
-                gap = Math.abs(currIdeal.offsetDays - prevIdeal.offsetDays);
-              } else {
-                // Different anchors — use a reasonable default
-                gap = 7;
-              }
-              idealGaps.push(Math.max(1, gap));
-            } else {
-              idealGaps.push(7);
-            }
-          }
+    // Assign weights based on ideal gaps between milestones
+    const idealGaps = [];
+    for (let i = 0; i < chainMs.length; i++) {
+      if (i === 0) {
+        idealGaps.push(1);
+      } else {
+        const prevIdeal = MILESTONES.find(m => m.id === chainIds[i - 1]);
+        const currIdeal = MILESTONES.find(m => m.id === chainIds[i]);
+        if (prevIdeal && currIdeal && prevIdeal.relativeTo === currIdeal.relativeTo) {
+          idealGaps.push(Math.max(1, Math.abs(currIdeal.offsetDays - prevIdeal.offsetDays)));
+        } else {
+          idealGaps.push(7);
         }
-        // Leave at least 1 day before thesis for the last milestone
-        const totalIdealGaps = idealGaps.reduce((s, g) => s + g, 0) + 1;
-        const scale = Math.min(1, (totalDaysAvailable - 1) / totalIdealGaps);
-
-        let cursor = new Date(collectionEndDate);
-        chainMs.forEach((m, i) => {
-          const gap = Math.max(1, Math.round(idealGaps[i] * scale));
-          cursor = addDays(cursor, gap);
-          // Never exceed thesis deadline - remaining milestones need space
-          const remaining = chainMs.length - i - 1;
-          const latestAllowed = addDays(thesisDate, -(remaining + 1));
-          if (cursor > latestAllowed) cursor = new Date(latestAllowed);
-          m.date = new Date(cursor);
-          m.compressed = true;
-        });
       }
     }
+    const totalIdealGaps = idealGaps.reduce((s, g) => s + g, 0) + 1;
+    const scale = Math.min(1, (totalDaysAvailable - 1) / totalIdealGaps);
+
+    let cursor = new Date(startDate);
+    chainMs.forEach((m, i) => {
+      const gap = Math.max(1, Math.round(idealGaps[i] * scale));
+      cursor = addDays(cursor, gap);
+      const remaining = chainMs.length - i - 1;
+      const latestAllowed = addDays(deadlineDate, -(remaining + 1));
+      if (cursor > latestAllowed) cursor = new Date(latestAllowed);
+      m.date = new Date(cursor);
+      m.compressed = true;
+    });
+  }
+
+  // Data collection must stay within BP weeks 2–7
+  const bpWeek2Start = addDays(bpStart, 7);   // start of week 2
+  const bpWeek7End = addDays(bpStart, 7 * 7); // end of week 7
+  const dataCollMs = result.find(m => m.id === 'data_collection');
+  if (dataCollMs) {
+    if (dataCollMs.date < bpWeek2Start) dataCollMs.date = new Date(bpWeek2Start);
+    if (dataCollMs.date > bpWeek7End) { dataCollMs.date = new Date(bpWeek7End); dataCollMs.compressed = true; }
+    // Also clamp endDate if it exists
+    if (dataCollMs.endDate && dataCollMs.endDate > bpWeek7End) {
+      dataCollMs.endDate = new Date(bpWeek7End);
+      dataCollMs.compressed = true;
+    }
+  }
+
+  // Pre-experiment chain: everything before data collection (week-anchored)
+  // Order: power_analysis → supervisor_checkin/ethics_check → inform_team →
+  //        equipment_book → prereg → stimuli_pretest → prepare_measures →
+  //        pilot → qualtrics_final → equipment_prep
+  const PRE_EXPERIMENT_CHAIN = [
+    'power_analysis', 'ethics_check', 'supervisor_checkin', 'inform_team',
+    'equipment_book', 'prereg', 'stimuli_pretest', 'prepare_measures',
+    'pilot', 'qualtrics_final', 'equipment_prep'
+  ].filter(id => result.some(m => m.id === id));
+
+  // Use the earliest milestone date in the chain as the start boundary
+  const preChainMs = PRE_EXPERIMENT_CHAIN.map(id => result.find(m => m.id === id)).filter(Boolean);
+  if (preChainMs.length > 1) {
+    const earliestDate = new Date(Math.min(...preChainMs.map(m => m.date.getTime())));
+    enforceChainOrder(PRE_EXPERIMENT_CHAIN, addDays(earliestDate, -1), weekStart);
+  }
+
+  // SONA chain: sona_request → sona_upload → sona_active (anchored to BP)
+  enforceChainOrder(['sona_request', 'sona_upload', 'sona_active'], addDays(bpStart, -42), bpStart);
+
+  // Post-experiment chain (master only): data_cleaning → analysis_complete →
+  // first_draft → supervisor_feedback → revision_complete → final_check
+  if (thesisDate && state.role === 'master') {
+    enforceChainOrder(
+      ['data_cleaning', 'analysis_complete', 'first_draft', 'supervisor_feedback', 'revision_complete', 'final_check'],
+      collectionEndDate, thesisDate
+    );
   }
 
   // Add individual experiment day milestones
