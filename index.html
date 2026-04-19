@@ -222,7 +222,9 @@ h3 { font-size: var(--text-xl); }
 .textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
 label.label-sm { font-size: var(--text-sm); }
 .input-narrow { width: 5rem; }
-.info-pill { cursor: help; display: inline-flex; align-items: center; justify-content: center; width: 1rem; height: 1rem; border-radius: var(--radius-full); background: var(--border); color: var(--text-muted); font-size: var(--text-xs); font-weight: 700; line-height: 1; }
+.info-pill { cursor: help; display: inline-flex; align-items: center; justify-content: center; width: 1rem; height: 1rem; border-radius: var(--radius-full); background: var(--border); color: var(--text-muted); font-size: var(--text-xs); font-weight: 700; line-height: 1; position: relative; }
+.info-pill[data-tip]::after { content: attr(data-tip); position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: var(--navy); color: #fff; font-size: var(--text-xs); font-weight: 400; padding: 0.4rem 0.6rem; border-radius: var(--radius-sm); white-space: normal; width: max-content; max-width: 220px; line-height: 1.4; pointer-events: none; opacity: 0; transition: opacity var(--transition-fast); z-index: var(--z-dropdown); }
+.info-pill[data-tip]:hover::after, .info-pill[data-tip]:focus::after { opacity: 1; }
 .mb-0 { margin-bottom: 0; }
 .mb-2 { margin-bottom: var(--space-2); }
 .mb-3 { margin-bottom: var(--space-3); }
@@ -1347,7 +1349,7 @@ body.dark .skip-link { background: #334155; }
               </select>
             </div>
             <div class="form-row">
-              <label for="qe-n-per-condition">Participants per condition <span class="info-pill" title="50 is the required minimum per condition. Recruit 10–20% more to account for no-shows or exclusions.">?</span></label>
+              <label for="qe-n-per-condition">Participants per condition <span class="info-pill" data-tip="50 is the required minimum per condition. Recruit 10–20% more to account for no-shows or exclusions." tabindex="0">?</span></label>
               <input type="number" id="qe-n-per-condition" min="1" max="500" placeholder="50" inputmode="numeric" oninput="updateQuickEstimate()">
             </div>
             <div class="form-row">
@@ -1639,11 +1641,11 @@ body.dark .skip-link { background: #334155; }
         <div class="form-grid">
           <div class="form-row">
             <label for="calc-conditions">Number of conditions</label>
-            <input type="number" id="calc-conditions" min="1" max="20" value="2" inputmode="numeric" onchange="updateCalc()">
+            <input type="number" id="calc-conditions" min="1" max="20" value="2" inputmode="numeric" oninput="updateCalc()">
           </div>
           <div class="form-row">
             <label for="calc-design">Study design</label>
-            <select id="calc-design" onchange="updateCalc()">
+            <select id="calc-design" oninput="updateCalc()">
               <option value="between" selected>Between-subject</option>
               <option value="within">Within-subject</option>
               <option value="mixed">Mixed</option>
@@ -1651,35 +1653,35 @@ body.dark .skip-link { background: #334155; }
           </div>
           <div class="form-row">
             <label for="calc-n-per-condition">Participants per condition</label>
-            <input type="number" id="calc-n-per-condition" min="1" max="500" value="50" inputmode="numeric" onchange="updateCalc()">
+            <input type="number" id="calc-n-per-condition" min="1" max="500" value="50" inputmode="numeric" oninput="updateCalc()">
           </div>
           <div class="form-row">
             <label for="calc-session-duration">Session duration (minutes)</label>
-            <input type="number" id="calc-session-duration" min="5" max="240" value="30" inputmode="numeric" onchange="updateCalc()">
+            <input type="number" id="calc-session-duration" min="5" max="240" value="30" inputmode="numeric" oninput="updateCalc()">
           </div>
           <div class="form-row">
             <label for="calc-per-timeslot">Participants per timeslot</label>
-            <input type="number" id="calc-per-timeslot" min="1" max="50" value="1" inputmode="numeric" onchange="updateCalc()">
+            <input type="number" id="calc-per-timeslot" min="1" max="50" value="1" inputmode="numeric" oninput="updateCalc()">
           </div>
           <div class="form-row">
-            <label for="calc-buffer" class="flex-row" style="gap:0.3rem;">Buffer between sessions (min) <span title="Only set this above 0 if you need substantial time between timeslots, e.g. to reset equipment or clean the lab." class="info-pill">?</span></label>
-            <input type="number" id="calc-buffer" min="0" max="30" value="0" inputmode="numeric" onchange="updateCalc()">
+            <label for="calc-buffer" class="flex-row" style="gap:0.3rem;">Buffer between sessions (min) <span data-tip="Only set this above 0 if you need substantial time between timeslots, e.g. to reset equipment or clean the lab." class="info-pill" tabindex="0">?</span></label>
+            <input type="number" id="calc-buffer" min="0" max="30" value="0" inputmode="numeric" oninput="updateCalc()">
           </div>
           <div class="form-row">
             <label for="calc-lab-start">Lab available from</label>
-            <input type="time" id="calc-lab-start" value="09:00" onchange="updateCalc()">
+            <input type="time" id="calc-lab-start" value="09:00" oninput="updateCalc()">
           </div>
           <div class="form-row">
             <label for="calc-lab-end">Lab available until</label>
-            <input type="time" id="calc-lab-end" value="17:00" onchange="updateCalc()">
+            <input type="time" id="calc-lab-end" value="17:00" oninput="updateCalc()">
           </div>
           <div class="form-row">
             <label for="calc-lunch">Lunch break (minutes)</label>
-            <input type="number" id="calc-lunch" min="0" max="120" value="30" inputmode="numeric" onchange="updateCalc()">
+            <input type="number" id="calc-lunch" min="0" max="120" value="30" inputmode="numeric" oninput="updateCalc()">
           </div>
           <div class="form-row">
             <label for="calc-lunch-start">Lunch starts at</label>
-            <input type="time" id="calc-lunch-start" value="12:00" onchange="updateCalc()">
+            <input type="time" id="calc-lunch-start" value="12:00" oninput="updateCalc()">
           </div>
         </div>
 
@@ -2645,7 +2647,7 @@ const MILESTONES = [
   { id: "data_cleaning", label: "Data analysis starts \u2014 cleaning and preparation", offsetDays: 1, relativeTo: "collectionEnd", roles: ["master"], optional: false, section: "phase5_thesis", note: "Analysis starts the day after data collection ends. Export data, check for exclusions, clean variables, and prepare your analysis dataset. A clean dataset saves hours of debugging later.", durationMin: 240 },
   { id: "analysis_complete", label: "Data analysis complete", offsetDays: 0, relativeTo: "collectionEnd", roles: ["master"], optional: false, section: "phase5_thesis", note: "End of your analysis window (set on the setup screen). Run your pre-registered analyses and any exploratory analyses. Document your steps so you can write the results section directly from your output." },
   { id: "first_draft", label: "First full draft to supervisor", offsetDays: -28, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", keyDate: true, note: "Submit a complete first draft — intro, method, results, and discussion. It does not need to be perfect, but it needs to be complete. Your supervisor needs enough to give meaningful feedback." },
-  { id: "supervisor_feedback", label: "Receive supervisor feedback", offsetDays: -18, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", note: "Expect ~7–10 days for your supervisor to review. Use this time to polish figures, check references, and proofread. If you haven't heard back, send a reminder." },
+  { id: "supervisor_feedback", label: "Receive supervisor feedback", offsetDays: -18, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", note: "Expect ~3–5 days for your supervisor to review. Use this time to polish figures, check references, and proofread. If you haven't heard back, send a reminder." },
   { id: "revision_complete", label: "Revisions complete — final draft ready", offsetDays: -7, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", note: "Incorporate all supervisor feedback. This is your last chance to improve content. After this, only formatting and final checks remain." },
   { id: "final_check", label: "Final formatting, references, and plagiarism check", offsetDays: -3, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", note: "Check formatting requirements, run a plagiarism self-check, verify all references are complete, and ensure figures/tables are numbered correctly." },
   { id: "thesis_submission", label: "Thesis submission deadline", offsetDays: 0, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", keyDate: true, note: "Your thesis submission deadline. Make sure you know the exact submission procedure — some programmes require both a digital upload and a physical copy." },
