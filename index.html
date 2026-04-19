@@ -3479,11 +3479,88 @@ function saveDateOverride(id) {
     return;
   }
   if (!state.dateOverrides) state.dateOverrides = {};
+  // Calculate delta between old and new date
+  const milestones = getCachedMilestones();
+  const current = milestones.find(m => m.id === id);
+  const newDate = parseDate(el.value);
+  const oldDate = current ? current.date : newDate;
+  const deltaDays = Math.round((newDate - oldDate) / (1000 * 60 * 60 * 24));
+
   state.dateOverrides[id] = el.value;
+
+  // If the date actually changed, offer to shift subsequent milestones
+  if (deltaDays !== 0 && current) {
+    const subsequent = milestones.filter(m => m.id !== id && !m.labDay && m.date >= oldDate);
+    if (subsequent.length > 0) {
+      _pendingShift = { deltaDays, subsequent, id };
+      _editingDateId = null;
+      _milestoneCacheKey = null;
+      saveState();
+      history.replaceState(null, '', '#' + encodeState());
+      renderPlan();
+      showShiftModal(deltaDays, subsequent.length);
+      return;
+    }
+  }
+
   _editingDateId = null;
+  _milestoneCacheKey = null;
   saveState();
   history.replaceState(null, '', '#' + encodeState());
   renderPlan();
+}
+
+var _pendingShift = null;
+
+function showShiftModal(deltaDays, count) {
+  var existing = document.getElementById('shift-confirm-overlay');
+  if (existing) existing.remove();
+  var direction = deltaDays > 0 ? 'later' : 'earlier';
+  var absDays = Math.abs(deltaDays);
+  var overlay = document.createElement('div');
+  overlay.id = 'shift-confirm-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;font-family:var(--font-sans);';
+  overlay.innerHTML = '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-6);max-width:400px;width:90%;box-shadow:var(--shadow-lg);">' +
+    '<h3 style="margin:0 0 var(--space-2);font-family:var(--font-serif);font-size:var(--text-lg);color:var(--navy);">Shift subsequent milestones?</h3>' +
+    '<p class="form-hint mb-4">You moved this milestone <strong>' + absDays + ' day' + (absDays !== 1 ? 's' : '') + ' ' + direction + '</strong>. Shift the <strong>' + count + ' milestone' + (count !== 1 ? 's' : '') + '</strong> after it by the same amount?</p>' +
+    '<div class="flex-actions" style="justify-content:flex-end;">' +
+    '<button class="btn btn-sm btn-ghost" onclick="shiftConfirmSkip()">Only this one</button>' +
+    '<button class="btn btn-sm btn-primary" onclick="shiftConfirmApply()">Shift all</button>' +
+    '</div></div>';
+  document.body.appendChild(overlay);
+  overlay.querySelector('.btn-primary').focus();
+  overlay._escHandler = function(e) { if (e.key === 'Escape') shiftConfirmSkip(); };
+  document.addEventListener('keydown', overlay._escHandler);
+}
+
+function _removeShiftConfirm() {
+  var overlay = document.getElementById('shift-confirm-overlay');
+  if (overlay) {
+    document.removeEventListener('keydown', overlay._escHandler);
+    overlay.remove();
+  }
+}
+
+function shiftConfirmApply() {
+  if (_pendingShift) {
+    var delta = _pendingShift.deltaDays;
+    _pendingShift.subsequent.forEach(function(m) {
+      var d = new Date(m.date.getTime() + delta * 24 * 60 * 60 * 1000);
+      state.dateOverrides[m.id] = toISO(d);
+    });
+    _milestoneCacheKey = null;
+    saveState();
+    history.replaceState(null, '', '#' + encodeState());
+    renderPlan();
+    showToast('Shifted ' + _pendingShift.subsequent.length + ' milestone' + (_pendingShift.subsequent.length !== 1 ? 's' : '') + '.');
+  }
+  _pendingShift = null;
+  _removeShiftConfirm();
+}
+
+function shiftConfirmSkip() {
+  _pendingShift = null;
+  _removeShiftConfirm();
 }
 
 function resetDateOverride(id) {
@@ -3851,9 +3928,21 @@ function renderMilestoneTable(milestones, today) {
     else { statusClass = 'status-ok'; statusText = `\u2014 ${diff} days`; }
     const durLabel = formatDuration(m.durationMin);
     const durBadge = durLabel ? ` <span style="color:var(--text-muted);font-size:var(--text-xs);">\u00B7 ${durLabel}</span>` : '';
+    const overrideBadge = m.overridden ? ' <span class="badge-tag badge-tag-warning">edited</span>' : '';
+    // Date cell: inline edit or clickable date
+    let dateCell;
+    if (_editingDateId === m.id) {
+      dateCell = `<input type="date" id="date-edit-input-${m.id}" value="${toISO(m.date)}" style="font-size:var(--text-xs);padding:0.1rem 0.3rem;width:auto;">` +
+        `<button onclick="saveDateOverride('${m.id}')" class="action-btn action-btn-accent">Save</button>` +
+        `<button onclick="cancelDateOverride()" class="action-btn">Cancel</button>` +
+        (m.overridden ? `<button onclick="resetDateOverride('${m.id}')" class="action-btn" title="Reset to computed date">Reset</button>` : '');
+    } else {
+      dateCell = `<span onclick="startDateOverride('${m.id}')" style="cursor:pointer;border-bottom:1px dashed var(--border);" title="Click to edit date">${formatDate(m.date)}</span>${overrideBadge}` +
+        (m.overridden ? ` <button onclick="resetDateOverride('${m.id}')" class="action-btn" title="Reset to computed date" style="font-size:var(--text-xs);">Reset</button>` : '');
+    }
     tr.innerHTML = `
       <td>${m.label}${m.optional ? ' <span class="form-hint-inline">(optional)</span>' : ''}${durBadge}${(m.id === 'data_collection' || (m.id && m.id.startsWith('lab_day_'))) ? ' <a href="javascript:scrollToTimetable()" style="font-size:var(--text-xs);color:var(--text-muted);text-decoration:none;" onmouseover="this.style.textDecoration=\'underline\'" onmouseout="this.style.textDecoration=\'none\'">(view timetable)</a>' : ''}</td>
-      <td class="ms-date">${formatDate(m.date)}</td>
+      <td class="ms-date">${dateCell}</td>
       <td class="${statusClass}">${statusText}</td>`;
     tbody.appendChild(tr);
   });
