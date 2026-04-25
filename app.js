@@ -1108,11 +1108,11 @@ const MILESTONES = [
 ];
 
 const SECTION_LABELS = {
-  phase1_before_sona: "Phase 1: Before Requesting Participants",
-  phase2_sona: "Phase 2: SONA Registration & Setup",
-  phase3_before_experiment: "Phase 3: Before the Experiment",
+  phase1_before_sona: "Phase 1: Before SONA",
+  phase2_sona: "Phase 2: SONA Setup",
+  phase3_before_experiment: "Phase 3: Before Experiment",
   phase4_go: "Phase 4: Data Collection",
-  phase5_thesis: "Phase 5: Analysis, Writing & Submission",
+  phase5_thesis: "Phase 5: Analysis & Writing",
 };
 
 // ── App State ──
@@ -1968,10 +1968,10 @@ function renderSideWorkload(computed) {
   // Group by phase
   const phases = [
     { key: 'phase1_before_sona', label: 'Before SONA', color: 'var(--p1)' },
-    { key: 'phase2_sona', label: 'SONA setup', color: 'var(--p2)' },
-    { key: 'phase3_before_experiment', label: 'Before experiment', color: 'var(--p3)' },
-    { key: 'phase4_go', label: 'Data collection', color: 'var(--p4)' },
-    { key: 'phase5_thesis', label: 'Analysis & writing', color: 'var(--p5)' }
+    { key: 'phase2_sona', label: 'SONA Setup', color: 'var(--p2)' },
+    { key: 'phase3_before_experiment', label: 'Before Experiment', color: 'var(--p3)' },
+    { key: 'phase4_go', label: 'Data Collection', color: 'var(--p4)' },
+    { key: 'phase5_thesis', label: 'Analysis & Writing', color: 'var(--p5)' }
   ];
   const totals = {};
   let grandTotal = 0;
@@ -2797,10 +2797,10 @@ const PHASE_COLORS = {
 };
 const PHASE_SHORT = {
   phase1_before_sona: 'Before SONA',
-  phase2_sona: 'SONA setup',
-  phase3_before_experiment: 'Before experiment',
-  phase4_go: 'Data collection',
-  phase5_thesis: 'Analysis & writing'
+  phase2_sona: 'SONA Setup',
+  phase3_before_experiment: 'Before Experiment',
+  phase4_go: 'Data Collection',
+  phase5_thesis: 'Analysis & Writing'
 };
 
 function renderMilestoneTable(milestones, today) {
