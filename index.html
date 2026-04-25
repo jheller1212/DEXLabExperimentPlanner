@@ -2294,7 +2294,7 @@ select { cursor: pointer; }
 </div>
 
 <!-- Wizard view (setup screens 1-4) -->
-<div class="view view-wizard" id="view-wizard" style="display:none;">
+<div class="view view-wizard" id="view-wizard">
   <div class="wizard">
     <div class="wizard-head">
       <span class="wizard-back" onclick="showLanding()">&larr; Back to home</span>
@@ -2529,7 +2529,7 @@ select { cursor: pointer; }
 </div>
 
 <!-- Plan view (separate from wizard) -->
-<div class="container" id="app-container" style="display:none;">
+<div class="container view" id="app-container">
   <main id="main-content">
 
   <!-- Hidden legacy screens (kept for JS compatibility) -->
@@ -2954,13 +2954,13 @@ var _wizardHighest = 1;
 
 function showLanding() {
   document.getElementById('view-landing').classList.add('active');
-  document.getElementById('view-wizard').style.display = 'none';
-  document.getElementById('app-container').style.display = 'none';
+  document.getElementById('view-wizard').classList.remove('active');
+  document.getElementById('app-container').classList.remove('active');
 }
 function startPlanning() {
   document.getElementById('view-landing').classList.remove('active');
-  document.getElementById('view-wizard').style.display = '';
-  document.getElementById('app-container').style.display = 'none';
+  document.getElementById('view-wizard').classList.add('active');
+  document.getElementById('app-container').classList.remove('active');
   wizardShowStep(1);
 }
 function showExamplePlan() {
@@ -2969,8 +2969,8 @@ function showExamplePlan() {
 }
 function showPlanView() {
   document.getElementById('view-landing').classList.remove('active');
-  document.getElementById('view-wizard').style.display = 'none';
-  document.getElementById('app-container').style.display = '';
+  document.getElementById('view-wizard').classList.remove('active');
+  document.getElementById('app-container').classList.add('active');
   // Mark plan screen as active for existing JS compatibility
   document.querySelectorAll('#app-container .screen').forEach(function(s) { s.classList.remove('active'); });
   document.getElementById('screen-plan').classList.add('active');
