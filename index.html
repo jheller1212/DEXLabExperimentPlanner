@@ -2223,9 +2223,9 @@ select { cursor: pointer; }
     </div>
     <div class="nav-spacer"></div>
     <div class="nav-links">
-      <span class="nav-link active">Planner</span>
-      <span class="nav-link">Lab booking</span>
-      <span class="nav-link">About</span>
+      <a class="nav-link" onclick="showLanding()" id="nav-home">Home</a>
+      <a class="nav-link" onclick="startPlanning()" id="nav-planner">Planner</a>
+      <a class="nav-link" href="https://resourcebooker.maastrichtuniversity.nl/" target="_blank" rel="noopener">Resource Booker &#8599;</a>
     </div>
   </div>
 </nav>
@@ -2984,16 +2984,23 @@ select { cursor: pointer; }
 var _wizardStep = 1;
 var _wizardHighest = 1;
 
+function updateNavActive(active) {
+  document.querySelectorAll('.nav-links .nav-link').forEach(function(l) { l.classList.remove('active'); });
+  var el = document.getElementById(active);
+  if (el) el.classList.add('active');
+}
 function showLanding() {
   document.getElementById('view-landing').classList.add('active');
   document.getElementById('view-wizard').classList.remove('active');
   document.getElementById('app-container').classList.remove('active');
+  updateNavActive('nav-home');
 }
 function startPlanning() {
   document.getElementById('view-landing').classList.remove('active');
   document.getElementById('view-wizard').classList.add('active');
   document.getElementById('app-container').classList.remove('active');
   wizardShowStep(1);
+  updateNavActive('nav-planner');
 }
 function showExamplePlan() {
   // For now, just start planning — example plan can be wired later
@@ -3006,6 +3013,7 @@ function showPlanView() {
   // Mark plan screen as active for existing JS compatibility
   document.querySelectorAll('#app-container .screen').forEach(function(s) { s.classList.remove('active'); });
   document.getElementById('screen-plan').classList.add('active');
+  updateNavActive('nav-planner');
 }
 
 function wizardShowStep(n) {
