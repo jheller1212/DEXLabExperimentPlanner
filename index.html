@@ -6,7 +6,7 @@
 <title>DEXLab Experiment Planner for Researchers</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;1,300;1,400&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 /* ── Reset & Base ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -40,49 +40,59 @@ body {
 /* ── Design Tokens ── */
 :root {
   /* Colors — Surface & Background */
-  --bg: #fafaf7;
+  --bg: #f6f7f9;
   --surface: #ffffff;
-  --surface-2: #f4f3ee;
-  --surface-3: #ebe9e1;
+  --surface-2: #eef1f5;
+  --surface-3: #e2e7ee;
 
   /* Colors — Ink (Text) */
-  --ink: #1a1915;
-  --ink-2: #3d3b34;
-  --ink-3: #6b6860;
-  --ink-4: #9a978e;
+  --ink: #0b2545;
+  --ink-2: #1f3a63;
+  --ink-3: #5a6b85;
+  --ink-4: #8d9aae;
 
   /* Colors — Lines & Borders */
-  --line: #e2dfd6;
-  --line-2: #d4d0c5;
+  --line: #d8dee8;
+  --line-2: #c2cbd9;
 
-  /* Colors — Accent */
-  --accent: #b03a2e;
-  --accent-ink: #8b2d23;
-  --accent-soft: #f6e8e5;
-  --accent-line: #e8c9c3;
+  /* Colors — Brand */
+  --brand-blue: #0099d8;
+  --brand-blue-ink: #007cb0;
+  --brand-blue-soft: #e1f3fb;
+  --brand-blue-line: #b8e2f2;
+  --brand-orange: #e84e1b;
+  --brand-orange-ink: #c23e10;
+  --brand-orange-soft: #fde8df;
+  --brand-orange-line: #f7c4ad;
+
+  /* Colors — Accent (alias for brand orange) */
+  --accent: var(--brand-orange);
+  --accent-ink: var(--brand-orange-ink);
+  --accent-soft: var(--brand-orange-soft);
+  --accent-line: var(--brand-orange-line);
 
   /* Colors — Semantic */
-  --ok: #2f6b4a;
-  --ok-soft: #e3efe7;
-  --warn: #8a6914;
-  --warn-soft: #f5ecd0;
+  --ok: #1f8a5b;
+  --ok-soft: #dcf2e7;
+  --warn: #b07f10;
+  --warn-soft: #fbecc8;
 
-  /* Colors — Palette */
-  --p1: #6b6860;
-  --p2: #4a6b8a;
-  --p3: #8a6914;
-  --p4: #b03a2e;
-  --p5: #2f6b4a;
+  /* Colors — Phase */
+  --p1: #5a6b85;
+  --p2: #0099d8;
+  --p3: #b07f10;
+  --p4: #e84e1b;
+  --p5: #1f8a5b;
 
   /* Border Radius */
   --radius: 6px;
-  --radius-lg: 10px;
+  --radius-lg: 12px;
   --radius-full: 9999px;
 
   /* Shadows */
-  --shadow-sm: 0 1px 0 rgba(20,18,12,0.04), 0 1px 2px rgba(20,18,12,0.04);
-  --shadow: 0 1px 0 rgba(20,18,12,0.04), 0 4px 16px -4px rgba(20,18,12,0.08);
-  --shadow-lg: 0 2px 0 rgba(20,18,12,0.04), 0 18px 40px -16px rgba(20,18,12,0.18);
+  --shadow-sm: 0 1px 0 rgba(11,37,69,0.04), 0 1px 2px rgba(11,37,69,0.04);
+  --shadow: 0 1px 0 rgba(11,37,69,0.04), 0 6px 18px -6px rgba(11,37,69,0.10);
+  --shadow-lg: 0 2px 0 rgba(11,37,69,0.04), 0 22px 44px -18px rgba(11,37,69,0.22);
 
   /* Spacing Scale */
   --space-1: 0.25rem;
@@ -105,7 +115,7 @@ body {
   --text-3xl: 2rem;
 
   /* Typography — Families */
-  --font-display: "Fraunces", "Charter", "Iowan Old Style", Georgia, serif;
+  --font-display: "Archivo Black", "Inter", system-ui, sans-serif;
   --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
@@ -127,7 +137,7 @@ body {
 /* Role accent overrides removed — single accent now */
 
 /* ── Typography ── */
-h1, h2, h3 { font-family: var(--font-display); font-weight: 700; color: var(--ink); line-height: 1.3; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 400; color: var(--ink); line-height: 1.3; text-transform: uppercase; }
 h1 { font-size: var(--text-3xl); }
 h2 { font-size: var(--text-2xl); }
 h3 { font-size: var(--text-xl); }
@@ -856,19 +866,20 @@ select { cursor: pointer; }
 }
 .plan-eyebrow {
   font-size: 11px;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--accent-ink);
-  font-weight: 500;
+  color: var(--brand-blue-ink);
+  font-weight: 700;
   margin-bottom: 12px;
 }
 .plan-title {
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: 44px;
+  font-size: 40px;
   letter-spacing: -0.02em;
   margin: 0 0 8px;
   color: var(--ink);
+  text-transform: uppercase;
 }
 .plan-meta {
   display: flex;
@@ -1616,7 +1627,7 @@ select { cursor: pointer; }
   position: sticky;
   top: 0;
   z-index: 50;
-  background: rgba(250, 250, 247, 0.85);
+  background: rgba(246, 247, 249, 0.88);
   backdrop-filter: saturate(140%) blur(10px);
   -webkit-backdrop-filter: saturate(140%) blur(10px);
   border-bottom: 1px solid var(--line);
@@ -1637,18 +1648,13 @@ select { cursor: pointer; }
   user-select: none;
 }
 .brand-mark {
-  width: 32px;
-  height: 32px;
-  border-radius: 4px;
-  background: var(--ink);
-  color: var(--bg);
+  width: 44px;
+  height: 44px;
   display: grid;
   place-items: center;
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 17px;
-  letter-spacing: -0.02em;
+  flex-shrink: 0;
 }
+.brand-mark img { width: 100%; height: 100%; object-fit: contain; }
 .brand-text { display: flex; flex-direction: column; line-height: 1.1; }
 .brand-name { font-weight: 600; font-size: 14px; letter-spacing: -0.01em; }
 .brand-sub { font-size: 11px; color: var(--ink-3); letter-spacing: 0.02em; }
@@ -1700,7 +1706,7 @@ select { cursor: pointer; }
   color: var(--bg);
   border-color: var(--ink);
 }
-.btn-new.btn-primary:hover { background: #000; }
+.btn-new.btn-primary:hover { background: #051a35; }
 .btn-new.btn-accent {
   background: var(--accent);
   color: #fff;
@@ -1738,10 +1744,10 @@ select { cursor: pointer; }
 }
 .eyebrow {
   font-size: 12px;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--accent-ink);
-  font-weight: 500;
+  color: var(--brand-blue-ink);
+  font-weight: 700;
   margin-bottom: 20px;
   display: inline-flex;
   align-items: center;
@@ -1749,23 +1755,24 @@ select { cursor: pointer; }
 }
 .eyebrow::before {
   content: "";
-  width: 24px;
-  height: 1px;
-  background: var(--accent);
+  width: 28px;
+  height: 2px;
+  background: var(--brand-blue);
 }
 .hero h1 {
   font-family: var(--font-display);
-  font-weight: 400;
-  font-size: 64px;
-  line-height: 1.02;
+  font-weight: 900;
+  font-size: 68px;
+  line-height: 0.98;
   letter-spacing: -0.025em;
   margin: 0 0 24px;
   color: var(--ink);
+  text-transform: uppercase;
 }
 .hero h1 em {
-  font-style: italic;
-  font-weight: 300;
-  color: var(--accent);
+  font-style: normal;
+  font-weight: inherit;
+  color: var(--brand-orange);
 }
 .hero-lead {
   font-size: 17px;
@@ -1773,6 +1780,28 @@ select { cursor: pointer; }
   line-height: 1.55;
   margin: 0 0 32px;
   max-width: 480px;
+}
+.hero-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  padding: 6px 12px;
+  border-radius: 999px;
+  margin: -16px 0 24px;
+}
+.hero-tag::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  background: var(--brand-orange);
+  border-radius: 50%;
 }
 .hero-cta { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 .hero-meta {
@@ -1786,7 +1815,7 @@ select { cursor: pointer; }
 }
 .hero-meta-item .num {
   font-family: var(--font-display);
-  font-size: 28px;
+  font-size: 32px;
   letter-spacing: -0.02em;
   color: var(--ink);
   display: block;
@@ -1943,10 +1972,11 @@ select { cursor: pointer; }
 .wizard-back:hover { color: var(--ink); }
 .wizard-title {
   font-family: var(--font-display);
-  font-weight: 400;
+  font-weight: 900;
   font-size: 36px;
   letter-spacing: -0.02em;
   margin: 0 0 8px;
+  text-transform: uppercase;
 }
 .wizard-sub {
   color: var(--ink-3);
@@ -2050,9 +2080,10 @@ select { cursor: pointer; }
 .role-name {
   font-family: var(--font-display);
   font-size: 22px;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.005em;
   margin-bottom: 6px;
   color: var(--ink);
+  text-transform: uppercase;
 }
 .role-desc {
   font-size: 13px;
@@ -2182,13 +2213,13 @@ select { cursor: pointer; }
 <nav class="topnav" id="topnav">
   <div class="topnav-inner">
     <div class="brand" onclick="showLanding()">
-      <div class="brand-mark">D</div>
+      <div class="brand-mark"><img src="assets/dexlab-logo.png" alt="DEXLab"></div>
       <div class="brand-text">
         <span class="brand-name">Experiment Planner</span>
-        <span class="brand-sub">DEXLab</span>
+        <span class="brand-sub">Digital Experience Lab</span>
       </div>
       <div class="brand-divider"></div>
-      <div class="brand-org"><strong>Maastricht University</strong> &middot; SBE</div>
+      <div class="brand-org"><strong>Maastricht University</strong> &middot; School of Business and Economics</div>
     </div>
     <div class="nav-spacer"></div>
     <div class="nav-links">
@@ -2204,25 +2235,26 @@ select { cursor: pointer; }
   <div class="page">
     <div class="hero">
       <div class="hero-left">
-        <div class="eyebrow">Maastricht University &middot; SBE</div>
-        <h1>Plan your experiment, <em>backwards</em>.</h1>
-        <p class="hero-lead">Start from your data-collection date and work backwards through every milestone &mdash; ethics, SONA, lab booking, analysis. Never miss a deadline again.</p>
+        <div class="eyebrow">DEXLab &middot; SBE &middot; Maastricht</div>
+        <h1>Plan your experiment, <em>backwards.</em></h1>
+        <p class="hero-tag">A DEXLab tool</p>
+        <p class="hero-lead">A personalised timeline for Master thesis students and PhD researchers running studies at the DEXLab. Enter your role, block period, and deadline &mdash; get every milestone, deadline, and lab booking step laid out for you.</p>
         <div class="hero-cta">
           <button class="btn-new btn-primary btn-lg" onclick="startPlanning()">Start planning</button>
           <button class="btn-new btn-ghost btn-lg" onclick="showExamplePlan()">See example plan</button>
         </div>
         <div class="hero-meta">
           <div class="hero-meta-item">
-            <span class="num">12 wks</span>
-            <span class="lbl">Typical timeline</span>
+            <span class="num">5</span>
+            <span class="lbl">Phases, start to submit</span>
           </div>
           <div class="hero-meta-item">
-            <span class="num">5 phases</span>
-            <span class="lbl">Guided steps</span>
+            <span class="num">22</span>
+            <span class="lbl">Auto-generated milestones</span>
           </div>
           <div class="hero-meta-item">
-            <span class="num">0 missed</span>
-            <span class="lbl">Deadline target</span>
+            <span class="num">.ics</span>
+            <span class="lbl">Export to your calendar</span>
           </div>
         </div>
       </div>
