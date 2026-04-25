@@ -2223,8 +2223,8 @@ select { cursor: pointer; }
     </div>
     <div class="nav-spacer"></div>
     <div class="nav-links">
-      <a class="nav-link" onclick="showLanding()" id="nav-home">Home</a>
-      <a class="nav-link" onclick="startPlanning()" id="nav-planner">Planner</a>
+      <a class="nav-link" href="#" onclick="event.preventDefault();showLanding()" id="nav-home">Home</a>
+      <a class="nav-link" href="#" onclick="event.preventDefault();startPlanning()" id="nav-planner">Planner</a>
       <a class="nav-link" href="https://resourcebooker.maastrichtuniversity.nl/" target="_blank" rel="noopener">Resource Booker &#8599;</a>
     </div>
   </div>
@@ -2440,9 +2440,9 @@ select { cursor: pointer; }
 
       <!-- Quick Estimate helper (all roles) -->
       <div class="card" id="quick-estimate-card">
-        <details class="disclosure" id="quick-estimate-section" ontoggle="if(this.open) updateQuickEstimate()">
+        <details class="disclosure" id="quick-estimate-section" open ontoggle="if(this.open) updateQuickEstimate()" style="border-left:3px solid var(--brand-orange);border-left-color:var(--brand-orange, var(--accent));">
           <summary class="disclosure-head">
-            <span>Estimate lab days <span style="font-weight:400;color:var(--ink-3);font-size:0.85em;">— optional, helps you plan data collection</span></span>
+            <span>Estimate lab days <span style="font-weight:400;color:var(--ink-3);font-size:0.85em;">— recommended</span></span>
             <span class="chevron">&#9660;</span>
           </summary>
           <div class="disclosure-body">
