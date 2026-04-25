@@ -6,16 +6,17 @@
 <title>DEXLab Experiment Planner for Researchers</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;1,300;1,400&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 /* ── Reset & Base ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { font-size: 16px; scroll-behavior: smooth; scroll-padding-top: 6rem; }
 body {
-  font-family: var(--font-sans);
-  background: var(--surface-alt);
-  color: var(--text-primary);
-  line-height: 1.6;
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.5;
   min-height: 100vh;
 }
 
@@ -24,7 +25,7 @@ body {
   position: absolute;
   top: -100%;
   left: 0;
-  background: var(--navy, #1b2a4a);
+  background: var(--ink);
   color: #fff;
   padding: 0.5rem 1rem;
   z-index: 9999;
@@ -38,32 +39,50 @@ body {
 
 /* ── Design Tokens ── */
 :root {
-  /* Colors — Brand */
-  --dex-blue: #1a9bd7;
-  --dex-blue-light: #e8f4fc;
-  --dex-blue-dark: #1580b5;
-  --lab-orange: #e8632b;
-  --lab-orange-light: #fef0e8;
-  --lab-orange-dark: #c8521f;
-  --navy: #1b2a4a;
-  --navy-light: #2d3f5e;
-
-  /* Colors — Surface & Border */
+  /* Colors — Surface & Background */
+  --bg: #fafaf7;
   --surface: #ffffff;
-  --surface-alt: #f0f3f8;
-  --border: #dce3ed;
-  --border-light: #e8edf5;
+  --surface-2: #f4f3ee;
+  --surface-3: #ebe9e1;
 
-  /* Colors — Text */
-  --text-primary: #1a2a4a;
-  --text-secondary: #4a5568;
-  --text-muted: #5a6a82;
+  /* Colors — Ink (Text) */
+  --ink: #1a1915;
+  --ink-2: #3d3b34;
+  --ink-3: #6b6860;
+  --ink-4: #9a978e;
+
+  /* Colors — Lines & Borders */
+  --line: #e2dfd6;
+  --line-2: #d4d0c5;
+
+  /* Colors — Accent */
+  --accent: #b03a2e;
+  --accent-ink: #8b2d23;
+  --accent-soft: #f6e8e5;
+  --accent-line: #e8c9c3;
 
   /* Colors — Semantic */
-  --warning: #f97316;
-  --danger: #ef4444;
-  --danger-light: #fde8e8;
-  --success: #22c55e;
+  --ok: #2f6b4a;
+  --ok-soft: #e3efe7;
+  --warn: #8a6914;
+  --warn-soft: #f5ecd0;
+
+  /* Colors — Palette */
+  --p1: #6b6860;
+  --p2: #4a6b8a;
+  --p3: #8a6914;
+  --p4: #b03a2e;
+  --p5: #2f6b4a;
+
+  /* Border Radius */
+  --radius: 6px;
+  --radius-lg: 10px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 0 rgba(20,18,12,0.04), 0 1px 2px rgba(20,18,12,0.04);
+  --shadow: 0 1px 0 rgba(20,18,12,0.04), 0 4px 16px -4px rgba(20,18,12,0.08);
+  --shadow-lg: 0 2px 0 rgba(20,18,12,0.04), 0 18px 40px -16px rgba(20,18,12,0.18);
 
   /* Spacing Scale */
   --space-1: 0.25rem;
@@ -76,17 +95,6 @@ body {
   --space-10: 2.5rem;
   --space-16: 4rem;
 
-  /* Border Radius */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-full: 9999px;
-
-  /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(27,42,74,0.04);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
-  --shadow-lg: 0 8px 30px rgba(0,0,0,0.15);
-
   /* Typography — Sizes */
   --text-xs: 0.75rem;
   --text-sm: 0.8125rem;
@@ -97,9 +105,9 @@ body {
   --text-3xl: 2rem;
 
   /* Typography — Families */
-  --font-sans: 'DM Sans', sans-serif;
-  --font-serif: 'Fraunces', serif;
-  --font-mono: 'DM Mono', monospace;
+  --font-display: "Fraunces", "Charter", "Iowan Old Style", Georgia, serif;
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
   /* Z-index Scale */
   --z-sticky: 100;
@@ -116,13 +124,10 @@ body {
   --transition-slow: 0.3s ease;
 }
 
-/* Role accent overrides */
-body.role-master { --accent: var(--dex-blue); --accent-light: var(--dex-blue-light); --accent-dark: var(--dex-blue-dark); }
-body.role-phd { --accent: var(--lab-orange); --accent-light: var(--lab-orange-light); --accent-dark: var(--lab-orange-dark); }
-body { --accent: var(--dex-blue); --accent-light: var(--dex-blue-light); --accent-dark: var(--dex-blue-dark); }
+/* Role accent overrides removed — single accent now */
 
 /* ── Typography ── */
-h1, h2, h3 { font-family: var(--font-serif); font-weight: 700; color: var(--navy); line-height: 1.3; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 700; color: var(--ink); line-height: 1.3; }
 h1 { font-size: var(--text-3xl); }
 h2 { font-size: var(--text-2xl); }
 h3 { font-size: var(--text-xl); }
@@ -140,7 +145,7 @@ h3 { font-size: var(--text-xl); }
   text-align: center;
   margin-bottom: 2.5rem;
   padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--line);
 }
 .header-logo-link { text-decoration: none; display: inline-block; cursor: pointer; }
 .header-logo-link:hover { opacity: 0.8; }
@@ -153,18 +158,18 @@ h3 { font-size: var(--text-xl); }
   letter-spacing: -0.02em;
   margin-bottom: 0.15rem;
 }
-.header h1 .dex { color: var(--dex-blue); }
-.header h1 .lab { color: var(--lab-orange); }
+.header h1 .dex { color: var(--accent); }
+.header h1 .lab { color: var(--warn); }
 .header .subtitle {
-  color: var(--text-muted);
+  color: var(--ink-3);
   font-size: var(--text-base);
 }
 .header .lab-badge {
   display: inline-block;
   font-family: var(--font-mono);
   font-size: var(--text-xs);
-  color: var(--text-muted);
-  border: 1px solid var(--border);
+  color: var(--ink-3);
+  border: 1px solid var(--line);
   border-radius: 4px;
   padding: 0.15rem 0.5rem;
   margin-top: 0.5rem;
@@ -179,24 +184,36 @@ h3 { font-size: var(--text-xl); }
 /* ── Cards ── */
 .card, .card-flat, .card-raised {
   background: var(--surface);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius);
   padding: var(--space-4);
   margin-bottom: 1.25rem;
 }
 .card-flat {
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   box-shadow: none;
 }
 .card {
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   box-shadow: var(--shadow-sm);
 }
 .card-raised {
-  border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-md);
+  border: 1px solid var(--line-2);
+  box-shadow: var(--shadow);
 }
 .card-accent {
   border-left: 3px solid var(--accent);
+}
+.card-title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 22px;
+  letter-spacing: -0.01em;
+  margin: 0 0 6px;
+}
+.card-sub {
+  color: var(--ink-3);
+  font-size: 13px;
+  margin: 0 0 24px;
 }
 
 /* ── Utility Classes ── */
@@ -210,20 +227,20 @@ h3 { font-size: var(--text-xl); }
 .flex-row-between { display: flex; align-items: center; justify-content: space-between; }
 .flex-actions { display: flex; gap: var(--space-2); }
 .flex-center { display: flex; gap: var(--space-2); justify-content: center; }
-.form-hint { font-size: var(--text-sm); color: var(--text-muted); line-height: 1.5; }
-.form-hint-inline { font-size: var(--text-sm); color: var(--text-muted); }
-.section-subtitle { font-size: var(--text-xs); font-weight: 600; color: var(--text-primary); margin-bottom: var(--space-2); }
-.result-box { padding: var(--space-3); background: var(--accent-light); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: none; }
-.inline-form { padding: var(--space-3); background: var(--surface-alt); border: 1px solid var(--border); border-radius: var(--radius-md); }
-.notice { padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); font-size: var(--text-sm); line-height: 1.5; }
-.notice-warning { background: var(--lab-orange-light); border: 1px solid rgba(232,99,43,0.25); color: var(--lab-orange); }
-.notice-info { background: var(--surface-alt); border: 1px solid var(--border); color: var(--text-muted); }
-.textarea { width: 100%; padding: 0.5rem 0.75rem; background: var(--surface-alt); border: 1px solid var(--border); border-radius: var(--radius-md); font-family: var(--font-sans); font-size: var(--text-base); color: var(--text-primary); resize: vertical; }
-.textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
+.form-hint { font-size: var(--text-sm); color: var(--ink-3); line-height: 1.5; }
+.form-hint-inline { font-size: var(--text-sm); color: var(--ink-3); }
+.section-subtitle { font-size: var(--text-xs); font-weight: 600; color: var(--ink); margin-bottom: var(--space-2); }
+.result-box { padding: var(--space-3); background: var(--accent-soft); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: none; }
+.inline-form { padding: var(--space-3); background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius); }
+.notice { padding: var(--space-3) var(--space-4); border-radius: var(--radius); font-size: var(--text-sm); line-height: 1.5; }
+.notice-warning { background: var(--warn-soft); border: 1px solid rgba(232,99,43,0.25); color: var(--warn); }
+.notice-info { background: var(--bg); border: 1px solid var(--line); color: var(--ink-3); }
+.textarea { width: 100%; padding: 0.5rem 0.75rem; background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius); font-family: var(--font-body); font-size: var(--text-base); color: var(--ink); resize: vertical; }
+.textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 label.label-sm { font-size: var(--text-sm); }
 .input-narrow { width: 5rem; }
-.info-pill { cursor: help; display: inline-flex; align-items: center; justify-content: center; width: 1rem; height: 1rem; border-radius: var(--radius-full); background: var(--border); color: var(--text-muted); font-size: var(--text-xs); font-weight: 700; line-height: 1; position: relative; }
-.info-pill[data-tip]::after { content: attr(data-tip); position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: var(--navy); color: #fff; font-size: var(--text-xs); font-weight: 400; padding: 0.4rem 0.6rem; border-radius: var(--radius-sm); white-space: normal; width: max-content; max-width: 220px; line-height: 1.4; pointer-events: none; opacity: 0; transition: opacity var(--transition-fast); z-index: var(--z-dropdown); }
+.info-pill { cursor: help; display: inline-flex; align-items: center; justify-content: center; width: 1rem; height: 1rem; border-radius: var(--radius-full); background: var(--line); color: var(--ink-3); font-size: var(--text-xs); font-weight: 700; line-height: 1; position: relative; }
+.info-pill[data-tip]::after { content: attr(data-tip); position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff; font-size: var(--text-xs); font-weight: 400; padding: 0.4rem 0.6rem; border-radius: var(--radius); white-space: normal; width: max-content; max-width: 220px; line-height: 1.4; pointer-events: none; opacity: 0; transition: opacity var(--transition-fast); z-index: var(--z-dropdown); }
 .info-pill[data-tip]:hover::after, .info-pill[data-tip]:focus::after { opacity: 1; }
 .mb-0 { margin-bottom: 0; }
 .mb-2 { margin-bottom: var(--space-2); }
@@ -233,79 +250,50 @@ label.label-sm { font-size: var(--text-sm); }
 .mt-4 { margin-top: var(--space-4); }
 .data-grid { display: grid; grid-template-columns: auto 1fr; gap: var(--space-1) var(--space-4); font-size: var(--text-base); }
 .data-grid-3 { display: grid; grid-template-columns: auto 1fr auto; gap: 0.35rem 0.75rem; }
-.remove-btn { background: none; border: none; cursor: pointer; color: var(--danger); font-size: var(--text-base); padding: 0.1rem 0.3rem; line-height: 1; }
-.slot-chip { display: inline-block; border-radius: var(--radius-sm); padding: 0.15rem 0.4rem; margin: 0.15rem 0.2rem; font-size: var(--text-xs); white-space: nowrap; }
-.slot-chip-default { background: var(--surface-alt); border: 1px solid var(--border); }
-.slot-chip-lunch { background: var(--lab-orange-light); border: 1px solid rgba(232,99,43,0.2); color: var(--lab-orange); font-size: var(--text-xs); }
-.slot-chip-blocked { background: var(--danger-light); border: 1px solid var(--danger); color: var(--danger); font-size: var(--text-xs); opacity: 0.85; }
-.badge-tag { background: var(--surface-alt); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0 0.35rem; font-size: var(--text-xs); color: var(--text-muted); margin-left: var(--space-1); }
-.badge-tag-warning { background: var(--lab-orange-light); border: 1px solid rgba(232,99,43,0.25); color: var(--lab-orange); }
-body.dark .textarea { background: var(--surface-alt); border-color: var(--border); color: var(--text-primary); }
+.remove-btn { background: none; border: none; cursor: pointer; color: var(--accent); font-size: var(--text-base); padding: 0.1rem 0.3rem; line-height: 1; }
+.slot-chip { display: inline-block; border-radius: var(--radius); padding: 0.15rem 0.4rem; margin: 0.15rem 0.2rem; font-size: var(--text-xs); white-space: nowrap; }
+.slot-chip-default { background: var(--bg); border: 1px solid var(--line); }
+.slot-chip-lunch { background: var(--warn-soft); border: 1px solid rgba(232,99,43,0.2); color: var(--warn); font-size: var(--text-xs); }
+.slot-chip-blocked { background: var(--accent-soft); border: 1px solid var(--accent); color: var(--accent); font-size: var(--text-xs); opacity: 0.85; }
+.badge-tag { background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius); padding: 0 0.35rem; font-size: var(--text-xs); color: var(--ink-3); margin-left: var(--space-1); }
+.badge-tag-warning { background: var(--warn-soft); border: 1px solid rgba(232,99,43,0.25); color: var(--warn); }
 
 /* -- JS-generated component classes -- */
-.toggle-btn { background: none; border: none; cursor: pointer; font-size: var(--text-base); font-weight: 600; color: var(--accent-dark); font-family: var(--font-sans); padding: 0; display: flex; align-items: center; gap: 0.4rem; }
+.toggle-btn { background: none; border: none; cursor: pointer; font-size: var(--text-base); font-weight: 600; color: var(--accent-ink); font-family: var(--font-body); padding: 0; display: flex; align-items: center; gap: 0.4rem; }
 .toggle-btn .chev { font-size: var(--text-xs); }
 .tt-table { width: 100%; border-collapse: collapse; font-size: var(--text-base); }
-.tt-table th { text-align: left; padding: 0.35rem 0.75rem 0.35rem 0; border-bottom: 2px solid var(--border); font-size: var(--text-sm); }
+.tt-table th { text-align: left; padding: 0.35rem 0.75rem 0.35rem 0; border-bottom: 2px solid var(--line); font-size: var(--text-sm); }
 .tt-table th:last-child { padding-left: 0.75rem; padding-right: 0; }
-.tt-table td { border-bottom: 1px solid var(--border-light); }
+.tt-table td { border-bottom: 1px solid var(--line-2); }
 .tt-day-cell { white-space: nowrap; vertical-align: top; padding: 0.35rem 0.75rem 0.35rem 0; font-size: var(--text-sm); }
 .tt-slots-cell { padding: 0.35rem 0; line-height: 1.8; }
 .tt-total-cell { vertical-align: top; padding: 0.35rem 0 0.35rem 0.75rem; font-size: var(--text-sm); white-space: nowrap; }
-.action-link { font-size: var(--text-xs); color: var(--text-muted); text-decoration: none; }
+.action-link { font-size: var(--text-xs); color: var(--ink-3); text-decoration: none; }
 .action-link:hover { text-decoration: underline; }
-.action-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-xs); padding: 0 0.3rem; }
-.action-btn-accent { color: var(--accent-dark); }
-.tour-banner { position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%); z-index: 10001; background: var(--accent); color: #fff; padding: var(--space-2) var(--space-4); border-radius: var(--radius-md); font-size: var(--text-sm); font-family: var(--font-sans); box-shadow: var(--shadow-md); display: flex; align-items: center; gap: var(--space-3); }
-.tour-banner button { background: rgba(255,255,255,0.2); border: none; color: #fff; padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); cursor: pointer; font-size: var(--text-xs); font-family: inherit; }
-.lab-nudge { padding: 0.6rem 0.75rem; background: var(--lab-orange-light); border: 1px solid var(--lab-orange); border-radius: var(--radius-md); margin-bottom: var(--space-3); font-size: var(--text-sm); color: var(--lab-orange-dark); line-height: 1.5; }
+.action-btn { background: none; border: none; color: var(--ink-3); cursor: pointer; font-size: var(--text-xs); padding: 0 0.3rem; }
+.action-btn-accent { color: var(--accent-ink); }
+.tour-banner { position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%); z-index: 10001; background: var(--accent); color: #fff; padding: var(--space-2) var(--space-4); border-radius: var(--radius); font-size: var(--text-sm); font-family: var(--font-body); box-shadow: var(--shadow); display: flex; align-items: center; gap: var(--space-3); }
+.tour-banner button { background: rgba(255,255,255,0.2); border: none; color: #fff; padding: 0.25rem 0.5rem; border-radius: var(--radius); cursor: pointer; font-size: var(--text-xs); font-family: inherit; }
+.lab-nudge { padding: 0.6rem 0.75rem; background: var(--warn-soft); border: 1px solid var(--warn); border-radius: var(--radius); margin-bottom: var(--space-3); font-size: var(--text-sm); color: var(--warn); line-height: 1.5; }
 .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2) var(--space-6); font-size: var(--text-base); }
-.result-value-highlight { font-weight: 700; color: var(--accent-dark); }
-.hidden-item { display: flex; align-items: center; justify-content: space-between; padding: 0.3rem 0; border-bottom: 1px solid var(--border-light); }
-.kbd { background: var(--surface); border: 1px solid var(--border); border-radius: 3px; padding: 0.1rem 0.35rem; font-size: var(--text-xs); }
-
-/* ── Screen 1: Role ── */
-.role-buttons {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  margin-top: 1.5rem;
-}
-.role-btn {
-  flex: 1;
-  max-width: 260px;
-  padding: 1.25rem 1.5rem;
-  background: var(--surface);
-  border: 2px solid var(--border);
-  border-radius: 12px;
-  color: var(--text-primary);
-  font-family: var(--font-sans);
-  font-size: var(--text-lg);
-  font-weight: 600;
-  cursor: pointer;
-  transition: border-color 0.2s, background 0.2s, transform 0.1s;
-}
-.role-btn:hover { border-color: var(--dex-blue); background: var(--dex-blue-light); }
-.role-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.role-btn:active { transform: scale(0.98); }
-.role-btn.selected-master { border-color: var(--dex-blue); background: var(--dex-blue-light); }
-.role-btn.selected-phd { border-color: var(--lab-orange); background: var(--lab-orange-light); }
-.role-label { display: block; font-size: var(--text-xs); color: var(--text-muted); margin-bottom: 0.35rem; font-weight: 400; }
+.result-value-highlight { font-weight: 700; color: var(--accent-ink); }
+.hidden-item { display: flex; align-items: center; justify-content: space-between; padding: 0.3rem 0; border-bottom: 1px solid var(--line-2); }
+.kbd { background: var(--surface); border: 1px solid var(--line); border-radius: 3px; padding: 0.1rem 0.35rem; font-size: var(--text-xs); }
 
 /* ── Form elements ── */
-label { display: block; font-weight: 500; margin-bottom: 0.35rem; font-size: var(--text-base); color: var(--navy); }
+label { display: block; font-weight: 500; margin-bottom: 0.35rem; font-size: var(--text-base); color: var(--ink); }
 select, input[type="date"], input[type="text"], input[type="number"], input[type="email"], input[type="time"] {
   width: 100%;
   padding: 0.6rem 0.75rem;
-  background: var(--surface-alt);
-  border: 1px solid var(--border);
+  background: var(--bg);
+  border: 1px solid var(--line);
   border-radius: 8px;
-  color: var(--text-primary);
-  font-family: var(--font-sans);
+  color: var(--ink);
+  font-family: var(--font-body);
   font-size: var(--text-base);
   transition: border-color 0.2s;
 }
-select:focus, input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
+select:focus, input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 select { cursor: pointer; }
 
 .form-row { margin-bottom: 1rem; }
@@ -320,10 +308,10 @@ select { cursor: pointer; }
 .stepper button {
   width: 44px;
   height: 44px;
-  background: var(--surface-alt);
-  border: 1px solid var(--border);
+  background: var(--bg);
+  border: 1px solid var(--line);
   border-radius: 6px;
-  color: var(--text-primary);
+  color: var(--ink);
   font-size: var(--text-lg);
   cursor: pointer;
   display: flex;
@@ -341,8 +329,8 @@ select { cursor: pointer; }
 
 /* ── Confirmation ── */
 .confirm-box {
-  background: var(--accent-light);
-  border: 1px solid var(--border);
+  background: var(--accent-soft);
+  border: 1px solid var(--line);
   border-radius: 8px;
   padding: 1rem 1.25rem;
   margin-bottom: 1rem;
@@ -351,22 +339,22 @@ select { cursor: pointer; }
 .date-range {
   font-family: var(--font-mono);
   font-size: var(--text-base);
-  color: var(--accent-dark);
+  color: var(--accent-ink);
   margin: 0.5rem 0;
 }
 
 /* ── Holiday warning ── */
 .holiday-warning {
-  background: var(--lab-orange-light);
+  background: var(--warn-soft);
   border: 1px solid rgba(232,99,43,0.25);
   border-radius: 8px;
   padding: 0.75rem 1rem;
   margin-top: 0.75rem;
   font-size: var(--text-sm);
-  color: var(--lab-orange);
+  color: var(--warn);
 }
 .holiday-warning .hw-icon { margin-right: 0.35rem; }
-.holiday-warning .hw-list { color: var(--text-primary); margin-top: 0.25rem; font-size: var(--text-sm); }
+.holiday-warning .hw-list { color: var(--ink); margin-top: 0.25rem; font-size: var(--text-sm); }
 
 /* ── Buttons ── */
 .btn {
@@ -375,8 +363,8 @@ select { cursor: pointer; }
   gap: 0.4rem;
   padding: 0.65rem 1.5rem;
   border: none;
-  border-radius: var(--radius-md);
-  font-family: var(--font-sans);
+  border-radius: var(--radius);
+  font-family: var(--font-body);
   font-size: var(--text-base);
   font-weight: 600;
   cursor: pointer;
@@ -389,24 +377,24 @@ select { cursor: pointer; }
   background: var(--accent);
   color: #fff;
 }
-.btn-primary:hover { background: var(--accent-dark); opacity: 1; }
+.btn-primary:hover { background: var(--accent-ink); opacity: 1; }
 .btn-orange {
-  background: var(--lab-orange);
+  background: var(--warn);
   color: #fff;
 }
-.btn-orange:hover { background: var(--lab-orange-dark); opacity: 1; }
+.btn-orange:hover { background: var(--warn); opacity: 1; }
 .btn-ghost {
   background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-primary);
+  border: 1px solid var(--line);
+  color: var(--ink);
 }
-.btn-ghost:hover { border-color: var(--accent); color: var(--accent-dark); }
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent-ink); }
 .btn-outline {
   background: transparent;
   border: 1px solid var(--accent);
   color: var(--accent);
 }
-.btn-outline:hover { background: var(--accent-light); color: var(--accent-dark); }
+.btn-outline:hover { background: var(--accent-soft); color: var(--accent-ink); }
 .btn-sm { padding: 0.4rem 0.9rem; font-size: var(--text-sm); }
 
 /* ── Yes/No toggle ── */
@@ -418,7 +406,7 @@ select { cursor: pointer; }
   bottom: 2rem;
   left: 50%;
   transform: translateX(-50%) translateY(100px);
-  background: var(--navy);
+  background: var(--ink);
   color: #fff;
   padding: 0.6rem 1.25rem;
   border-radius: 8px;
@@ -433,18 +421,18 @@ select { cursor: pointer; }
   transform: translateX(-50%) translateY(0);
   opacity: 1;
 }
-.toast.toast-warning { background: var(--warning); }
+.toast.toast-warning { background: var(--warn); }
 .badge-tag-warning { background: #fef3c7; border-color: #f59e0b; color: #92400e; }
-.badge-tag-conflict { background: #fde8e8; border-color: var(--danger); color: var(--danger); }
-.buffer-indicator { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); font-size: var(--text-sm); font-weight: 500; }
+.badge-tag-conflict { background: #fde8e8; border-color: var(--accent); color: var(--accent); }
+.buffer-indicator { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); border-radius: var(--radius); font-size: var(--text-sm); font-weight: 500; }
 .buffer-ok { background: #dcfce7; color: #166534; }
 .buffer-tight { background: #fef3c7; color: #92400e; }
-.buffer-over { background: #fde8e8; color: var(--danger); }
+.buffer-over { background: #fde8e8; color: var(--accent); }
 
 /* ── Bookmark reminder ── */
 .bookmark-reminder {
-  background: var(--dex-blue-light);
-  border: 1px solid var(--dex-blue);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
   border-radius: 10px;
   padding: 0.75rem 1rem;
   margin-bottom: 1rem;
@@ -452,16 +440,16 @@ select { cursor: pointer; }
 
 /* ── Progress bar ── */
 .progress-bar-container {
-  background: var(--surface-alt);
+  background: var(--bg);
   border-radius: 6px;
   height: 8px;
   overflow: hidden;
   margin-bottom: 1.25rem;
-  border: 1px solid var(--border-light);
+  border: 1px solid var(--line-2);
 }
 .progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, var(--dex-blue), var(--lab-orange));
+  background: linear-gradient(90deg, var(--accent), var(--warn));
   border-radius: 6px;
   transition: width 0.4s ease;
   width: 0%;
@@ -480,7 +468,7 @@ select { cursor: pointer; }
   top: 0;
   bottom: 0;
   width: 2px;
-  background: var(--border);
+  background: var(--line);
 }
 .tl-item {
   position: relative;
@@ -502,9 +490,9 @@ select { cursor: pointer; }
   z-index: 2;
   flex-shrink: 0;
 }
-.tl-dot.past { background: var(--text-muted); }
+.tl-dot.past { background: var(--ink-3); }
 .tl-dot.holiday {
-  background: var(--warning);
+  background: var(--warn);
   border-radius: 2px;
   width: 10px;
   height: 10px;
@@ -515,27 +503,27 @@ select { cursor: pointer; }
 .tl-date {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
-  color: var(--text-muted);
+  color: var(--ink-3);
   min-width: 7rem;
   flex-shrink: 0;
 }
 .tl-label {
   font-size: var(--text-sm);
-  color: var(--text-primary);
+  color: var(--ink);
   line-height: 1.4;
 }
-.tl-item.past .tl-label { color: var(--text-muted); text-decoration: line-through; }
-.tl-item.overdue .tl-dot { background: var(--danger); }
-.tl-item.overdue .tl-label { color: var(--danger); font-weight: 600; text-decoration: none; }
-.tl-item.overdue .tl-date { color: var(--danger); }
-.tl-item.holiday-item .tl-label { color: var(--warning); font-weight: 500; }
-.tl-item.holiday-item .tl-date { color: var(--warning); }
-.tl-item.key-date { background: var(--accent-light); border-radius: 6px; margin: 0.2rem -0.5rem; padding: 0.5rem 0.5rem 0.5rem 2.5rem; }
+.tl-item.past .tl-label { color: var(--ink-3); text-decoration: line-through; }
+.tl-item.overdue .tl-dot { background: var(--accent); }
+.tl-item.overdue .tl-label { color: var(--accent); font-weight: 600; text-decoration: none; }
+.tl-item.overdue .tl-date { color: var(--accent); }
+.tl-item.holiday-item .tl-label { color: var(--warn); font-weight: 500; }
+.tl-item.holiday-item .tl-date { color: var(--warn); }
+.tl-item.key-date { background: var(--accent-soft); border-radius: 6px; margin: 0.2rem -0.5rem; padding: 0.5rem 0.5rem 0.5rem 2.5rem; }
 .tl-item.key-date .tl-dot { background: var(--accent); width: 16px; height: 16px; }
-.tl-item.key-date .tl-label { font-weight: 700; color: var(--accent-dark); }
-.tl-item.key-date .tl-date { color: var(--accent-dark); font-weight: 600; }
-.tl-item.lab-day .tl-dot { background: var(--dex-blue); width: 8px; height: 8px; top: 0.65rem; left: calc(-2rem + 2px); }
-.tl-item.lab-day .tl-label { font-size: var(--text-xs); color: var(--text-muted); }
+.tl-item.key-date .tl-label { font-weight: 700; color: var(--accent-ink); }
+.tl-item.key-date .tl-date { color: var(--accent-ink); font-weight: 600; }
+.tl-item.lab-day .tl-dot { background: var(--accent); width: 8px; height: 8px; top: 0.65rem; left: calc(-2rem + 2px); }
+.tl-item.lab-day .tl-label { font-size: var(--text-xs); color: var(--ink-3); }
 .tl-item.lab-day .tl-date { font-size: var(--text-xs); }
 
 /* Today marker in timeline */
@@ -570,6 +558,152 @@ select { cursor: pointer; }
   white-space: nowrap;
 }
 
+/* ── Gantt Timeline ── */
+.timeline-wrap {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.timeline-head {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.timeline-head h3 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 18px;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+.timeline-legend {
+  display: flex;
+  gap: 14px;
+  font-size: 11px;
+  color: var(--ink-3);
+}
+.timeline-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.timeline-legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+.timeline-body {
+  position: relative;
+  padding: 20px 0 24px;
+  overflow-x: auto;
+}
+.timeline-grid {
+  position: relative;
+  min-width: 100%;
+  padding: 0 20px;
+}
+.timeline-axis {
+  display: flex;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 16px;
+  position: relative;
+  min-width: 800px;
+}
+.timeline-axis-tick {
+  flex: 1;
+  font-size: 10px;
+  color: var(--ink-3);
+  padding: 0 0 8px;
+  text-align: left;
+  border-left: 1px solid var(--line);
+  padding-left: 6px;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+}
+.timeline-axis-tick:first-child { border-left: none; padding-left: 0; }
+.timeline-axis-tick.month-start { color: var(--ink); font-weight: 600; }
+.timeline-rows {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 800px;
+}
+.tl-row-gantt {
+  position: relative;
+  height: 28px;
+  display: flex;
+  align-items: center;
+}
+.tl-row-gantt::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(to right, var(--line) 1px, transparent 1px);
+  background-size: calc(100% / var(--ticks, 12)) 100%;
+  opacity: 0.5;
+}
+.tl-bar-gantt {
+  position: absolute;
+  height: 24px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #fff;
+  white-space: nowrap;
+  cursor: default;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: filter 120ms;
+}
+.tl-bar-gantt:hover { filter: brightness(1.08); }
+.tl-diamond {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background: transparent;
+  border: 2px solid currentColor;
+  transform: rotate(45deg);
+  border-radius: 2px;
+  cursor: default;
+  z-index: 3;
+}
+.tl-diamond-label {
+  position: absolute;
+  font-size: 10px;
+  color: var(--ink-2);
+  white-space: nowrap;
+  font-weight: 500;
+  background: var(--surface);
+  padding: 1px 4px;
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 4;
+}
+.tl-today-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--accent);
+  z-index: 5;
+}
+.tl-today-line::before {
+  content: "TODAY";
+  position: absolute;
+  top: -4px;
+  left: 4px;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  font-weight: 600;
+  font-family: var(--font-mono);
+}
+
 /* ── Milestone table ── */
 .milestone-table {
   width: 100%;
@@ -579,8 +713,8 @@ select { cursor: pointer; }
 .milestone-table th {
   text-align: left;
   padding: 0.5rem 0.75rem;
-  border-bottom: 2px solid var(--border);
-  color: var(--text-muted);
+  border-bottom: 2px solid var(--line);
+  color: var(--ink-3);
   font-weight: 500;
   font-size: var(--text-xs);
   text-transform: uppercase;
@@ -588,20 +722,20 @@ select { cursor: pointer; }
 }
 .milestone-table td {
   padding: 0.6rem 0.75rem;
-  border-bottom: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--line-2);
 }
-.milestone-table tr.past td { color: var(--text-muted); text-decoration: line-through; }
-.milestone-table .ms-date { font-family: 'DM Mono', monospace; font-size: var(--text-sm); white-space: nowrap; }
-.status-past { color: var(--text-muted); }
-.status-urgent { color: var(--warning); font-weight: 600; }
-.status-overdue { color: var(--danger); font-weight: 600; }
-.status-ok { color: var(--text-muted); }
+.milestone-table tr.past td { color: var(--ink-3); text-decoration: line-through; }
+.milestone-table .ms-date { font-family: var(--font-mono); font-size: var(--text-sm); white-space: nowrap; }
+.status-past { color: var(--ink-3); }
+.status-urgent { color: var(--warn); font-weight: 600; }
+.status-overdue { color: var(--accent); font-weight: 600; }
+.status-ok { color: var(--ink-3); }
 .status-today { color: var(--accent); font-weight: 600; }
 
 /* ── Checklist sections ── */
 .checklist-section {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
   margin-bottom: 0.75rem;
   overflow: hidden;
   background: var(--surface);
@@ -612,21 +746,21 @@ select { cursor: pointer; }
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem 1rem;
-  background: var(--surface-alt);
+  background: var(--bg);
   cursor: pointer;
   user-select: none;
   font-weight: 600;
   font-size: var(--text-base);
   border: none;
   width: 100%;
-  color: var(--text-primary);
-  font-family: 'DM Sans', sans-serif;
+  color: var(--ink);
+  font-family: var(--font-body);
   text-align: left;
 }
-.checklist-section-header:hover { background: var(--border-light); }
+.checklist-section-header:hover { background: var(--line-2); }
 .checklist-section-header .chevron {
   transition: transform 0.2s;
-  color: var(--text-muted);
+  color: var(--ink-3);
   font-size: var(--text-xs);
 }
 .checklist-section:not([open]) .chevron { transform: rotate(-90deg); }
@@ -635,20 +769,20 @@ select { cursor: pointer; }
 .checklist-section-header { list-style: none; }
 .checklist-section-body { padding: 0.5rem 1rem 0.75rem; }
 .checklist-section-count {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: var(--text-xs);
-  color: var(--text-muted);
+  color: var(--ink-3);
   margin-left: 0.5rem;
 }
 .checklist-section-accent,
 #lab-calc-section {
-  border: 2px solid var(--lab-orange);
-  box-shadow: 0 0 0 3px var(--lab-orange-light);
+  border: 2px solid var(--warn);
+  box-shadow: 0 0 0 3px var(--warn-soft);
 }
 .checklist-section-accent > .checklist-section-header,
 #lab-calc-section .checklist-section-header {
-  background: var(--lab-orange-light);
-  color: var(--lab-orange-dark);
+  background: var(--warn-soft);
+  color: var(--warn);
 }
 
 /* ── Checkbox items ── */
@@ -664,7 +798,7 @@ select { cursor: pointer; }
   width: 20px;
   height: 20px;
   min-width: 20px;
-  border: 2px solid var(--border);
+  border: 2px solid var(--line);
   border-radius: 4px;
   background: var(--surface);
   cursor: pointer;
@@ -689,43 +823,61 @@ select { cursor: pointer; }
 }
 .check-item input[type="checkbox"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .check-item-label { font-size: var(--text-base); cursor: pointer; }
-.check-item-label.checked { color: var(--text-muted); text-decoration: line-through; }
+.check-item-label.checked { color: var(--ink-3); text-decoration: line-through; }
 .check-item-note {
   font-size: var(--text-xs);
-  color: var(--text-muted);
+  color: var(--ink-3);
   margin-top: 0.15rem;
   line-height: 1.4;
 }
 .check-item-date {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: var(--text-xs);
-  color: var(--accent-dark);
+  color: var(--accent-ink);
   margin-top: 0.1rem;
 }
 .check-item.key-date-item {
-  background: var(--accent-light);
+  background: var(--accent-soft);
   border-radius: 6px;
   padding: 0.6rem 0.65rem;
   margin: 0.3rem -0.25rem;
 }
-.check-item.key-date-item .check-item-label { font-weight: 700; color: var(--accent-dark); }
+.check-item.key-date-item .check-item-label { font-weight: 700; color: var(--accent-ink); }
 
 /* ── Plan header ── */
-.plan-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.75rem;
+.plan-head {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 32px;
+  align-items: end;
+  padding: 24px 0 32px;
+  border-bottom: 1px solid var(--line);
   margin-bottom: 0;
-  position: sticky;
-  top: 0;
-  z-index: 200;
-  background: var(--surface);
-  padding: 0.75rem 0 0.5rem;
 }
-.plan-header h2 { font-size: var(--text-xl); }
-.plan-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+.plan-eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+.plan-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 44px;
+  letter-spacing: -0.02em;
+  margin: 0 0 8px;
+  color: var(--ink);
+}
+.plan-meta {
+  display: flex;
+  gap: 24px;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+.plan-meta strong { color: var(--ink); font-weight: 500; }
+.plan-actions { display: flex; gap: 8px; align-items: center; }
 
 /* ── Overflow menu ── */
 .overflow-menu {
@@ -737,22 +889,22 @@ select { cursor: pointer; }
   font-size: var(--text-lg);
   line-height: 1;
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 6px;
   cursor: pointer;
-  color: var(--text-muted);
-  font-family: 'DM Sans', sans-serif;
+  color: var(--ink-3);
+  font-family: var(--font-body);
 }
-.overflow-toggle:hover { border-color: var(--accent); color: var(--text-primary); }
+.overflow-toggle:hover { border-color: var(--accent); color: var(--ink); }
 .overflow-dropdown {
   display: none;
   position: absolute;
   right: 0;
   top: calc(100% + 4px);
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 8px;
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow);
   min-width: 180px;
   z-index: 300;
   padding: 0.35rem 0;
@@ -763,21 +915,21 @@ select { cursor: pointer; }
   width: 100%;
   text-align: left;
   padding: 0.5rem 0.85rem;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-body);
   font-size: var(--text-sm);
   background: none;
   border: none;
-  color: var(--text-primary);
+  color: var(--ink);
   cursor: pointer;
 }
-.overflow-dropdown button:hover { background: var(--surface-alt); }
+.overflow-dropdown button:hover { background: var(--bg); }
 .overflow-dropdown .overflow-divider {
   height: 1px;
-  background: var(--border);
+  background: var(--line);
   margin: 0.25rem 0;
 }
-.overflow-dropdown .overflow-danger { color: var(--danger); }
-.overflow-dropdown .overflow-danger:hover { background: var(--danger-light); }
+.overflow-dropdown .overflow-danger { color: var(--accent); }
+.overflow-dropdown .overflow-danger:hover { background: var(--accent-soft); }
 
 /* ── Step Indicator ── */
 .step-indicator {
@@ -793,10 +945,10 @@ select { cursor: pointer; }
   align-items: center;
   gap: 0.4rem;
   padding: 0.4rem 0.75rem;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-body);
   font-size: var(--text-sm);
   font-weight: 500;
-  color: var(--text-muted);
+  color: var(--ink-3);
   background: none;
   border: none;
   cursor: default;
@@ -812,12 +964,12 @@ select { cursor: pointer; }
   border-radius: 50%;
   font-size: var(--text-xs);
   font-weight: 700;
-  background: var(--border);
-  color: var(--text-muted);
+  background: var(--line);
+  color: var(--ink-3);
   transition: background 0.15s, color 0.15s;
 }
 .step-indicator-btn[aria-current="step"] {
-  color: var(--accent-dark);
+  color: var(--accent-ink);
   font-weight: 600;
 }
 .step-indicator-btn[aria-current="step"] .step-num {
@@ -825,18 +977,18 @@ select { cursor: pointer; }
   color: #fff;
 }
 .step-indicator-btn.completed .step-num {
-  background: var(--success);
+  background: var(--ok);
   color: #fff;
 }
 .step-indicator-btn.completed {
   cursor: pointer;
-  color: var(--text-secondary);
+  color: var(--ink-2);
 }
 .step-indicator-btn.completed:hover {
-  color: var(--accent-dark);
+  color: var(--accent-ink);
 }
 .step-arrow {
-  color: var(--border);
+  color: var(--line);
   font-size: var(--text-xs);
   margin: 0 0.15rem;
 }
@@ -845,44 +997,321 @@ select { cursor: pointer; }
 .plan-tabs {
   display: flex;
   gap: 0;
-  border-bottom: 2px solid var(--border);
-  margin-bottom: 1.25rem;
-  position: sticky;
-  top: 3.5rem;
-  z-index: 100;
-  background: var(--surface);
-  padding-top: 0.5rem;
+  border-bottom: 1px solid var(--line);
+  margin: 0 0 32px;
 }
 .plan-tab {
-  padding: 0.6rem 1.1rem;
-  font-family: 'DM Sans', sans-serif;
-  font-size: var(--text-base);
-  font-weight: 600;
-  color: var(--text-muted);
+  padding: 12px 20px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-3);
   background: none;
   border: none;
   border-bottom: 2px solid transparent;
-  margin-bottom: -2px;
+  margin-bottom: -1px;
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   white-space: nowrap;
 }
-.plan-tab:hover { color: var(--text-primary); }
+.plan-tab:hover { color: var(--ink-2); }
 .plan-tab[aria-selected="true"] {
-  color: var(--accent-dark);
+  color: var(--ink);
   border-bottom-color: var(--accent);
+}
+.tab-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 10px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
 }
 .plan-tabpanel { display: none; }
 .plan-tabpanel.active { display: block; }
 
+/* ── Dashboard grid ── */
+.dash {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 32px;
+  margin-bottom: 48px;
+}
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.side-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+}
+.side-card h3 {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+  font-weight: 600;
+  margin: 0 0 14px;
+}
+.kv { display: flex; flex-direction: column; gap: 12px; }
+.kv-row { display: flex; flex-direction: column; gap: 2px; }
+.kv-row .k { font-size: 12px; color: var(--ink-3); }
+.kv-row .v {
+  font-size: 14px;
+  color: var(--ink);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.kv-row .v small { font-weight: 400; color: var(--ink-3); margin-left: 6px; font-variant-numeric: tabular-nums; }
+.workload-bar {
+  height: 8px;
+  background: var(--surface-2);
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  margin: 6px 0 4px;
+}
+.workload-bar span { height: 100%; }
+.workload-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+  font-size: 12px;
+}
+.workload-legend-row {
+  display: grid;
+  grid-template-columns: 12px 1fr auto;
+  gap: 8px;
+  align-items: center;
+  color: var(--ink-2);
+}
+.workload-legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+.workload-legend-row .num {
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+}
+.dash-main-placeholder {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  text-align: center;
+  color: var(--ink-3);
+  font-size: 14px;
+}
+.status-bar {
+  height: 6px;
+  background: var(--surface-2);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+.status-bar-fill {
+  height: 100%;
+  background: var(--ok);
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+
+/* ── Milestones table ── */
+.milestones-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-top: 20px;
+}
+.ms-table { width: 100%; border-collapse: collapse; }
+.ms-table th, .ms-table td {
+  padding: 14px 20px;
+  text-align: left;
+  font-size: 13px;
+  border-bottom: 1px solid var(--line);
+}
+.ms-table th {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+  font-weight: 600;
+  background: var(--surface-2);
+}
+.ms-table tr:last-child td { border-bottom: none; }
+.ms-table tr:hover td { background: var(--surface-2); }
+.ms-phase-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--ink-2);
+  font-weight: 500;
+}
+.ms-phase-pill::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--phase-color, var(--ink-3));
+}
+.ms-name { font-weight: 500; color: var(--ink); }
+.ms-name-sub { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+.ms-date {
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-2);
+}
+.ms-rel { font-size: 11px; color: var(--ink-3); }
+.ms-status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 12px;
+  background: var(--surface-2);
+  color: var(--ink-3);
+}
+.ms-status-chip.done { background: var(--ok-soft); color: var(--ok); }
+.ms-status-chip.due { background: var(--accent-soft); color: var(--accent-ink); }
+.ms-status-chip.warn { background: var(--warn-soft); color: var(--warn); }
+
+/* ── Checklist (redesigned) ── */
+.checklist-phase {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.checklist-phase-head {
+  padding: 14px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+}
+.checklist-phase-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+  font-size: 14px;
+}
+.checklist-phase-name::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--phase-color, var(--ink-3));
+}
+.checklist-phase-count {
+  font-size: 12px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.checklist-items { display: flex; flex-direction: column; }
+.checklist-item {
+  display: grid;
+  grid-template-columns: 24px 1fr auto;
+  gap: 12px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--line);
+  align-items: center;
+  cursor: pointer;
+}
+.checklist-item:last-child { border-bottom: none; }
+.checklist-item:hover { background: var(--surface-2); }
+.checklist-cb {
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid var(--line-2);
+  border-radius: 4px;
+  display: grid;
+  place-items: center;
+  background: var(--surface);
+  flex-shrink: 0;
+}
+.checklist-item.done .checklist-cb {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+.checklist-item.done .checklist-cb::after {
+  content: "\2713";
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+}
+.checklist-text { font-size: 14px; color: var(--ink); }
+.checklist-item.done .checklist-text {
+  text-decoration: line-through;
+  color: var(--ink-4);
+}
+.checklist-meta {
+  font-size: 11px;
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Lab/Calc result ── */
+.lab-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.calc-result {
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-line);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin-top: 16px;
+}
+.calc-result-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-ink);
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.calc-result-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px 24px;
+}
+.calc-result-item .num {
+  font-family: var(--font-display);
+  font-size: 26px;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  display: block;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.calc-result-item .lbl {
+  font-size: 11px;
+  color: var(--ink-3);
+}
+
 /* ── localStorage notice ── */
 .ls-notice {
-  background: var(--lab-orange-light);
+  background: var(--warn-soft);
   border: 1px solid rgba(232,99,43,0.2);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius);
   padding: 0.6rem 1rem;
   font-size: var(--text-sm);
-  color: var(--lab-orange);
+  color: var(--warn);
   margin-bottom: 1rem;
 }
 
@@ -891,33 +1320,20 @@ select { cursor: pointer; }
   font-size: var(--text-xs);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--text-muted);
+  color: var(--ink-3);
   margin-bottom: 0.75rem;
 }
 
-/* ── Change role link ── */
-.change-role-link {
-  font-size: var(--text-sm);
-  color: var(--text-muted);
-  cursor: pointer;
-  border: none;
-  background: none;
-  font-family: 'DM Sans', sans-serif;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-.change-role-link:hover { color: var(--accent); }
-
 /* ── Share link box ── */
 .share-box {
-  background: var(--surface-alt);
-  border: 1px solid var(--border);
+  background: var(--bg);
+  border: 1px solid var(--line);
   border-radius: 8px;
   padding: 0.75rem 1rem;
   margin-top: 0.75rem;
   font-size: var(--text-sm);
 }
-.share-box p { margin-bottom: 0.5rem; color: var(--text-muted); }
+.share-box p { margin-bottom: 0.5rem; color: var(--ink-3); }
 .share-url {
   display: flex;
   gap: 0.5rem;
@@ -925,56 +1341,36 @@ select { cursor: pointer; }
 }
 .share-url input {
   flex: 1;
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-mono);
   font-size: var(--text-xs);
   padding: 0.4rem 0.6rem;
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 6px;
-  color: var(--text-primary);
+  color: var(--ink);
 }
 
-/* ── Dark Mode (class-based toggle) ── */
-body.dark {
-  --dex-blue: #3db8f0;
-  --dex-blue-light: #1a2d3d;
-  --dex-blue-dark: #7dd3fc;
-  --lab-orange: #f0813f;
-  --lab-orange-light: #2d1f14;
-  --lab-orange-dark: #fbb580;
-  --navy: #e2e8f0;
-  --navy-light: #94a3b8;
-  --surface: #1e2433;
-  --surface-alt: #0f1420;
-  --border: #334155;
-  --border-light: #2d3a4e;
-  --text-primary: #e2e8f0;
-  --text-secondary: #cbd5e1;
-  --text-muted: #94a3b8;
-  --warning: #fb923c;
-  --danger: #f87171;
-  --danger-light: #3b1c1c;
-  --success: #4ade80;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.2);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.3);
-  --shadow-lg: 0 8px 30px rgba(0,0,0,0.4);
-  background: var(--surface-alt);
-  color: var(--text-primary);
+/* ── Focus states (new components) ── */
+.role-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.plan-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.checklist-item:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.step:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.nav-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.overflow-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.disclosure-head:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+/* ── Footer ── */
+.foot {
+  border-top: 1px solid var(--line);
+  padding: 24px 32px;
+  font-size: 12px;
+  color: var(--ink-3);
+  display: flex;
+  justify-content: space-between;
+  max-width: 1280px;
+  margin: 64px auto 0;
 }
-body.dark { --accent: var(--dex-blue); --accent-light: var(--dex-blue-light); --accent-dark: var(--dex-blue-dark); }
-body.dark.role-master { --accent: var(--dex-blue); --accent-light: var(--dex-blue-light); --accent-dark: var(--dex-blue-dark); }
-body.dark.role-phd { --accent: var(--lab-orange); --accent-light: var(--lab-orange-light); --accent-dark: var(--lab-orange-dark); }
-body.dark h1, body.dark h2, body.dark h3 { color: var(--navy); }
-body.dark .role-btn:hover { border-color: var(--dex-blue); background: var(--dex-blue-light); }
-body.dark .check-item input[type="checkbox"] { background: var(--surface-alt); border-color: var(--border); }
-body.dark .check-item input[type="checkbox"]:checked::after { border-color: #fff; }
-body.dark .toast { background: #334155; color: #e2e8f0; }
-body.dark .holiday-warning { background: var(--lab-orange-light); border-color: rgba(240,129,63,0.3); color: var(--lab-orange); }
-body.dark select, body.dark input[type="date"], body.dark input[type="text"], body.dark input[type="number"], body.dark input[type="email"], body.dark input[type="time"] {
-  background: var(--surface-alt); border-color: var(--border); color: var(--text-primary);
-}
-body.dark textarea { background: var(--surface-alt); border-color: var(--border); color: var(--text-primary); }
-body.dark .skip-link { background: #334155; }
 
 /* ── Feedback Modal ── */
 .feedback-overlay {
@@ -984,25 +1380,25 @@ body.dark .skip-link { background: #334155; }
 }
 .feedback-overlay.show { opacity: 1; pointer-events: auto; }
 .feedback-modal {
-  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
   padding: 1.5rem; max-width: 480px; width: 90%; max-height: 90vh; overflow-y: auto;
   box-shadow: var(--shadow-lg); transform: translateY(20px); transition: transform 0.2s;
 }
 .feedback-overlay.show .feedback-modal { transform: translateY(0); }
-.feedback-modal h3 { font-family: 'Fraunces', serif; font-size: var(--text-xl); margin-bottom: 0.25rem; }
-.feedback-modal .fb-sub { font-size: var(--text-base); color: var(--text-muted); margin-bottom: 1rem; }
-.feedback-modal label { display: block; font-size: var(--text-sm); font-weight: 600; margin-bottom: 0.35rem; color: var(--text-primary); }
+.feedback-modal h3 { font-family: var(--font-display); font-size: var(--text-xl); margin-bottom: 0.25rem; }
+.feedback-modal .fb-sub { font-size: var(--text-base); color: var(--ink-3); margin-bottom: 1rem; }
+.feedback-modal label { display: block; font-size: var(--text-sm); font-weight: 600; margin-bottom: 0.35rem; color: var(--ink); }
 .feedback-modal textarea {
-  width: 100%; min-height: 70px; padding: 0.5rem 0.75rem; border: 1px solid var(--border);
-  border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: var(--text-base); resize: vertical;
-  background: var(--surface-alt); color: var(--text-primary); line-height: 1.5;
+  width: 100%; min-height: 70px; padding: 0.5rem 0.75rem; border: 1px solid var(--line);
+  border-radius: 8px; font-family: var(--font-body); font-size: var(--text-base); resize: vertical;
+  background: var(--bg); color: var(--ink); line-height: 1.5;
 }
-.feedback-modal textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
+.feedback-modal textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .feedback-modal .fb-field { margin-bottom: 0.75rem; }
 .fb-stars { display: flex; gap: 0.25rem; margin-bottom: 1rem; }
 .fb-stars button {
   background: none; border: none; font-size: var(--text-2xl); cursor: pointer; padding: 0.1rem;
-  color: var(--border); transition: color 0.15s, transform 0.1s; line-height: 1;
+  color: var(--line); transition: color 0.15s, transform 0.1s; line-height: 1;
 }
 .fb-stars button:hover { transform: scale(1.15); }
 .fb-stars button.active { color: #f59e0b; }
@@ -1010,26 +1406,26 @@ body.dark .skip-link { background: #334155; }
 .feedback-modal .fb-actions { display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; }
 .feedback-modal .fb-close {
   position: absolute; top: 0.75rem; right: 0.75rem; background: none; border: none;
-  font-size: var(--text-xl); cursor: pointer; color: var(--text-muted); padding: 0.25rem;
+  font-size: var(--text-xl); cursor: pointer; color: var(--ink-3); padding: 0.25rem;
 }
-.feedback-modal .fb-close:hover { color: var(--text-primary); }
+.feedback-modal .fb-close:hover { color: var(--ink); }
 .feedback-modal .fb-context {
-  font-size: var(--text-xs); color: var(--text-muted); margin-top: 0.75rem;
-  padding-top: 0.75rem; border-top: 1px solid var(--border);
+  font-size: var(--text-xs); color: var(--ink-3); margin-top: 0.75rem;
+  padding-top: 0.75rem; border-top: 1px solid var(--line);
 }
 
 /* ── Google Calendar panel ── */
 .gcal-item {
   display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--line);
 }
 .gcal-item:last-child { border-bottom: none; }
 .gcal-item-date {
-  font-family: 'DM Mono', monospace; font-size: var(--text-xs); color: var(--text-muted);
+  font-family: var(--font-mono); font-size: var(--text-xs); color: var(--ink-3);
   min-width: 5.5rem; flex-shrink: 0;
 }
 .gcal-item-label { flex: 1; font-size: var(--text-base); }
-.gcal-item.key .gcal-item-label { font-weight: 600; color: var(--accent-dark); }
+.gcal-item.key .gcal-item-label { font-weight: 600; color: var(--accent-ink); }
 .gcal-item a {
   font-size: var(--text-xs); font-weight: 600; color: var(--accent); text-decoration: none;
   white-space: nowrap; padding: 0.2rem 0.5rem; border: 1px solid var(--accent);
@@ -1038,49 +1434,55 @@ body.dark .skip-link { background: #334155; }
 .gcal-item a:hover { background: var(--accent); color: #fff; }
 
 /* ── Theme toggle ── */
-.theme-toggle {
-  position: fixed;
-  bottom: 1rem;
-  right: 1rem;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text-muted);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--text-lg);
-  z-index: 999;
-  transition: border-color 0.2s, background 0.2s;
-  box-shadow: var(--shadow-sm);
-}
-.theme-toggle:hover { border-color: var(--accent); }
-@media print { .theme-toggle { display: none !important; } }
-
 /* ── Print ── */
 @media print {
   @page { margin: 1in; }
-  body { background: #fff; color: #000; }
+  body { background: #fff !important; color: #000; }
+  * { box-shadow: none !important; }
   .header, .card, .card-flat, .card-raised, .checklist-section, .milestone-table { background: #fff; border-color: #ccc; }
   .checklist-section { break-inside: avoid; }
   .card, .card-flat, .card-raised { break-inside: avoid; }
   .screen:not(.active) { display: none !important; }
   #screen-role, #screen-date, #screen-confirm, #screen-name { display: none !important; }
+  #view-landing, #view-wizard, .topnav { display: none !important; }
+  .hero, .strip, .nav-spacer { display: none !important; }
+  .wizard-footer { display: none !important; }
   .plan-actions, .change-role-link, .btn, .progress-bar-container, .share-box, .bookmark-reminder, #plan-dates-edit, #edit-dates-btn, #dates-changed-banner, #supervisor-panel { display: none !important; }
+  .action-btn { display: none !important; }
+  .plan-head { border-bottom: 1px solid #ccc; }
+  .plan-eyebrow { color: #666; }
+  .plan-title { font-size: 28px; color: #000; }
+  .plan-meta { color: #666; }
+  .plan-meta strong { color: #000; }
   .step-indicator { display: none !important; }
   .plan-tabs { display: none !important; }
   .plan-tabpanel { display: block !important; }
+  .dash { grid-template-columns: 1fr; }
+  .side { display: none !important; }
+  .timeline-wrap { border-color: #ccc; }
+  .timeline-head { border-color: #ccc; }
+  .timeline-body { overflow: visible; }
+  .timeline-axis-tick { border-color: #ddd; color: #666; }
+  .tl-bar-gantt { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .tl-today-line { background: #c00; }
+  .tl-diamond { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   #lab-calc-section { display: none !important; }
   .checklist-section .checklist-section-body { display: block !important; }
   .checklist-section { display: block !important; }
   .checklist-section .chevron { display: none !important; }
   h1, h2, h3 { color: #000; }
-  .milestone-table th { color: #666; }
-  .milestone-table td { color: #000; border-color: #ddd; }
-  .milestone-table tr.past td { color: #999; }
+  .milestone-table th, .ms-table th { color: #666; }
+  .milestone-table td, .ms-table td { color: #000; border-color: #ddd; }
+  .milestone-table tr.past td, .ms-table tr.past td { color: #999; }
+  .milestones-card { border-color: #ccc; }
+  .ms-status-chip { background: #f0f0f0; }
+  .ms-status-chip.done { background: #e8f5e9; color: #2e7d32; }
+  .ms-phase-pill { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .checklist-phase { border-color: #ccc; break-inside: avoid; }
+  .checklist-phase-head { background: #f5f5f5; }
+  .checklist-item.done .checklist-cb { background: #333; border-color: #333; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .checklist-cb { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .calc-result { background: #fdf2ef; border-color: #ddd; }
   .check-item input[type="checkbox"]:checked { background: #000; border-color: #000; }
   .check-item input[type="checkbox"]:checked::after { border-color: #fff; }
   .tl-dot { background: #333; border-color: #fff; }
@@ -1090,6 +1492,7 @@ body.dark .skip-link { background: #334155; }
   .holiday-warning .hw-list { color: #000; }
   .confirm-box { background: #f8fdf9; }
   .date-range { color: #333; }
+  .foot { border-color: #ccc; color: #999; }
   .print-footer {
     display: block !important;
     text-align: center;
@@ -1106,10 +1509,12 @@ body.dark .skip-link { background: #334155; }
 
 /* ── Responsive ── */
 @media (max-width: 600px) {
-  .role-buttons { flex-direction: column; align-items: stretch; }
-  .role-btn { max-width: none; }
-  .plan-header { flex-direction: column; align-items: flex-start; }
+  .plan-head { grid-template-columns: 1fr; gap: 16px; }
+  .plan-title { font-size: 28px; }
+  .plan-meta { flex-wrap: wrap; gap: 12px; }
   .plan-actions { flex-wrap: wrap; }
+  .dash { grid-template-columns: 1fr; }
+  .side { order: 1; }
   .tl-item { padding-left: 0; }
   .tl-date { min-width: 5.5rem; font-size: var(--text-xs); }
   .tl-label { font-size: var(--text-xs); }
@@ -1118,13 +1523,18 @@ body.dark .skip-link { background: #334155; }
   /* Also collapse any remaining inline grid styles in JS-generated HTML */
   #plan-dates-display > .data-grid { grid-template-columns: 1fr; }
   /* Milestone table: horizontal scroll */
-  .milestone-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .milestone-table, .ms-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .milestones-card { overflow-x: auto; }
+  .lab-grid { grid-template-columns: 1fr; }
+  .calc-result-grid { grid-template-columns: repeat(2, 1fr); }
+  .timeline-legend { flex-wrap: wrap; gap: 8px; }
+  .timeline-head { flex-direction: column; align-items: flex-start; gap: 8px; }
   /* Share URL input overflow */
   .share-url input { min-width: 0; font-size: var(--text-xs); }
   .share-url { flex-wrap: nowrap; overflow: hidden; }
   /* Tabs: horizontal scroll on mobile */
   .plan-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .plan-tab { font-size: var(--text-sm); padding: 0.5rem 0.85rem; }
+  .plan-tab { font-size: 12px; padding: 10px 14px; }
   /* Custom milestone form: collapse on mobile */
   #custom-form .form-grid-wide, #custom-form .form-grid-3 { grid-template-columns: 1fr; }
 }
@@ -1136,19 +1546,19 @@ body.dark .skip-link { background: #334155; }
 .tour-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 3000; transition: opacity 0.2s; }
 .tour-highlight { position: relative; z-index: 3001; box-shadow: 0 0 0 4px var(--accent), 0 0 0 9999px rgba(0,0,0,0.45); border-radius: 8px; transition: box-shadow 0.3s; }
 .tour-tooltip {
-  position: fixed; z-index: 3002; background: var(--surface); border: 1px solid var(--border);
+  position: fixed; z-index: 3002; background: var(--surface); border: 1px solid var(--line);
   border-radius: 10px; padding: 1rem 1.15rem; max-width: 320px; width: max-content;
-  box-shadow: var(--shadow-lg); font-size: var(--text-base); line-height: 1.5; color: var(--text-primary);
+  box-shadow: var(--shadow-lg); font-size: var(--text-base); line-height: 1.5; color: var(--ink);
 }
-.tour-tooltip h4 { font-family: 'Fraunces', serif; font-size: var(--text-lg); margin: 0 0 0.35rem; color: var(--accent-dark); }
-.tour-tooltip p { margin: 0 0 0.75rem; color: var(--text-secondary); font-size: var(--text-sm); }
+.tour-tooltip h4 { font-family: var(--font-display); font-size: var(--text-lg); margin: 0 0 0.35rem; color: var(--accent-ink); }
+.tour-tooltip p { margin: 0 0 0.75rem; color: var(--ink-2); font-size: var(--text-sm); }
 .tour-tooltip .tour-actions { display: flex; gap: 0.5rem; align-items: center; }
-.tour-tooltip .tour-step { font-size: var(--text-xs); color: var(--text-muted); margin-left: auto; }
-.tour-tooltip .tour-btn { padding: 0.35rem 0.85rem; border-radius: 6px; font-size: var(--text-sm); font-weight: 600; cursor: pointer; border: none; font-family: 'DM Sans', sans-serif; }
+.tour-tooltip .tour-step { font-size: var(--text-xs); color: var(--ink-3); margin-left: auto; }
+.tour-tooltip .tour-btn { padding: 0.35rem 0.85rem; border-radius: 6px; font-size: var(--text-sm); font-weight: 600; cursor: pointer; border: none; font-family: var(--font-body); }
 .tour-tooltip .tour-btn-next { background: var(--accent); color: #fff; }
-.tour-tooltip .tour-btn-next:hover { background: var(--accent-dark); }
-.tour-tooltip .tour-btn-skip { background: none; color: var(--text-muted); border: 1px solid var(--border); }
-.tour-tooltip .tour-btn-skip:hover { color: var(--text-primary); border-color: var(--text-muted); }
+.tour-tooltip .tour-btn-next:hover { background: var(--accent-ink); }
+.tour-tooltip .tour-btn-skip { background: none; color: var(--ink-3); border: 1px solid var(--line); }
+.tour-tooltip .tour-btn-skip:hover { color: var(--ink); border-color: var(--ink-3); }
 @media print { .tour-overlay, .tour-tooltip, .tour-highlight { display: none !important; } }
 
 /* ── Micro-interactions ── */
@@ -1159,7 +1569,7 @@ body.dark .skip-link { background: #334155; }
   }
   .card:hover {
     transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow);
   }
 
   /* Screen fade-in */
@@ -1189,10 +1599,10 @@ body.dark .skip-link { background: #334155; }
   /* Timeline item hover */
   .tl-item {
     transition: background var(--transition-fast);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius);
   }
   .tl-item:hover {
-    background: var(--surface-alt);
+    background: var(--bg);
   }
 
   /* Chevron rotate (enhance existing) */
@@ -1200,247 +1610,946 @@ body.dark .skip-link { background: #334155; }
     transition: transform var(--transition-base);
   }
 }
+
+/* ── Top nav ── */
+.topnav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(250, 250, 247, 0.85);
+  backdrop-filter: saturate(140%) blur(10px);
+  -webkit-backdrop-filter: saturate(140%) blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.topnav-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 14px 32px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+.brand-mark {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  background: var(--ink);
+  color: var(--bg);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 17px;
+  letter-spacing: -0.02em;
+}
+.brand-text { display: flex; flex-direction: column; line-height: 1.1; }
+.brand-name { font-weight: 600; font-size: 14px; letter-spacing: -0.01em; }
+.brand-sub { font-size: 11px; color: var(--ink-3); letter-spacing: 0.02em; }
+.brand-divider { width: 1px; height: 22px; background: var(--line-2); }
+.brand-org {
+  font-size: 12px;
+  color: var(--ink-3);
+  letter-spacing: 0.01em;
+}
+.brand-org strong { color: var(--ink-2); font-weight: 500; }
+
+.nav-spacer { flex: 1; }
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.nav-link {
+  font-size: 13px;
+  color: var(--ink-3);
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.nav-link:hover { color: var(--ink); background: var(--surface-2); }
+.nav-link.active { color: var(--ink); }
+
+/* ── Buttons (design handoff) ── */
+.btn-new {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 120ms ease;
+  background: transparent;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.btn-new:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn-new.btn-primary {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+}
+.btn-new.btn-primary:hover { background: #000; }
+.btn-new.btn-accent {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.btn-new.btn-accent:hover { background: var(--accent-ink); }
+.btn-new.btn-ghost {
+  border-color: var(--line-2);
+  background: var(--surface);
+}
+.btn-new.btn-ghost:hover { background: var(--surface-2); border-color: var(--ink-4); }
+.btn-new.btn-quiet {
+  color: var(--ink-3);
+}
+.btn-new.btn-quiet:hover { color: var(--ink); background: var(--surface-2); }
+.btn-new.btn-sm { padding: 6px 10px; font-size: 12px; }
+.btn-new.btn-lg { padding: 12px 22px; font-size: 14px; }
+
+/* ── Layout (landing) ── */
+.page {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 32px;
+}
+.view { display: none; }
+.view.active { display: block; }
+
+/* ── Landing / Hero ── */
+.hero {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 64px;
+  padding: 48px 0 64px;
+  align-items: center;
+}
+.eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+  font-weight: 500;
+  margin-bottom: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.eyebrow::before {
+  content: "";
+  width: 24px;
+  height: 1px;
+  background: var(--accent);
+}
+.hero h1 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 64px;
+  line-height: 1.02;
+  letter-spacing: -0.025em;
+  margin: 0 0 24px;
+  color: var(--ink);
+}
+.hero h1 em {
+  font-style: italic;
+  font-weight: 300;
+  color: var(--accent);
+}
+.hero-lead {
+  font-size: 17px;
+  color: var(--ink-2);
+  line-height: 1.55;
+  margin: 0 0 32px;
+  max-width: 480px;
+}
+.hero-cta { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.hero-meta {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  max-width: 480px;
+}
+.hero-meta-item .num {
+  font-family: var(--font-display);
+  font-size: 28px;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  display: block;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.hero-meta-item .lbl {
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+/* Hero illustration: mini timeline */
+.hero-vis {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+.hero-vis-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.hero-vis-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.hero-vis-title::before {
+  content: "\2022";
+  color: var(--accent);
+  margin-right: 6px;
+}
+.hero-vis-date {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-3);
+}
+.mini-tl {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.mini-tl-row {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 12px;
+  align-items: center;
+  font-size: 12px;
+}
+.mini-tl-row .lbl {
+  color: var(--ink-2);
+  font-weight: 500;
+  text-align: right;
+}
+.mini-tl-bar {
+  height: 22px;
+  background: var(--surface-2);
+  border-radius: 4px;
+  position: relative;
+  border: 1px solid var(--line);
+}
+.mini-tl-fill {
+  position: absolute;
+  height: 100%;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  font-size: 10px;
+  font-weight: 500;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+.hero-vis-foot {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+.hero-vis-foot-item {
+  font-size: 11px;
+  color: var(--ink-3);
+}
+.hero-vis-foot-item strong {
+  display: block;
+  color: var(--ink);
+  font-size: 13px;
+  margin-bottom: 2px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Landing — "what it does" strip */
+.strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin: 32px 0 64px;
+}
+.strip-item {
+  background: var(--surface);
+  padding: 24px;
+}
+.strip-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-4);
+  margin-bottom: 12px;
+}
+.strip-title {
+  font-weight: 500;
+  font-size: 14px;
+  margin-bottom: 6px;
+  color: var(--ink);
+}
+.strip-desc {
+  font-size: 12px;
+  color: var(--ink-3);
+  line-height: 1.5;
+}
+
+/* ── Wizard ── */
+.wizard {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 24px 0 80px;
+}
+.wizard-head {
+  margin-bottom: 32px;
+}
+.wizard-back {
+  font-size: 12px;
+  color: var(--ink-3);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 20px;
+  cursor: pointer;
+}
+.wizard-back:hover { color: var(--ink); }
+.wizard-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 36px;
+  letter-spacing: -0.02em;
+  margin: 0 0 8px;
+}
+.wizard-sub {
+  color: var(--ink-3);
+  font-size: 15px;
+  margin: 0;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  margin: 32px 0 40px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.step {
+  padding: 16px 20px;
+  border-right: 1px solid var(--line);
+  position: relative;
+  cursor: pointer;
+}
+.step:last-child { border-right: none; }
+.step-num-new {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-4);
+  margin-bottom: 4px;
+  display: block;
+}
+.step-name-new {
+  font-size: 13px;
+  color: var(--ink-3);
+  font-weight: 500;
+}
+.step.active { background: var(--surface); }
+.step.active .step-num-new { color: var(--accent); }
+.step.active .step-name-new { color: var(--ink); }
+.step.done .step-num-new { color: var(--ok); }
+.step.done .step-num-new::before { content: "\2713 "; }
+.step.done .step-name-new { color: var(--ink-2); }
+
+.wizard-step-content { display: none; }
+.wizard-step-content.active { display: block; }
+
+.wizard-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 0 0;
+  margin-top: 12px;
+}
+
+/* Hide old header and step indicator when wizard is shown */
+.view-wizard .header,
+.view-wizard .step-indicator { display: none; }
+
+/* ── Role picker (design handoff) ── */
+.role-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.role-card {
+  border: 1px solid var(--line-2);
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 20px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 120ms;
+  position: relative;
+}
+.role-card:hover { border-color: var(--ink-4); }
+.role-card.selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.role-card.selected::after {
+  content: "\2713";
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 600;
+}
+.role-eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+.role-name {
+  font-family: var(--font-display);
+  font-size: 22px;
+  letter-spacing: -0.01em;
+  margin-bottom: 6px;
+  color: var(--ink);
+}
+.role-desc {
+  font-size: 13px;
+  color: var(--ink-3);
+  line-height: 1.4;
+}
+
+/* ── Field (design handoff) ── */
+.field { margin-bottom: 20px; }
+.field:last-child { margin-bottom: 0; }
+.field-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: var(--ink);
+}
+.field-hint {
+  font-size: 12px;
+  color: var(--ink-3);
+  margin-top: 6px;
+  line-height: 1.4;
+}
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.field-row-3 { grid-template-columns: repeat(3, 1fr); }
+.field-row-4 { grid-template-columns: repeat(4, 1fr); }
+
+/* ── Wizard inputs (design handoff overrides) ── */
+.wizard select,
+.wizard input[type="text"],
+.wizard input[type="email"],
+.wizard input[type="number"],
+.wizard input[type="date"],
+.wizard input[type="time"],
+.wizard textarea {
+  padding: 9px 12px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 14px;
+  background: var(--surface);
+  color: var(--ink);
+  transition: border-color 120ms, box-shadow 120ms;
+}
+.wizard input:focus,
+.wizard select:focus,
+.wizard textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.wizard input::placeholder { color: var(--ink-4); }
+
+/* ── Wizard stepper (design handoff) ── */
+.wizard .stepper {
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.wizard .stepper button {
+  width: 32px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  font-size: 16px;
+  cursor: pointer;
+  color: var(--ink-3);
+}
+.wizard .stepper button:hover { color: var(--ink); }
+
+/* ── Disclosure (design handoff) ── */
+.disclosure {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  margin-bottom: 16px;
+}
+.disclosure-head {
+  padding: 12px 16px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 500;
+  user-select: none;
+}
+.disclosure-head .chev {
+  transition: transform 120ms;
+  color: var(--ink-3);
+}
+.disclosure.open .disclosure-head .chev { transform: rotate(90deg); }
+.disclosure-body {
+  display: none;
+  padding: 0 16px 16px;
+  border-top: 1px solid var(--line);
+  margin-top: 0;
+  padding-top: 16px;
+}
+.disclosure.open .disclosure-body { display: block; }
+
+/* Landing responsive */
+@media (max-width: 768px) {
+  .hero { grid-template-columns: 1fr; gap: 32px; padding: 24px 0 32px; }
+  .hero h1 { font-size: 40px; }
+  .strip { grid-template-columns: 1fr 1fr; }
+  .topnav-inner { padding: 12px 16px; }
+  .brand-divider, .brand-org { display: none; }
+  .page { padding: 16px; }
+  .mini-tl-row { grid-template-columns: 80px 1fr; }
+}
+@media (max-width: 480px) {
+  .hero h1 { font-size: 32px; }
+  .strip { grid-template-columns: 1fr; }
+  .nav-links { display: none; }
+}
 </style>
 </head>
 <body>
 <a href="#main-content" class="skip-link">Skip to content</a>
-<div class="container">
 
-  <!-- Header -->
-  <header class="header">
-    <a href="javascript:goHome()" class="header-logo-link" aria-label="Start new plan">
-      <img src="logo.png" alt="DEXLab" class="header-logo" onerror="this.style.display='none';document.getElementById('logo-fallback').style.display='block'">
-      <div id="logo-fallback" style="display:none;font-family:'Fraunces',serif;font-size:var(--text-2xl);font-weight:700;"><span style="color:var(--dex-blue)">DEX</span><span style="color:var(--lab-orange)">LAB</span></div>
-    </a>
-    <h1>Experiment Planner for Researchers</h1>
-    <div class="subtitle">Backwards-plan your study.</div>
-    <div class="lab-badge">Maastricht University &middot; SBE</div>
-    <button class="btn btn-sm" onclick="replayTour()" style="margin-top:0.75rem;background:var(--accent-light);color:var(--accent-dark);border:1.5px solid var(--accent);font-weight:600;">Start Tour</button>
-  </header>
-
-  <nav class="step-indicator" id="step-indicator" aria-label="Setup progress">
-    <button type="button" class="step-indicator-btn" id="step-btn-role" aria-current="step" onclick="navigateToStep('screen-role')">
-      <span class="step-num">1</span> Role
-    </button>
-    <span class="step-arrow" aria-hidden="true">&#9656;</span>
-    <button type="button" class="step-indicator-btn" id="step-btn-date" onclick="navigateToStep('screen-date')">
-      <span class="step-num">2</span> Schedule
-    </button>
-    <span class="step-arrow" aria-hidden="true">&#9656;</span>
-    <button type="button" class="step-indicator-btn" id="step-btn-name" onclick="navigateToStep('screen-name')">
-      <span class="step-num">3</span> Details
-    </button>
-    <span class="step-arrow" aria-hidden="true">&#9656;</span>
-    <button type="button" class="step-indicator-btn" id="step-btn-plan" onclick="navigateToStep('screen-plan')">
-      <span class="step-num">4</span> Plan
-    </button>
-  </nav>
-
-  <main id="main-content">
-  <!-- localStorage notice (hidden by default) -->
-  <div class="ls-notice hidden" id="ls-notice">
-    Private browsing detected &mdash; your progress won't be saved between sessions, but the tool works normally.
-  </div>
-
-  <!-- Screen 1: Role Selection -->
-  <div class="screen active" id="screen-role">
-    <div class="card text-center mb-3">
-      <p style="font-size:var(--text-lg);line-height:1.6;max-width:600px;margin:0 auto;">
-        This tool helps you plan your experiment from start to finish. Select your role and block period, and you'll get a <strong>personalised timeline</strong> with all key deadlines &mdash; SONA registration, ethics, lab booking, and more &mdash; including warnings for Dutch public holidays. You can check off tasks as you go, export milestones to your calendar, and share your plan via a link.
-      </p>
-    </div>
-    <div class="card text-center">
-      <p class="section-title">I am a&hellip;</p>
-      <p class="form-hint mb-2">Your role determines which milestones appear &mdash; PhD researchers get additional steps for ethics applications and pre-registration.</p>
-      <div class="role-buttons">
-        <button class="role-btn" id="btn-master" onclick="selectRole('master')">
-          <span class="role-label">Thesis track</span>
-          Master Student
-        </button>
-        <button class="role-btn" id="btn-phd" onclick="selectRole('phd')">
-          <span class="role-label">Doctoral track</span>
-          PhD Researcher
-        </button>
+<!-- Top nav -->
+<nav class="topnav" id="topnav">
+  <div class="topnav-inner">
+    <div class="brand" onclick="showLanding()">
+      <div class="brand-mark">D</div>
+      <div class="brand-text">
+        <span class="brand-name">Experiment Planner</span>
+        <span class="brand-sub">DEXLab</span>
       </div>
+      <div class="brand-divider"></div>
+      <div class="brand-org"><strong>Maastricht University</strong> &middot; SBE</div>
+    </div>
+    <div class="nav-spacer"></div>
+    <div class="nav-links">
+      <span class="nav-link active">Planner</span>
+      <span class="nav-link">Lab booking</span>
+      <span class="nav-link">About</span>
     </div>
   </div>
+</nav>
 
-  <!-- Screen 2: Date Selection -->
-  <div class="screen" id="screen-date">
-    <div class="card">
-      <div class="form-row">
-        <label for="bp-select">Which block period will you run your experiment in?</label>
-        <select id="bp-select" onchange="onBPSelect()">
-          <option value="">Choose&hellip;</option>
-        </select>
-      </div>
-      <div class="form-row hidden" id="week-select-row">
-        <label for="week-select">Which week does your data collection start?</label>
-        <select id="week-select" onchange="onWeekSelect()"></select>
-      </div>
-      <div class="form-row">
-        <label for="date-input">Or pick a custom start date</label>
-        <input type="date" id="date-input" onchange="onDateInput()">
-      </div>
-    </div>
-  </div>
-
-  <!-- Screen 3: Period Confirmation -->
-  <div class="screen" id="screen-confirm">
-    <div class="card">
-      <div class="confirm-box">
-        <div id="confirm-text"></div>
-        <div class="date-range" id="confirm-range"></div>
-      </div>
-      <div class="yn-group">
-        <span style="font-size:var(--text-base);">Adjust period length if needed:</span>
-        <div class="stepper" role="group" aria-label="Adjust period length in weeks">
-          <button onclick="adjustWeeks(-1)" aria-label="Decrease weeks">&minus;</button>
-          <span class="stepper-value" id="weeks-display"></span>
-          <button onclick="adjustWeeks(1)" aria-label="Increase weeks">+</button>
+<!-- Landing page -->
+<div class="view view-landing active" id="view-landing">
+  <div class="page">
+    <div class="hero">
+      <div class="hero-left">
+        <div class="eyebrow">Maastricht University &middot; SBE</div>
+        <h1>Plan your experiment, <em>backwards</em>.</h1>
+        <p class="hero-lead">Start from your data-collection date and work backwards through every milestone &mdash; ethics, SONA, lab booking, analysis. Never miss a deadline again.</p>
+        <div class="hero-cta">
+          <button class="btn-new btn-primary btn-lg" onclick="startPlanning()">Start planning</button>
+          <button class="btn-new btn-ghost btn-lg" onclick="showExamplePlan()">See example plan</button>
         </div>
-        <span class="form-hint-inline">weeks</span>
+        <div class="hero-meta">
+          <div class="hero-meta-item">
+            <span class="num">12 wks</span>
+            <span class="lbl">Typical timeline</span>
+          </div>
+          <div class="hero-meta-item">
+            <span class="num">5 phases</span>
+            <span class="lbl">Guided steps</span>
+          </div>
+          <div class="hero-meta-item">
+            <span class="num">0 missed</span>
+            <span class="lbl">Deadline target</span>
+          </div>
+        </div>
       </div>
-      <div id="holiday-warning-container"></div>
+      <div class="hero-right">
+        <div class="hero-vis">
+          <div class="hero-vis-head">
+            <div class="hero-vis-title">Experiment timeline</div>
+            <div class="hero-vis-date">12 weeks</div>
+          </div>
+          <div class="mini-tl">
+            <div class="mini-tl-row">
+              <div class="lbl">Before SONA</div>
+              <div class="mini-tl-bar"><div class="mini-tl-fill" style="width:15%;background:var(--p1);">wk 1-2</div></div>
+            </div>
+            <div class="mini-tl-row">
+              <div class="lbl">SONA setup</div>
+              <div class="mini-tl-bar"><div class="mini-tl-fill" style="width:10%;left:15%;background:var(--p2);">wk 3</div></div>
+            </div>
+            <div class="mini-tl-row">
+              <div class="lbl">Before experiment</div>
+              <div class="mini-tl-bar"><div class="mini-tl-fill" style="width:20%;left:25%;background:var(--p3);">wk 4-5</div></div>
+            </div>
+            <div class="mini-tl-row">
+              <div class="lbl">Data collection</div>
+              <div class="mini-tl-bar"><div class="mini-tl-fill" style="width:30%;left:45%;background:var(--p4);">wk 6-8</div></div>
+            </div>
+            <div class="mini-tl-row">
+              <div class="lbl">Analysis &amp; writing</div>
+              <div class="mini-tl-bar"><div class="mini-tl-fill" style="width:25%;left:75%;background:var(--p5);">wk 9-12</div></div>
+            </div>
+          </div>
+          <div class="hero-vis-foot">
+            <div class="hero-vis-foot-item">
+              <strong>Week 1</strong>Ethics &amp; prep
+            </div>
+            <div class="hero-vis-foot-item">
+              <strong>Week 6</strong>Data collection starts
+            </div>
+            <div class="hero-vis-foot-item">
+              <strong>Week 12</strong>Thesis deadline
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="strip">
+      <div class="strip-item">
+        <div class="strip-num">01</div>
+        <div class="strip-title">Backwards-plan</div>
+        <div class="strip-desc">Set your data-collection date and get every upstream deadline auto-calculated.</div>
+      </div>
+      <div class="strip-item">
+        <div class="strip-num">02</div>
+        <div class="strip-title">Lab booking calc</div>
+        <div class="strip-desc">Enter your design and get a day-by-day timetable with slot counts and lunch breaks.</div>
+      </div>
+      <div class="strip-item">
+        <div class="strip-num">03</div>
+        <div class="strip-title">Calendar export</div>
+        <div class="strip-desc">Download an .ics file or add milestones to Google Calendar in one click.</div>
+      </div>
+      <div class="strip-item">
+        <div class="strip-num">04</div>
+        <div class="strip-title">Share &amp; updates</div>
+        <div class="strip-desc">Generate a shareable link. Re-open it anytime to check off tasks and shift dates.</div>
+      </div>
     </div>
   </div>
+</div>
 
-  <!-- Screen 4: Name -->
-  <div class="screen" id="screen-name">
-    <div class="card">
-      <div class="form-row">
-        <label for="name-input">Your name (optional &mdash; personalizes output)</label>
-        <input type="text" id="name-input" placeholder="e.g. Jane Doe">
+<!-- Wizard view (setup screens 1-4) -->
+<div class="view view-wizard" id="view-wizard" style="display:none;">
+  <div class="wizard">
+    <div class="wizard-head">
+      <span class="wizard-back" onclick="showLanding()">&larr; Back to home</span>
+      <h2 class="wizard-title">Set up your plan</h2>
+      <p class="wizard-sub">Answer a few questions and we&rsquo;ll generate your timeline.</p>
+    </div>
+
+    <div class="steps" id="wizard-steps">
+      <div class="step active" data-step="1" onclick="wizardGoToStep(1)">
+        <span class="step-num-new">01</span>
+        <span class="step-name-new">Role</span>
       </div>
-      <div class="form-row">
-        <label for="title-input">Study title / nickname (optional)</label>
-        <input type="text" id="title-input" placeholder="e.g. Cool new tech experiment at DEXLab">
+      <div class="step" data-step="2" onclick="wizardGoToStep(2)">
+        <span class="step-num-new">02</span>
+        <span class="step-name-new">Schedule</span>
       </div>
-      <div class="form-row">
-        <label for="supervisor-email-input">Supervisor email (optional)</label>
-        <p class="form-hint" style="margin-bottom:0.35rem;">Adds a button to send your supervisor a progress update with one click.</p>
-        <input type="email" id="supervisor-email-input" placeholder="e.g. m.supervisor@maastrichtuniversity.nl">
+      <div class="step" data-step="3" onclick="wizardGoToStep(3)">
+        <span class="step-num-new">03</span>
+        <span class="step-name-new">Details</span>
+      </div>
+      <div class="step" data-step="4" onclick="wizardGoToStep(4)">
+        <span class="step-num-new">04</span>
+        <span class="step-name-new">Generate</span>
       </div>
     </div>
 
-    <!-- Quick Estimate helper (all roles) -->
-    <div class="card" id="quick-estimate-card">
-      <details class="checklist-section checklist-section-accent" id="quick-estimate-section" ontoggle="if(this.open) updateQuickEstimate()">
-        <summary class="checklist-section-header">
-          <span>Estimate lab days <span class="checklist-section-count">optional — helps you plan data collection</span></span>
-          <span class="chevron">&#9660;</span>
-        </summary>
-        <div class="checklist-section-body">
-          <p class="form-hint mb-3">
-            Estimate how many lab days you need. Leave fields blank if you don&rsquo;t know yet &mdash; defaults will be used. For a detailed timetable with blocked slots, use the full calculator on the Lab &amp; Booking tab after generating your plan.
+    <!-- localStorage notice (hidden by default) -->
+    <div class="ls-notice hidden" id="ls-notice">
+      Private browsing detected &mdash; your progress won't be saved between sessions, but the tool works normally.
+    </div>
+
+    <!-- Step 1: Role Selection -->
+    <div class="wizard-step-content active" id="wizard-step-1">
+      <div class="card">
+        <div class="card-title">Choose your role</div>
+        <div class="card-sub">Your role determines which milestones appear &mdash; PhD researchers get additional steps for ethics applications and pre-registration.</div>
+        <div class="role-grid">
+          <div class="role-card" id="btn-master" onclick="selectRole('master')">
+            <div class="role-eyebrow">Thesis track</div>
+            <div class="role-name">Master Student</div>
+            <div class="role-desc">Standard milestones for SONA, lab booking, and data collection.</div>
+          </div>
+          <div class="role-card" id="btn-phd" onclick="selectRole('phd')">
+            <div class="role-eyebrow">Doctoral track</div>
+            <div class="role-name">PhD Researcher</div>
+            <div class="role-desc">Additional steps for ethics applications, pre-registration, and open science.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Schedule -->
+    <div class="wizard-step-content" id="wizard-step-2">
+      <div class="card">
+        <div class="card-title">Pick your schedule</div>
+        <div class="card-sub">Choose a block period or custom start date for data collection.</div>
+        <div class="field">
+          <label class="field-label" for="bp-select">Which block period will you run your experiment in?</label>
+          <select id="bp-select" onchange="onBPSelect()">
+            <option value="">Choose&hellip;</option>
+          </select>
+        </div>
+        <div class="field hidden" id="week-select-row">
+          <label class="field-label" for="week-select">Which week does your data collection start?</label>
+          <select id="week-select" onchange="onWeekSelect()"></select>
+        </div>
+        <div class="field">
+          <label class="field-label" for="date-input">Or pick a custom start date</label>
+          <input type="date" id="date-input" onchange="onDateInput()">
+        </div>
+      </div>
+
+      <!-- Confirmation (shown after date selected) -->
+      <div class="card hidden" id="wizard-confirm-card">
+        <div class="confirm-box">
+          <div id="confirm-text"></div>
+          <div class="date-range" id="confirm-range"></div>
+        </div>
+        <div class="yn-group">
+          <span style="font-size:var(--text-base);">Adjust period length if needed:</span>
+          <div class="stepper" role="group" aria-label="Adjust period length in weeks">
+            <button onclick="adjustWeeks(-1)" aria-label="Decrease weeks">&minus;</button>
+            <span class="stepper-value" id="weeks-display"></span>
+            <button onclick="adjustWeeks(1)" aria-label="Increase weeks">+</button>
+          </div>
+          <span class="form-hint-inline">weeks</span>
+        </div>
+        <div id="holiday-warning-container"></div>
+      </div>
+    </div>
+
+    <!-- Step 3: Details -->
+    <div class="wizard-step-content" id="wizard-step-3">
+      <div class="card">
+        <div class="card-title">Study details</div>
+        <div class="card-sub">Optional info to personalize your plan.</div>
+        <div class="field">
+          <label class="field-label" for="name-input">Your name (optional &mdash; personalizes output)</label>
+          <input type="text" id="name-input" placeholder="e.g. Jane Doe">
+        </div>
+        <div class="field">
+          <label class="field-label" for="title-input">Study title / nickname (optional)</label>
+          <input type="text" id="title-input" placeholder="e.g. Cool new tech experiment at DEXLab">
+        </div>
+        <div class="field">
+          <label class="field-label" for="supervisor-email-input">Supervisor email (optional)</label>
+          <p class="field-hint" style="margin-bottom:0.35rem;">Adds a button to send your supervisor a progress update with one click.</p>
+          <input type="email" id="supervisor-email-input" placeholder="e.g. m.supervisor@maastrichtuniversity.nl">
+        </div>
+      </div>
+
+      <!-- Quick Estimate helper (all roles) -->
+      <div class="card" id="quick-estimate-card">
+        <details class="disclosure" id="quick-estimate-section" ontoggle="if(this.open) updateQuickEstimate()">
+          <summary class="disclosure-head">
+            <span>Estimate lab days <span style="font-weight:400;color:var(--ink-3);font-size:0.85em;">— optional, helps you plan data collection</span></span>
+            <span class="chevron">&#9660;</span>
+          </summary>
+          <div class="disclosure-body">
+            <p class="field-hint mb-3">
+              Estimate how many lab days you need. Leave fields blank if you don&rsquo;t know yet &mdash; defaults will be used. For a detailed timetable with blocked slots, use the full calculator on the Lab &amp; Booking tab after generating your plan.
+            </p>
+            <p class="section-subtitle">Experiment setup</p>
+            <div class="form-grid">
+              <div class="field">
+                <label class="field-label" for="qe-conditions">Number of conditions</label>
+                <input type="number" id="qe-conditions" min="1" max="20" placeholder="2" inputmode="numeric" oninput="updateQuickEstimate()">
+              </div>
+              <div class="field">
+                <label class="field-label" for="qe-design">Study design</label>
+                <select id="qe-design" oninput="updateQuickEstimate()">
+                  <option value="between" selected>Between-subject</option>
+                  <option value="within">Within-subject</option>
+                  <option value="mixed">Mixed</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="field-label" for="qe-n-per-condition">Participants per condition <span class="info-pill" data-tip="50 is the required minimum per condition. Recruit 10–20% more to account for no-shows or exclusions." tabindex="0">?</span></label>
+                <input type="number" id="qe-n-per-condition" min="1" max="500" placeholder="50" inputmode="numeric" oninput="updateQuickEstimate()">
+              </div>
+              <div class="field">
+                <label class="field-label" for="qe-session-duration">Session duration (minutes)</label>
+                <input type="number" id="qe-session-duration" min="5" max="240" placeholder="30" inputmode="numeric" oninput="updateQuickEstimate()">
+              </div>
+            </div>
+            <p class="section-subtitle mt-3">Lab schedule <span style="font-weight:400;color:var(--ink-3);">(optional &mdash; defaults shown)</span></p>
+            <div class="form-grid">
+              <div class="field">
+                <label class="field-label" for="qe-showup">Expected show-up rate (%) <span class="info-pill" data-tip="Discuss with your supervisor what a realistic show-up rate is for your type of experiment. 50% is a safe default for SONA studies. This determines how many slots you need to open to reach your target N." tabindex="0">?</span></label>
+                <input type="number" id="qe-showup" min="10" max="100" placeholder="50" inputmode="numeric" oninput="updateQuickEstimate()">
+              </div>
+              <div class="field">
+                <label class="field-label" for="qe-per-timeslot">Participants per timeslot</label>
+                <input type="number" id="qe-per-timeslot" min="1" max="50" placeholder="1" inputmode="numeric" oninput="updateQuickEstimate()">
+              </div>
+              <div class="field">
+                <label class="field-label" for="qe-buffer">Buffer between sessions (min)</label>
+                <input type="number" id="qe-buffer" min="0" max="30" placeholder="0" inputmode="numeric" oninput="updateQuickEstimate()">
+              </div>
+              <div class="field">
+                <label class="field-label" for="qe-lab-start">Lab available from</label>
+                <input type="time" id="qe-lab-start" value="09:00" oninput="updateQuickEstimate()">
+              </div>
+              <div class="field">
+                <label class="field-label" for="qe-lab-end">Lab available until</label>
+                <input type="time" id="qe-lab-end" value="17:00" oninput="updateQuickEstimate()">
+              </div>
+              <div class="field">
+                <label class="field-label" for="qe-lunch">Lunch break (minutes)</label>
+                <input type="number" id="qe-lunch" min="0" max="120" placeholder="30" inputmode="numeric" oninput="updateQuickEstimate()">
+              </div>
+              <div class="field">
+                <label class="field-label" for="qe-lunch-start">Lunch starts at</label>
+                <input type="time" id="qe-lunch-start" value="12:00" oninput="updateQuickEstimate()">
+              </div>
+            </div>
+            <div id="qe-result" class="result-box hidden mt-3" style="font-size:var(--text-base);"></div>
+          </div>
+        </details>
+      </div>
+
+      <!-- Thesis deadline and collection duration (master only) -->
+      <div class="card hidden" id="thesis-deadline-card">
+        <div class="card-title">Thesis timeline</div>
+        <div class="card-sub">Master students only — plan from data collection to hand-in.</div>
+        <div class="field">
+          <label class="field-label" for="thesis-deadline-input">When is your thesis submission deadline?</label>
+          <p class="field-hint mb-2">
+            This adds milestones for data analysis, writing, supervisor feedback, and final submission so you can plan the full arc from experiment to hand-in.
           </p>
-          <p class="section-subtitle">Experiment setup</p>
-          <div class="form-grid">
-            <div class="form-row">
-              <label for="qe-conditions">Number of conditions</label>
-              <input type="number" id="qe-conditions" min="1" max="20" placeholder="2" inputmode="numeric" oninput="updateQuickEstimate()">
-            </div>
-            <div class="form-row">
-              <label for="qe-design">Study design</label>
-              <select id="qe-design" oninput="updateQuickEstimate()">
-                <option value="between" selected>Between-subject</option>
-                <option value="within">Within-subject</option>
-                <option value="mixed">Mixed</option>
-              </select>
-            </div>
-            <div class="form-row">
-              <label for="qe-n-per-condition">Participants per condition <span class="info-pill" data-tip="50 is the required minimum per condition. Recruit 10–20% more to account for no-shows or exclusions." tabindex="0">?</span></label>
-              <input type="number" id="qe-n-per-condition" min="1" max="500" placeholder="50" inputmode="numeric" oninput="updateQuickEstimate()">
-            </div>
-            <div class="form-row">
-              <label for="qe-session-duration">Session duration (minutes)</label>
-              <input type="number" id="qe-session-duration" min="5" max="240" placeholder="30" inputmode="numeric" oninput="updateQuickEstimate()">
-            </div>
-          </div>
-          <p class="section-subtitle mt-3">Lab schedule <span style="font-weight:400;color:var(--text-muted);">(optional &mdash; defaults shown)</span></p>
-          <div class="form-grid">
-            <div class="form-row">
-              <label for="qe-showup">Expected show-up rate (%) <span class="info-pill" data-tip="Discuss with your supervisor what a realistic show-up rate is for your type of experiment. 50% is a safe default for SONA studies. This determines how many slots you need to open to reach your target N." tabindex="0">?</span></label>
-              <input type="number" id="qe-showup" min="10" max="100" placeholder="50" inputmode="numeric" oninput="updateQuickEstimate()">
-            </div>
-            <div class="form-row">
-              <label for="qe-per-timeslot">Participants per timeslot</label>
-              <input type="number" id="qe-per-timeslot" min="1" max="50" placeholder="1" inputmode="numeric" oninput="updateQuickEstimate()">
-            </div>
-            <div class="form-row">
-              <label for="qe-buffer">Buffer between sessions (min)</label>
-              <input type="number" id="qe-buffer" min="0" max="30" placeholder="0" inputmode="numeric" oninput="updateQuickEstimate()">
-            </div>
-            <div class="form-row">
-              <label for="qe-lab-start">Lab available from</label>
-              <input type="time" id="qe-lab-start" value="09:00" oninput="updateQuickEstimate()">
-            </div>
-            <div class="form-row">
-              <label for="qe-lab-end">Lab available until</label>
-              <input type="time" id="qe-lab-end" value="17:00" oninput="updateQuickEstimate()">
-            </div>
-            <div class="form-row">
-              <label for="qe-lunch">Lunch break (minutes)</label>
-              <input type="number" id="qe-lunch" min="0" max="120" placeholder="30" inputmode="numeric" oninput="updateQuickEstimate()">
-            </div>
-            <div class="form-row">
-              <label for="qe-lunch-start">Lunch starts at</label>
-              <input type="time" id="qe-lunch-start" value="12:00" oninput="updateQuickEstimate()">
-            </div>
-          </div>
-          <div id="qe-result" class="result-box hidden mt-3" style="font-size:var(--text-base);"></div>
+          <input type="date" id="thesis-deadline-input">
         </div>
-      </details>
-    </div>
 
-    <!-- Thesis deadline and collection duration (master only) -->
-    <div class="card hidden" id="thesis-deadline-card">
-      <div class="form-row">
-        <label for="thesis-deadline-input">When is your thesis submission deadline?</label>
-        <p class="form-hint mb-2">
-          This adds milestones for data analysis, writing, supervisor feedback, and final submission so you can plan the full arc from experiment to hand-in.
-        </p>
-        <input type="date" id="thesis-deadline-input">
-      </div>
-
-      <div class="form-row mt-3">
-        <label for="collection-days-input">How long will data collection take?</label>
-        <p class="form-hint" style="margin-bottom:0.35rem;">
-          Tip: Use the estimate tool above, or refine later with the full Lab Timetable Calculator on the plan page.
-        </p>
-        <div class="flex-row">
-          <input type="number" id="collection-days-input" min="1" max="60" value="5" inputmode="numeric" class="input-narrow" onchange="onCollectionDaysChange()">
-          <span class="form-hint-inline">day(s)</span>
+        <div class="field mt-3">
+          <label class="field-label" for="collection-days-input">How long will data collection take?</label>
+          <p class="field-hint" style="margin-bottom:0.35rem;">
+            Tip: Use the estimate tool above, or refine later with the full Lab Timetable Calculator on the plan page.
+          </p>
+          <div class="flex-row">
+            <input type="number" id="collection-days-input" min="1" max="60" value="5" inputmode="numeric" class="input-narrow" onchange="onCollectionDaysChange()">
+            <span class="form-hint-inline">day(s)</span>
+          </div>
         </div>
-      </div>
-      <div class="form-row mt-3">
-        <label for="analysis-weeks-input">How long will data analysis take?</label>
-        <p class="form-hint" style="margin-bottom:0.35rem;">
-          Analysis starts one day after data collection ends. Default is 1 week.
-        </p>
-        <div class="flex-row">
-          <input type="number" id="analysis-weeks-input" min="1" max="12" value="1" inputmode="numeric" class="input-narrow">
-          <span class="form-hint-inline">week(s)</span>
+        <div class="field mt-3">
+          <label class="field-label" for="analysis-weeks-input">How long will data analysis take?</label>
+          <p class="field-hint" style="margin-bottom:0.35rem;">
+            Analysis starts one day after data collection ends. Default is 1 week.
+          </p>
+          <div class="flex-row">
+            <input type="number" id="analysis-weeks-input" min="1" max="12" value="1" inputmode="numeric" class="input-narrow">
+            <span class="form-hint-inline">week(s)</span>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="card text-center" style="padding:var(--space-4);">
-      <button class="btn btn-primary" onclick="generatePlan()">Generate My Plan &rarr;</button>
+    <!-- Step 4: Generate -->
+    <div class="wizard-step-content" id="wizard-step-4">
+      <div class="card text-center">
+        <div class="card-title">Ready to generate</div>
+        <div class="card-sub">Review your choices, then generate your personalised experiment plan.</div>
+        <div id="wizard-summary" style="text-align:left;margin:1rem 0;"></div>
+      </div>
+    </div>
+
+    <!-- Wizard footer -->
+    <div class="wizard-footer" id="wizard-footer">
+      <button class="btn btn-ghost" id="wizard-back-btn" onclick="wizardBack()">&larr; Back</button>
+      <button class="btn btn-primary" id="wizard-next-btn" onclick="wizardNext()">Continue &rarr;</button>
     </div>
   </div>
+</div>
+
+<!-- Plan view (separate from wizard) -->
+<div class="container" id="app-container" style="display:none;">
+  <main id="main-content">
+
+  <!-- Hidden legacy screens (kept for JS compatibility) -->
+  <div class="screen" id="screen-role" style="display:none;"></div>
+  <div class="screen" id="screen-date" style="display:none;"></div>
+  <div class="screen" id="screen-confirm" style="display:none;"></div>
+  <div class="screen" id="screen-name" style="display:none;"></div>
 
   <!-- Screen 5: Plan -->
   <div class="screen" id="screen-plan">
-    <div class="plan-header">
+    <div class="plan-head" id="plan-head">
       <div>
-        <h2 id="plan-title">Your Experiment Plan</h2>
-        <button class="change-role-link" onclick="editSetup()">Edit setup</button>
+        <div class="plan-eyebrow" id="plan-eyebrow">Your plan</div>
+        <h1 class="plan-title" id="plan-title">Untitled study</h1>
+        <div class="plan-meta" id="plan-meta"></div>
       </div>
-      <nav class="plan-actions" aria-label="Plan actions">
-        <button class="btn btn-sm btn-primary" onclick="copyShareLink()">Copy Link</button>
-        <button class="btn btn-sm btn-orange hidden" id="supervisor-update-btn" onclick="toggleSupervisorUpdate()">Update Supervisor</button>
-        <button class="btn btn-sm btn-ghost" onclick="exportCalendar()">Export</button>
+      <div class="plan-actions">
+        <button class="btn btn-ghost" onclick="copyShareLink()">Copy link</button>
+        <button class="btn btn-ghost hidden" id="supervisor-update-btn" onclick="toggleSupervisorUpdate()">Update supervisor</button>
+        <button class="btn btn-ghost" onclick="editSetup()">Edit setup</button>
         <div class="overflow-menu" id="plan-overflow">
           <button class="overflow-toggle" onclick="toggleOverflow()" aria-expanded="false" aria-haspopup="true" aria-label="More actions">&hellip;</button>
           <div class="overflow-dropdown" role="menu">
@@ -1456,7 +2565,7 @@ body.dark .skip-link { background: #334155; }
             <button role="menuitem" class="overflow-danger" onclick="resetState();closeOverflow()">Start New Plan</button>
           </div>
         </div>
-      </nav>
+      </div>
     </div>
 
     <!-- Google Calendar export panel (contextual, outside tabs) -->
@@ -1467,7 +2576,7 @@ body.dark .skip-link { background: #334155; }
         <a id="gcal-all-link" class="btn btn-sm btn-primary" href="#" target="_blank" rel="noopener" style="text-decoration:none;">Add Full Plan to Google Calendar</a>
       </div>
       <details class="mb-2">
-        <summary style="font-size:var(--text-sm);font-weight:600;cursor:pointer;color:var(--text-muted);">Or add individual milestones</summary>
+        <summary style="font-size:var(--text-sm);font-weight:600;cursor:pointer;color:var(--ink-3);">Or add individual milestones</summary>
         <div id="gcal-list" class="mt-3"></div>
       </details>
       <div class="mt-3" style="text-align:right;">
@@ -1500,64 +2609,87 @@ body.dark .skip-link { background: #334155; }
       <button class="plan-tab" role="tab" id="tab-overview" aria-selected="true" aria-controls="panel-overview" onclick="switchPlanTab('overview')">Overview</button>
       <button class="plan-tab" role="tab" id="tab-milestones" aria-selected="false" aria-controls="panel-milestones" onclick="switchPlanTab('milestones')">Milestones</button>
       <button class="plan-tab" role="tab" id="tab-checklist" aria-selected="false" aria-controls="panel-checklist" onclick="switchPlanTab('checklist')">Checklist</button>
-      <button class="plan-tab" role="tab" id="tab-lab" aria-selected="false" aria-controls="panel-lab" onclick="switchPlanTab('lab')">Lab &amp; Booking<span id="lab-tab-dot" class="hidden" style="color:var(--lab-orange);margin-left:0.3rem;font-size:var(--text-xs);vertical-align:super;">&#9679;</span></button>
+      <button class="plan-tab" role="tab" id="tab-lab" aria-selected="false" aria-controls="panel-lab" onclick="switchPlanTab('lab')">Lab &amp; Booking<span id="lab-tab-dot" class="hidden" style="color:var(--warn);margin-left:0.3rem;font-size:var(--text-xs);vertical-align:super;">&#9679;</span></button>
     </div>
 
     <!-- ═══ Tab Panel: Overview ═══ -->
     <div class="plan-tabpanel active" role="tabpanel" id="panel-overview" aria-labelledby="tab-overview">
-      <!-- Date summary (editable) -->
-      <div class="card" id="plan-dates-card">
-        <div class="flex-row-between mb-2">
-          <p class="section-title mb-0">Key Dates</p>
-          <button class="btn btn-sm btn-ghost" id="edit-dates-btn" onclick="toggleDateEdit()">Edit</button>
-        </div>
-        <div id="plan-dates-display"></div>
-        <div id="plan-dates-edit" class="hidden">
-          <div class="form-grid mt-3">
-            <div class="form-row">
-              <label for="edit-bp-start" class="label-sm">Block period start</label>
-              <input type="date" id="edit-bp-start" onchange="onDateEditChange()">
+      <div class="dash">
+        <!-- Sidebar -->
+        <div class="side">
+          <!-- Key dates -->
+          <div class="side-card" id="side-dates-card">
+            <h3>Key dates</h3>
+            <div class="kv" id="side-dates-kv"></div>
+            <button class="btn btn-sm btn-ghost mt-3" id="edit-dates-btn" onclick="toggleDateEdit()" style="font-size:11px;">Edit dates</button>
+            <div id="plan-dates-edit" class="hidden">
+              <div class="form-grid mt-3">
+                <div class="form-row">
+                  <label for="edit-bp-start" class="label-sm">Block period start</label>
+                  <input type="date" id="edit-bp-start" onchange="onDateEditChange()">
+                </div>
+                <div class="form-row">
+                  <label for="edit-week-start" class="label-sm">Data collection week</label>
+                  <input type="date" id="edit-week-start" onchange="onDateEditChange()">
+                </div>
+                <div class="form-row hidden" id="edit-thesis-row">
+                  <label for="edit-thesis-deadline" class="label-sm">Thesis submission deadline</label>
+                  <input type="date" id="edit-thesis-deadline" onchange="onDateEditChange()">
+                </div>
+              </div>
             </div>
-            <div class="form-row">
-              <label for="edit-week-start" class="label-sm">Data collection week</label>
-              <input type="date" id="edit-week-start" onchange="onDateEditChange()">
+            <div id="dates-changed-banner" class="notice notice-warning hidden mt-3">
+              Dates updated — plan recalculated. <a href="javascript:downloadICS()" style="color:var(--warn);font-weight:600;">Re-download calendar</a>
             </div>
-            <div class="form-row hidden" id="edit-thesis-row">
-              <label for="edit-thesis-deadline" class="label-sm">Thesis submission deadline</label>
-              <input type="date" id="edit-thesis-deadline" onchange="onDateEditChange()">
-            </div>
+            <div id="buffer-indicator" class="hidden mt-3"></div>
+          </div>
+
+          <!-- Workload -->
+          <div class="side-card hidden" id="workload-card">
+            <h3>Workload</h3>
+            <div class="workload-bar" id="workload-bar"></div>
+            <div class="workload-legend" id="workload-legend"></div>
+          </div>
+
+          <!-- Status -->
+          <div class="side-card" id="side-status-card">
+            <h3>Status</h3>
+            <div id="side-status-content"></div>
+          </div>
+
+          <!-- Shift schedule (moved from inline) -->
+          <div class="side-card">
+            <h3>Schedule tools</h3>
+            <button class="btn btn-sm btn-ghost" onclick="shiftSchedule()" style="font-size:12px;width:100%;">Shift schedule&hellip;</button>
+            <p style="font-size:11px;color:var(--ink-3);margin-top:6px;">Move data collection by N days &mdash; downstream milestones follow.</p>
           </div>
         </div>
-        <div id="dates-changed-banner" class="notice notice-warning hidden mt-3">
-          Dates updated — your plan has been recalculated. <a href="javascript:downloadICS()" style="color:var(--lab-orange);font-weight:600;">Re-download your calendar</a> to keep it in sync.
-        </div>
-        <div class="flex-row mt-3" style="flex-wrap:wrap;">
-          <button class="btn btn-sm btn-ghost" onclick="shiftSchedule()" title="Shift data collection (and everything anchored to it) by N days">Shift schedule &hellip;</button>
-          <span style="font-size:var(--text-xs);color:var(--text-muted);">Behind schedule? Shift data collection by N days &mdash; downstream milestones move with it.</span>
-        </div>
-        <div id="buffer-indicator" class="hidden mt-3"></div>
-      </div>
 
-      <!-- Workload rollup -->
-      <div class="card hidden" id="workload-card">
-        <p class="section-title mb-2">Estimated Workload</p>
-        <div id="workload-content" style="font-size:var(--text-base);"></div>
-      </div>
+        <!-- Main content -->
+        <div class="main">
+          <!-- Legacy plan-dates-display kept for JS compatibility -->
+          <div id="plan-dates-display" style="display:none;"></div>
+          <div id="plan-dates-card" style="display:none;"></div>
+          <div id="workload-content" style="display:none;"></div>
 
-      <!-- Timeline -->
-      <div class="card">
-        <p class="section-title">Timeline</p>
-        <ol class="timeline-list" id="timeline-list"></ol>
+          <!-- Gantt Timeline -->
+          <div class="timeline-wrap" id="gantt-wrap"></div>
+
+          <!-- Vertical Timeline (detailed list) -->
+          <div class="card" style="margin-top:16px;">
+            <p class="section-title">Milestone list</p>
+            <ol class="timeline-list" id="timeline-list"></ol>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- ═══ Tab Panel: Milestones ═══ -->
     <div class="plan-tabpanel" role="tabpanel" id="panel-milestones" aria-labelledby="tab-milestones">
       <!-- Milestone table -->
-      <div class="card">
-        <p class="section-title">Milestones</p>
-        <table class="milestone-table" id="milestone-table">
-          <thead><tr><th>Milestone</th><th>Deadline</th><th>Status</th></tr></thead>
+      <div class="milestones-card">
+        <table class="ms-table" id="milestone-table">
+          <thead><tr><th>Milestone</th><th>Phase</th><th>Deadline</th><th>Status</th></tr></thead>
           <tbody id="milestone-tbody"></tbody>
         </table>
       </div>
@@ -1595,7 +2727,7 @@ body.dark .skip-link { background: #334155; }
               <input type="number" id="cm-duration" min="0" max="2400" placeholder="e.g. 60">
             </div>
             <div class="form-row" style="align-self:end;">
-              <span style="font-size:var(--text-xs);color:var(--text-muted);">Leave blank if unsure.</span>
+              <span style="font-size:var(--text-xs);color:var(--ink-3);">Leave blank if unsure.</span>
             </div>
           </div>
           <div class="form-row mb-2">
@@ -1747,7 +2879,7 @@ body.dark .skip-link { background: #334155; }
     <!-- Resource Booker -->
     <div class="card" id="resource-booker-card">
       <p class="section-title">Book the DEXLab &amp; Equipment</p>
-      <p style="font-size:var(--text-base);color:var(--text-secondary);line-height:1.5;margin-bottom:0.5rem;">
+      <p style="font-size:var(--text-base);color:var(--ink-2);line-height:1.5;margin-bottom:0.5rem;">
         The lab room and equipment must be booked <strong>separately</strong> via Resource Booker. Submit your bookings at least <strong>2 days in advance</strong> so the DEXLab Manager can approve them.
       </p>
       <p id="resource-booker-master-note" class="form-hint hidden mb-3">
@@ -1816,6 +2948,156 @@ body.dark .skip-link { background: #334155; }
 </div>
 
 <script>
+// ── Landing page & wizard glue ──
+var _wizardStep = 1;
+var _wizardHighest = 1;
+
+function showLanding() {
+  document.getElementById('view-landing').classList.add('active');
+  document.getElementById('view-wizard').style.display = 'none';
+  document.getElementById('app-container').style.display = 'none';
+}
+function startPlanning() {
+  document.getElementById('view-landing').classList.remove('active');
+  document.getElementById('view-wizard').style.display = '';
+  document.getElementById('app-container').style.display = 'none';
+  wizardShowStep(1);
+}
+function showExamplePlan() {
+  // For now, just start planning — example plan can be wired later
+  startPlanning();
+}
+function showPlanView() {
+  document.getElementById('view-landing').classList.remove('active');
+  document.getElementById('view-wizard').style.display = 'none';
+  document.getElementById('app-container').style.display = '';
+  // Mark plan screen as active for existing JS compatibility
+  document.querySelectorAll('#app-container .screen').forEach(function(s) { s.classList.remove('active'); });
+  document.getElementById('screen-plan').classList.add('active');
+}
+
+function wizardShowStep(n) {
+  _wizardStep = n;
+  if (n > _wizardHighest) _wizardHighest = n;
+  // Show/hide step content
+  for (var i = 1; i <= 4; i++) {
+    var el = document.getElementById('wizard-step-' + i);
+    if (el) { el.classList.toggle('active', i === n); }
+  }
+  // Update step indicators
+  var steps = document.querySelectorAll('#wizard-steps .step');
+  steps.forEach(function(s) {
+    var si = parseInt(s.getAttribute('data-step'));
+    s.classList.remove('active', 'done');
+    if (si === n) s.classList.add('active');
+    else if (si < n) s.classList.add('done');
+  });
+  // Update footer buttons
+  var backBtn = document.getElementById('wizard-back-btn');
+  var nextBtn = document.getElementById('wizard-next-btn');
+  backBtn.style.visibility = (n === 1) ? 'hidden' : '';
+  if (n === 4) {
+    nextBtn.textContent = 'Generate My Plan \u2192';
+    nextBtn.className = 'btn btn-primary';
+    nextBtn.style.background = 'var(--accent)';
+    nextBtn.style.borderColor = 'var(--accent)';
+    nextBtn.style.color = '#fff';
+    // Build summary
+    wizardBuildSummary();
+  } else {
+    nextBtn.textContent = 'Continue \u2192';
+    nextBtn.className = 'btn btn-primary';
+    nextBtn.style.background = '';
+    nextBtn.style.borderColor = '';
+    nextBtn.style.color = '';
+  }
+  // Scroll to top of wizard
+  document.getElementById('view-wizard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function wizardNext() {
+  if (_wizardStep === 1) {
+    // Validate: role must be selected
+    if (typeof state !== 'undefined' && !state.role) {
+      alert('Please select a role to continue.');
+      return;
+    }
+    wizardShowStep(2);
+  } else if (_wizardStep === 2) {
+    // Validate: date must be selected
+    if (typeof state !== 'undefined' && !state.weekStart) {
+      alert('Please select a date or block period to continue.');
+      return;
+    }
+    // Show confirmation card if date is set
+    var cc = document.getElementById('wizard-confirm-card');
+    if (cc) cc.classList.remove('hidden');
+    // Prepare step 3 fields
+    if (typeof state !== 'undefined') {
+      document.getElementById('name-input').value = state.name || '';
+      document.getElementById('title-input').value = state.studyTitle || '';
+      document.getElementById('supervisor-email-input').value = state.supervisorEmail || '';
+      var thesisCard = document.getElementById('thesis-deadline-card');
+      if (thesisCard) thesisCard.style.display = state.role === 'master' ? 'block' : 'none';
+      if (state.thesisDeadline) document.getElementById('thesis-deadline-input').value = state.thesisDeadline;
+      document.getElementById('collection-days-input').value = state.collectionDays || 5;
+      document.getElementById('analysis-weeks-input').value = state.analysisWeeks || 1;
+      document.getElementById('quick-estimate-section').open = true;
+      if (typeof updateQuickEstimate === 'function') updateQuickEstimate();
+    }
+    wizardShowStep(3);
+  } else if (_wizardStep === 3) {
+    // Save details before advancing
+    if (typeof state !== 'undefined') {
+      state.name = document.getElementById('name-input').value.trim();
+      state.studyTitle = document.getElementById('title-input').value.trim();
+      state.supervisorEmail = document.getElementById('supervisor-email-input').value.trim();
+      var td = document.getElementById('thesis-deadline-input');
+      if (td && td.value) state.thesisDeadline = td.value;
+      state.collectionDays = parseInt(document.getElementById('collection-days-input').value) || 5;
+      state.analysisWeeks = parseInt(document.getElementById('analysis-weeks-input').value) || 1;
+      if (typeof saveState === 'function') saveState();
+    }
+    wizardShowStep(4);
+  } else if (_wizardStep === 4) {
+    // Generate plan
+    if (typeof state !== 'undefined') {
+      state.name = document.getElementById('name-input').value.trim();
+      state.studyTitle = document.getElementById('title-input').value.trim();
+      state.supervisorEmail = document.getElementById('supervisor-email-input').value.trim();
+      var td2 = document.getElementById('thesis-deadline-input');
+      if (td2 && td2.value) state.thesisDeadline = td2.value;
+      state.collectionDays = parseInt(document.getElementById('collection-days-input').value) || 5;
+      state.analysisWeeks = parseInt(document.getElementById('analysis-weeks-input').value) || 1;
+    }
+    if (typeof generatePlan === 'function') generatePlan();
+    showPlanView();
+  }
+}
+
+function wizardBack() {
+  if (_wizardStep > 1) wizardShowStep(_wizardStep - 1);
+}
+
+function wizardGoToStep(n) {
+  // Can only go to steps already reached
+  if (n <= _wizardHighest) wizardShowStep(n);
+}
+
+function wizardBuildSummary() {
+  var el = document.getElementById('wizard-summary');
+  if (!el || typeof state === 'undefined') return;
+  var lines = [];
+  if (state.role) lines.push('<strong>Role:</strong> ' + (state.role === 'master' ? 'Master Student' : 'PhD Researcher'));
+  if (state.weekStart) lines.push('<strong>Data collection starts:</strong> ' + state.weekStart);
+  if (state.bpWeeks) lines.push('<strong>Period length:</strong> ' + state.bpWeeks + ' weeks');
+  if (state.name) lines.push('<strong>Name:</strong> ' + state.name);
+  if (state.studyTitle) lines.push('<strong>Study:</strong> ' + state.studyTitle);
+  el.innerHTML = lines.length > 0 ? '<div class="data-grid" style="gap:0.5rem 1rem;">' + lines.map(function(l) { return '<div>' + l + '</div>'; }).join('') + '</div>' : '<p class="form-hint">No details entered yet.</p>';
+}
+
+// Note: page load routing is handled by the init() function at the bottom of the script
+
 // ============================================================
 // ANNUAL CONFIG — UPDATE ONCE PER ACADEMIC YEAR
 // All dates are ISO strings: "YYYY-MM-DD"
@@ -2307,10 +3589,10 @@ function updateQuickEstimate() {
   const resultEl = document.getElementById('qe-result');
   resultEl.style.display = 'block';
   if (days === '?') {
-    resultEl.innerHTML = '<span style="color:var(--lab-orange);">Session duration exceeds available lab time. Adjust your inputs.</span>';
+    resultEl.innerHTML = '<span style="color:var(--warn);">Session duration exceeds available lab time. Adjust your inputs.</span>';
   } else {
     const showupPct = Math.round(showupRate * 100);
-    resultEl.innerHTML = `Estimated: <strong>${days} lab day${days !== 1 ? 's' : ''}</strong> needed <span style="color:var(--text-muted);">(${targetN} participants needed, ${slotsNeeded} slots to open at ${showupPct}% show-up, ${slotsPerDay} slot${slotsPerDay !== 1 ? 's' : ''}/day)</span>`;
+    resultEl.innerHTML = `Estimated: <strong>${days} lab day${days !== 1 ? 's' : ''}</strong> needed <span style="color:var(--ink-3);">(${targetN} participants needed, ${slotsNeeded} slots to open at ${showupPct}% show-up, ${slotsPerDay} slot${slotsPerDay !== 1 ? 's' : ''}/day)</span>`;
   }
 
   // Autofill collection days from estimate
@@ -2381,7 +3663,7 @@ function updateCalc() {
   const labMinutes = endMin - startMin;
   if (labMinutes <= 0) {
     document.getElementById('calc-result').style.display = 'block';
-    document.getElementById('calc-result').innerHTML = '<p style="color:var(--danger);">Lab end time must be after start time. Use HH:MM format (e.g. 09:00).</p>';
+    document.getElementById('calc-result').innerHTML = '<p style="color:var(--accent);">Lab end time must be after start time. Use HH:MM format (e.g. 09:00).</p>';
     return;
   }
 
@@ -2507,17 +3789,19 @@ function updateCalc() {
   const result = document.getElementById('calc-result');
   result.style.display = 'block';
   const showupPct = Math.round(showupRate * 100);
+  const totalHours = typeof totalDays === 'number' ? ((usableMinutes * totalDays) / 60).toFixed(1) : '?';
   result.innerHTML = `
-    <p class="form-hint mb-2">${designLabel}</p>
-    <div class="form-grid" style="gap:0.5rem 1.5rem;font-size:var(--text-lg);">
-      <div><strong>Target participants</strong></div><div class="mono">${targetN}</div>
-      <div><strong>Slots to open</strong></div><div class="mono">${totalN} <span style="font-size:var(--text-sm);color:var(--text-muted);">(${targetN} \u00F7 ${showupPct}% show-up)</span></div>
-      <div><strong>Usable lab time per day</strong></div><div class="mono">${Math.floor(usableMinutes / 60)}h ${usableMinutes % 60}m</div>
-      <div><strong>Timeslots per day</strong></div><div class="mono">${slotsPerDay} slots \u00D7 ${perTimeslot} participant${perTimeslot > 1 ? 's' : ''} = ${participantsPerDay}/day</div>
-      <div><strong>Total lab days needed</strong></div><div class="mono result-value-highlight">${totalDays} day${totalDays !== 1 ? 's' : ''}</div>
+    <div class="calc-result">
+      <div class="calc-result-title">Calculator results</div>
+      <div class="calc-result-grid">
+        <div class="calc-result-item"><span class="num">${totalN}</span><span class="lbl">Total participants (${showupPct}% show-up)</span></div>
+        <div class="calc-result-item"><span class="num">${totalDays}</span><span class="lbl">Lab days needed</span></div>
+        <div class="calc-result-item"><span class="num">${slotsPerDay}</span><span class="lbl">Sessions per day</span></div>
+        <div class="calc-result-item"><span class="num">${totalHours}h</span><span class="lbl">Total lab hours</span></div>
+      </div>
     </div>
-    <p class="form-hint mt-3">
-      \u2192 You need <strong>${targetN} usable participants</strong>. At ${showupPct}% show-up, open <strong>${totalN} slots</strong> across <strong>${totalDays} day${totalDays !== 1 ? 's' : ''}</strong>. Each session is ${sessionMin} min${buffer > 0 ? ` + ${buffer} min buffer` : ''} = ${slotDuration} min per slot. Coordinate with other researchers weeks in advance.
+    <p style="font-size:12px;color:var(--ink-3);margin-top:12px;">
+      ${designLabel}. ${targetN} target \u00D7 ${showupPct}% show-up = ${totalN} slots across ${totalDays} day${totalDays !== 1 ? 's' : ''}. ${sessionMin} min/session${buffer > 0 ? ` + ${buffer} min buffer` : ''}.
     </p>${totalDays > baseTotalDays ? `<div class="holiday-warning mt-3"><span class="hw-icon">\u26A0\uFE0F</span> Blocked time slots reduce capacity. Without blocks: ${baseTotalDays} days. With blocks: <strong>${totalDays} days</strong>.</div>` : ''}${timetableHTML}`;
 
   // Show/hide blocked-slots section and populate day dropdown
@@ -2703,8 +3987,8 @@ function renderBlockedSlotsList() {
     const first = items[0];
     const dayCount = items.length;
     html += `<div class="flex-row" style="padding:0.3rem 0;font-size:var(--text-sm);">
-      <span class="mono" style="color:var(--lab-orange);font-weight:600;">Every day</span>
-      <span style="font-size:var(--text-xs);color:var(--text-muted);">(${dayCount} days)</span>
+      <span class="mono" style="color:var(--warn);font-weight:600;">Every day</span>
+      <span style="font-size:var(--text-xs);color:var(--ink-3);">(${dayCount} days)</span>
       <span class="mono">${fmtTime(first.startMin)}\u2013${fmtTime(first.endMin)}</span>
       <span class="form-hint-inline">${escapeHTML(first.label || '')}</span>
       <button type="button" data-group-id="${escapeHTML(groupId)}" onclick="removeBlockedGroup(this.dataset.groupId)" class="remove-btn" aria-label="Remove recurring blocked slots">\u00D7</button>
@@ -2714,7 +3998,7 @@ function renderBlockedSlotsList() {
   // Render single blocks
   singles.forEach(b => {
     html += `<div class="flex-row" style="padding:0.3rem 0;font-size:var(--text-sm);">
-      <span class="mono" style="color:var(--danger);font-weight:600;">Day ${b.dayIndex}</span>
+      <span class="mono" style="color:var(--accent);font-weight:600;">Day ${b.dayIndex}</span>
       <span class="mono">${fmtTime(b.startMin)}\u2013${fmtTime(b.endMin)}</span>
       <span class="form-hint-inline">${escapeHTML(b.label || '')}</span>
       <button type="button" data-slot-id="${escapeHTML(b.id)}" onclick="removeBlockedSlot(this.dataset.slotId)" class="remove-btn" aria-label="Remove blocked slot">\u00D7</button>
@@ -3366,6 +4650,9 @@ function navigateToStep(screenId) {
 }
 
 function showScreen(id) {
+  if (id === 'screen-plan') {
+    showPlanView();
+  }
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   updateStepIndicator(id);
@@ -3387,10 +4674,15 @@ function showScreensUpTo(id) {
 function selectRole(role) {
   state.role = role;
   document.body.className = `role-${role}`;
-  document.getElementById('btn-master').className = `role-btn${role === 'master' ? ' selected-master' : ''}`;
-  document.getElementById('btn-phd').className = `role-btn${role === 'phd' ? ' selected-phd' : ''}`;
+  document.getElementById('btn-master').className = `role-card${role === 'master' ? ' selected' : ''}`;
+  document.getElementById('btn-phd').className = `role-card${role === 'phd' ? ' selected' : ''}`;
   populateBPDropdown();
-  showScreensUpTo('screen-date');
+  // In wizard mode, auto-advance to step 2
+  if (document.getElementById('view-wizard').style.display !== 'none') {
+    wizardShowStep(2);
+  } else {
+    showScreensUpTo('screen-date');
+  }
   saveState();
 }
 
@@ -3495,25 +4787,29 @@ function showConfirmation() {
     container.innerHTML = '';
   }
 
-  showScreensUpTo('screen-name');
-  document.getElementById('name-input').value = state.name || '';
-  document.getElementById('title-input').value = state.studyTitle || '';
-  document.getElementById('supervisor-email-input').value = state.supervisorEmail || '';
-  // Show thesis deadline input for master students
-  const thesisCard = document.getElementById('thesis-deadline-card');
-  thesisCard.style.display = state.role === 'master' ? 'block' : 'none';
-  if (state.thesisDeadline) document.getElementById('thesis-deadline-input').value = state.thesisDeadline;
-  document.getElementById('collection-days-input').value = state.collectionDays || 5;
-  document.getElementById('analysis-weeks-input').value = state.analysisWeeks || 1;
-  // Auto-expand quick estimate so users don't miss it
-  document.getElementById('quick-estimate-section').open = true;
-  updateQuickEstimate();
-  saveState();
-  // Run calculator so results and timetable are shown immediately
-  _calcSuppressDirty = true;
-  updateCalc();
-  _calcSuppressDirty = false;
-  _calcDirty = false;
+  // In wizard mode, show the confirm card and stay on step 2
+  if (document.getElementById('view-wizard').style.display !== 'none') {
+    var cc = document.getElementById('wizard-confirm-card');
+    if (cc) cc.classList.remove('hidden');
+    saveState();
+  } else {
+    showScreensUpTo('screen-name');
+    document.getElementById('name-input').value = state.name || '';
+    document.getElementById('title-input').value = state.studyTitle || '';
+    document.getElementById('supervisor-email-input').value = state.supervisorEmail || '';
+    const thesisCard = document.getElementById('thesis-deadline-card');
+    thesisCard.style.display = state.role === 'master' ? 'block' : 'none';
+    if (state.thesisDeadline) document.getElementById('thesis-deadline-input').value = state.thesisDeadline;
+    document.getElementById('collection-days-input').value = state.collectionDays || 5;
+    document.getElementById('analysis-weeks-input').value = state.analysisWeeks || 1;
+    document.getElementById('quick-estimate-section').open = true;
+    updateQuickEstimate();
+    saveState();
+    _calcSuppressDirty = true;
+    updateCalc();
+    _calcSuppressDirty = false;
+    _calcDirty = false;
+  }
 }
 
 function onCollectionDaysChange() {
@@ -3529,13 +4825,12 @@ function adjustWeeks(delta) {
 
 // ── Inline Date Editing ──
 function toggleDateEdit() {
-  const display = document.getElementById('plan-dates-display');
   const edit = document.getElementById('plan-dates-edit');
   const btn = document.getElementById('edit-dates-btn');
   const isEditing = edit.style.display !== 'none';
   if (isEditing) {
     edit.style.display = 'none';
-    btn.textContent = 'Edit';
+    btn.textContent = 'Edit dates';
   } else {
     document.getElementById('edit-bp-start').value = state.bpStart || '';
     document.getElementById('edit-week-start').value = state.weekStart || state.bpStart || '';
@@ -3557,6 +4852,99 @@ function onDateEditChange() {
   saveState();
   renderPlan();
   document.getElementById('dates-changed-banner').style.display = 'block';
+}
+
+function renderPlanHead(bpStart, bpEnd) {
+  const matchedBP = CONFIG.blockPeriods.find(bp => bp.start === state.bpStart);
+  const bpLabel = matchedBP ? matchedBP.label : 'Custom period';
+  const roleLabel = state.role === 'master' ? 'Master' : 'PhD';
+  document.getElementById('plan-eyebrow').textContent = `Your plan \xB7 ${roleLabel} \xB7 ${bpLabel}`;
+
+  // Meta spans
+  const weekStart = parseDate(state.weekStart || state.bpStart);
+  const weekNum = Math.ceil((weekStart - bpStart) / (7 * 86400000)) + 1;
+  let metaHTML = `<span>Block period \xB7 <strong>${formatDate(bpStart)}</strong></span>`;
+  if (state.weekStart && state.weekStart !== state.bpStart) {
+    metaHTML += `<span>Data collection \xB7 <strong>Wk ${weekNum}</strong></span>`;
+  }
+  if (state.thesisDeadline) {
+    metaHTML += `<span>Submission \xB7 <strong>${formatDate(parseDate(state.thesisDeadline))}</strong></span>`;
+  }
+  document.getElementById('plan-meta').innerHTML = metaHTML;
+}
+
+function renderSideDates(bpStart, bpEnd) {
+  const weekStart = parseDate(state.weekStart || state.bpStart);
+  const weekNum = Math.ceil((weekStart - bpStart) / (7 * 86400000)) + 1;
+  let html = '';
+  html += `<div class="kv-row"><span class="k">Block period start</span><span class="v">${formatDate(bpStart)}</span></div>`;
+  if (state.weekStart && state.weekStart !== state.bpStart) {
+    html += `<div class="kv-row"><span class="k">Data collection week</span><span class="v">Week ${weekNum} <small>${formatDate(weekStart)}</small></span></div>`;
+  }
+  if (state.thesisDeadline) {
+    html += `<div class="kv-row"><span class="k">Thesis submission</span><span class="v">${formatDate(parseDate(state.thesisDeadline))}</span></div>`;
+  }
+  html += `<div class="kv-row"><span class="k">Block period end</span><span class="v">${formatDate(bpEnd)}</span></div>`;
+  document.getElementById('side-dates-kv').innerHTML = html;
+}
+
+function renderSideStatus(computed) {
+  const total = computed.length;
+  const checked = computed.filter(m => state.checkedItems.includes(m.id)).length;
+  const pct = total > 0 ? Math.round((checked / total) * 100) : 0;
+  let html = `<div style="font-size:14px;color:var(--ink);font-weight:500;">${checked} / ${total} milestones</div>`;
+  html += `<div style="font-size:12px;color:var(--ink-3);margin-top:2px;">${pct}% complete</div>`;
+  html += `<div class="status-bar"><div class="status-bar-fill" style="width:${pct}%"></div></div>`;
+  document.getElementById('side-status-content').innerHTML = html;
+}
+
+function renderSideWorkload(computed) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const upcoming = computed.filter(m => m.durationMin && m.durationMin > 0 && !state.checkedItems.includes(m.id) && m.date >= today);
+  const card = document.getElementById('workload-card');
+  const bar = document.getElementById('workload-bar');
+  const legend = document.getElementById('workload-legend');
+  if (upcoming.length === 0) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+
+  // Group by phase
+  const phases = [
+    { key: 'phase1_before_sona', label: 'Before SONA', color: 'var(--p1)' },
+    { key: 'phase2_sona', label: 'SONA setup', color: 'var(--p2)' },
+    { key: 'phase3_before_experiment', label: 'Before experiment', color: 'var(--p3)' },
+    { key: 'phase4_go', label: 'Data collection', color: 'var(--p4)' },
+    { key: 'phase5_thesis', label: 'Analysis & writing', color: 'var(--p5)' }
+  ];
+  const totals = {};
+  let grandTotal = 0;
+  upcoming.forEach(m => {
+    const key = m.section || 'phase3_before_experiment';
+    totals[key] = (totals[key] || 0) + m.durationMin;
+    grandTotal += m.durationMin;
+  });
+
+  // Bar segments
+  let barHTML = '';
+  phases.forEach(p => {
+    if (totals[p.key]) {
+      const pct = (totals[p.key] / grandTotal * 100).toFixed(1);
+      barHTML += `<span style="width:${pct}%;background:${p.color}"></span>`;
+    }
+  });
+  bar.innerHTML = barHTML;
+
+  // Legend rows
+  let legendHTML = '';
+  phases.forEach(p => {
+    if (totals[p.key]) {
+      legendHTML += `<div class="workload-legend-row">
+        <span class="workload-legend-dot" style="background:${p.color}"></span>
+        <span>${p.label}</span>
+        <span class="num">${formatDuration(totals[p.key])}</span>
+      </div>`;
+    }
+  });
+  legend.innerHTML = legendHTML;
 }
 
 function renderDatesDisplay() {
@@ -3700,7 +5088,7 @@ function showShiftModal(deltaDays, subsequentCount, precedingCount) {
   var body = '<p class="form-hint mb-4">You moved this milestone <strong>' + absDays + ' day' + (absDays !== 1 ? 's' : '') + ' ' + direction + '</strong>.</p>';
 
   if (wouldCompress) {
-    body += '<p class="form-hint mb-4" style="color:var(--warning);"><strong>\u26A0 Warning:</strong> Some milestones would land after your thesis deadline. They will be compressed to fit, but tasks will have less time between them.</p>';
+    body += '<p class="form-hint mb-4" style="color:var(--warn);"><strong>\u26A0 Warning:</strong> Some milestones would land after your thesis deadline. They will be compressed to fit, but tasks will have less time between them.</p>';
   }
 
   var buttons = '<button class="btn btn-sm btn-ghost" onclick="shiftConfirmSkip()">Only this one</button>';
@@ -3713,9 +5101,9 @@ function showShiftModal(deltaDays, subsequentCount, precedingCount) {
 
   var overlay = document.createElement('div');
   overlay.id = 'shift-confirm-overlay';
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;font-family:var(--font-sans);';
-  overlay.innerHTML = '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-6);max-width:420px;width:90%;box-shadow:var(--shadow-lg);">' +
-    '<h3 style="margin:0 0 var(--space-2);font-family:var(--font-serif);font-size:var(--text-lg);color:var(--navy);">Adjust related milestones?</h3>' +
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;font-family:var(--font-body);';
+  overlay.innerHTML = '<div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:var(--space-6);max-width:420px;width:90%;box-shadow:var(--shadow-lg);">' +
+    '<h3 style="margin:0 0 var(--space-2);font-family:var(--font-display);font-size:var(--text-lg);color:var(--ink);">Adjust related milestones?</h3>' +
     body +
     '<div class="flex-actions" style="justify-content:flex-end;flex-wrap:wrap;gap:var(--space-2);">' +
     buttons +
@@ -3910,9 +5298,9 @@ function renderCustomList() {
   const sorted = [...items].sort((a,b) => (a.date || '').localeCompare(b.date || ''));
   list.innerHTML = sorted.map(c => {
     const dur = formatDuration(c.durationMin);
-    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:0.35rem 0;border-bottom:1px solid var(--border-light);">
-      <div><strong>${escapeHtml(c.label)}</strong>${dur ? ` <span style="color:var(--text-muted);font-size:var(--text-xs);">\u00B7 ${dur}</span>` : ''}<br>
-        <span class="mono" style="font-size:var(--text-xs);color:var(--text-muted);">${formatDate(parseDate(c.date))}</span>
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:0.35rem 0;border-bottom:1px solid var(--line-2);">
+      <div><strong>${escapeHtml(c.label)}</strong>${dur ? ` <span style="color:var(--ink-3);font-size:var(--text-xs);">\u00B7 ${dur}</span>` : ''}<br>
+        <span class="mono" style="font-size:var(--text-xs);color:var(--ink-3);">${formatDate(parseDate(c.date))}</span>
       </div>
       <div style="display:flex;gap:0.25rem;">
         <button class="btn btn-sm btn-ghost" onclick="editCustomMilestone('${c.id}')">Edit</button>
@@ -3976,7 +5364,7 @@ function renderWorkload() {
     const endOfWeek = addDays(w.start, 6);
     const labels = w.items.map(i => escapeHtml(i.label)).join(', ');
     html += `<span class="mono form-hint-inline">Week of ${formatDateShort(w.start)}</span>`;
-    html += `<span class="form-hint-inline" style="color:var(--text-secondary);">${labels}</span>`;
+    html += `<span class="form-hint-inline" style="color:var(--ink-2);">${labels}</span>`;
     html += `<span class="mono result-value-highlight">${formatDuration(w.total)}</span>`;
   });
   html += '</div>';
@@ -4085,8 +5473,11 @@ function renderPlan() {
   const bpEnd = addDays(bpStart, state.bpWeeks * 7 - 1);
   const today = new Date(); today.setHours(0,0,0,0);
   const displayName = state.name || 'Your';
-  const title = state.studyTitle ? `${displayName}${state.name ? '\u2019s' : ''} Plan: ${state.studyTitle}` : `${displayName}${state.name ? '\u2019s' : ''} Experiment Plan`;
+  const title = state.studyTitle || 'Untitled study';
   document.getElementById('plan-title').textContent = title;
+
+  // Plan header meta
+  renderPlanHead(bpStart, bpEnd);
 
   const computed = getCachedMilestones();
   const thesisDate = state.thesisDeadline ? parseDate(state.thesisDeadline) : null;
@@ -4094,9 +5485,13 @@ function renderPlan() {
   const holidaysInRange = getHolidaysInRange(bpStart, holidayEnd);
 
   renderDatesDisplay();
+  renderSideDates(bpStart, bpEnd);
+  renderSideStatus(computed);
+  renderSideWorkload(computed);
   // Show supervisor button if email is set
   document.getElementById('supervisor-update-btn').style.display = state.supervisorEmail ? 'inline-flex' : 'none';
   renderTimeline(computed, holidaysInRange, today);
+  renderGantt(computed, today, bpStart, bpEnd);
   renderMilestoneTable(computed, today);
   renderChecklist(computed, today);
   renderCustomList();
@@ -4182,7 +5577,7 @@ function renderPlan() {
         <div>Design</div><div class="mono">${designLabel} (${qe.conditions} conditions)</div>
         <div>Lab days needed</div><div class="mono result-value-highlight">\u2248 ${qe.days} day${qe.days !== 1 ? 's' : ''}</div>
       </div>
-      <p class="form-hint mt-3" style="color:var(--lab-orange);">This is a quick estimate. Use the full Lab Timetable Calculator above for a detailed timetable with blocked slots and exact scheduling.</p>`;
+      <p class="form-hint mt-3" style="color:var(--warn);">This is a quick estimate. Use the full Lab Timetable Calculator above for a detailed timetable with blocked slots and exact scheduling.</p>`;
   } else {
     labSummary.style.display = 'none';
   }
@@ -4227,7 +5622,7 @@ function renderTimeline(milestones, holidays, today) {
     li.innerHTML = `
       <div class="tl-dot${isOverdue ? '' : (isPast ? ' past' : '')}${isHoliday ? ' holiday' : ''}"></div>
       <span class="tl-date">${formatDateShort(item.date)}</span>
-      <span class="tl-label">${item.label}${isOverdue ? ' \u2014 OVERDUE' : ''}${(item.id && (item.id === 'data_collection' || item.id.startsWith('lab_day_'))) ? ' <a href="javascript:scrollToTimetable()" style="font-size:var(--text-xs);color:var(--text-muted);text-decoration:none;" onmouseover="this.style.textDecoration=\'underline\'" onmouseout="this.style.textDecoration=\'none\'">(view timetable)</a>' : ''}</span>`;
+      <span class="tl-label">${item.label}${isOverdue ? ' \u2014 OVERDUE' : ''}${(item.id && (item.id === 'data_collection' || item.id.startsWith('lab_day_'))) ? ' <a href="javascript:scrollToTimetable()" style="font-size:var(--text-xs);color:var(--ink-3);text-decoration:none;" onmouseover="this.style.textDecoration=\'underline\'" onmouseout="this.style.textDecoration=\'none\'">(view timetable)</a>' : ''}</span>`;
     list.appendChild(li);
   });
 
@@ -4240,21 +5635,131 @@ function renderTimeline(milestones, holidays, today) {
   }
 }
 
+function renderGantt(milestones, today, bpStart, bpEnd) {
+  const wrap = document.getElementById('gantt-wrap');
+  if (!wrap || milestones.length === 0) return;
+
+  // Determine plan range
+  const thesisDate = state.thesisDeadline ? parseDate(state.thesisDeadline) : null;
+  const planEnd = (thesisDate && thesisDate > bpEnd) ? thesisDate : bpEnd;
+  const planStart = bpStart;
+  const totalDays = daysBetween(planStart, planEnd);
+  if (totalDays <= 0) return;
+
+  // Week ticks
+  const numWeeks = Math.ceil(totalDays / 7);
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  let axisHTML = '';
+  for (let w = 0; w < numWeeks; w++) {
+    const tickDate = addDays(planStart, w * 7);
+    const isMonthStart = tickDate.getDate() <= 7 && w > 0;
+    const label = isMonthStart ? months[tickDate.getMonth()] : `W${w + 1}`;
+    axisHTML += `<div class="timeline-axis-tick${isMonthStart ? ' month-start' : ''}">${label}</div>`;
+  }
+
+  // Group milestones by phase to compute phase bars
+  const phaseOrder = ['phase1_before_sona', 'phase2_sona', 'phase3_before_experiment', 'phase4_go', 'phase5_thesis'];
+  const phaseData = {};
+  milestones.forEach(m => {
+    const sec = m.section || 'phase3_before_experiment';
+    if (!phaseData[sec]) phaseData[sec] = { min: m.date, max: m.date, milestones: [] };
+    if (m.date < phaseData[sec].min) phaseData[sec].min = m.date;
+    if (m.date > phaseData[sec].max) phaseData[sec].max = m.date;
+    phaseData[sec].milestones.push(m);
+  });
+
+  // Build phase bars + milestone diamonds
+  let rowsHTML = '';
+  phaseOrder.forEach(phaseKey => {
+    const pd = phaseData[phaseKey];
+    if (!pd) return;
+    const color = PHASE_COLORS[phaseKey] || 'var(--ink-3)';
+    const label = PHASE_SHORT[phaseKey] || phaseKey;
+    const leftPct = (daysBetween(planStart, pd.min) / totalDays * 100).toFixed(2);
+    const widthDays = Math.max(1, daysBetween(pd.min, pd.max));
+    const widthPct = (widthDays / totalDays * 100).toFixed(2);
+
+    // Phase bar row
+    rowsHTML += `<div class="tl-row-gantt">`;
+    rowsHTML += `<div class="tl-bar-gantt" style="left:${leftPct}%;width:${widthPct}%;background:${color}"><span>${label}</span></div>`;
+    rowsHTML += `</div>`;
+
+    // Individual milestone diamonds row (if > 1 milestone in phase)
+    if (pd.milestones.length > 1) {
+      rowsHTML += `<div class="tl-row-gantt" style="height:22px;">`;
+      pd.milestones.forEach(m => {
+        const mLeft = (daysBetween(planStart, m.date) / totalDays * 100).toFixed(2);
+        const checked = state.checkedItems.includes(m.id);
+        const opacity = checked ? '0.4' : '1';
+        rowsHTML += `<div class="tl-diamond" style="left:calc(${mLeft}% - 7px);color:${color};opacity:${opacity}" title="${escapeHTML(m.label)} — ${formatDateShort(m.date)}"></div>`;
+      });
+      rowsHTML += `</div>`;
+    }
+  });
+
+  // Today line
+  let todayHTML = '';
+  if (today >= planStart && today <= planEnd) {
+    const todayPct = (daysBetween(planStart, today) / totalDays * 100).toFixed(2);
+    todayHTML = `<div class="tl-today-line" style="left:${todayPct}%"></div>`;
+  }
+
+  // Legend
+  let legendHTML = '';
+  phaseOrder.forEach(phaseKey => {
+    if (!phaseData[phaseKey]) return;
+    const color = PHASE_COLORS[phaseKey] || 'var(--ink-3)';
+    const label = PHASE_SHORT[phaseKey] || phaseKey;
+    legendHTML += `<span class="timeline-legend-item"><span class="timeline-legend-dot" style="background:${color}"></span>${label}</span>`;
+  });
+
+  wrap.innerHTML = `
+    <div class="timeline-head">
+      <h3>Timeline</h3>
+      <div class="timeline-legend">${legendHTML}</div>
+    </div>
+    <div class="timeline-body">
+      <div class="timeline-grid">
+        <div class="timeline-axis">${axisHTML}</div>
+        <div class="timeline-rows" style="--ticks:${numWeeks}">
+          ${rowsHTML}
+          ${todayHTML}
+        </div>
+      </div>
+    </div>`;
+}
+
+const PHASE_COLORS = {
+  phase1_before_sona: 'var(--p1)',
+  phase2_sona: 'var(--p2)',
+  phase3_before_experiment: 'var(--p3)',
+  phase4_go: 'var(--p4)',
+  phase5_thesis: 'var(--p5)'
+};
+const PHASE_SHORT = {
+  phase1_before_sona: 'Before SONA',
+  phase2_sona: 'SONA setup',
+  phase3_before_experiment: 'Before experiment',
+  phase4_go: 'Data collection',
+  phase5_thesis: 'Analysis & writing'
+};
+
 function renderMilestoneTable(milestones, today) {
   const tbody = document.getElementById('milestone-tbody');
   tbody.innerHTML = '';
   milestones.forEach(m => {
     const tr = document.createElement('tr');
     const diff = daysBetween(today, m.date);
-    let statusClass, statusText;
-    if (diff < 0) { statusClass = 'status-past'; statusText = '\u2713 Past'; tr.className = 'past'; }
-    else if (diff === 0) { statusClass = 'status-today'; statusText = '\u25CF Today'; }
-    else if (diff <= 7) { statusClass = 'status-urgent'; statusText = `\u26A0 ${diff} day${diff !== 1 ? 's' : ''}`; }
-    else { statusClass = 'status-ok'; statusText = `\u2014 ${diff} days`; }
+    const checked = state.checkedItems.includes(m.id);
+    let chipClass, chipText;
+    if (checked || diff < 0) { chipClass = 'done'; chipText = '\u2713 Done'; tr.className = 'past'; }
+    else if (diff === 0) { chipClass = 'due'; chipText = '\u25CF Today'; }
+    else if (diff <= 7) { chipClass = 'warn'; chipText = `\u26A0 ${diff}d`; }
+    else { chipClass = ''; chipText = `${diff}d`; }
     const durLabel = formatDuration(m.durationMin);
-    const durBadge = durLabel ? ` <span style="color:var(--text-muted);font-size:var(--text-xs);">\u00B7 ${durLabel}</span>` : '';
+    const durSub = durLabel ? `<div class="ms-name-sub">${durLabel}</div>` : '';
     const overrideBadge = m.overridden ? ' <span class="badge-tag badge-tag-warning">edited</span>' : '';
-    // Date cell: inline edit or clickable date (thesis_submission is fixed by university)
+    // Date cell: inline edit or clickable date
     let dateCell;
     const isFixed = m.id === 'thesis_submission';
     if (!isFixed && _editingDateId === m.id) {
@@ -4263,15 +5768,20 @@ function renderMilestoneTable(milestones, today) {
         `<button onclick="cancelDateOverride()" class="action-btn">Cancel</button>` +
         (m.overridden ? `<button onclick="resetDateOverride('${m.id}')" class="action-btn" title="Reset to computed date">Reset</button>` : '');
     } else if (!isFixed) {
-      dateCell = `<span onclick="startDateOverride('${m.id}')" style="cursor:pointer;border-bottom:1px dashed var(--border);" title="Click to edit date">${formatDate(m.date)}</span>${overrideBadge}` +
+      dateCell = `<span class="ms-date" onclick="startDateOverride('${m.id}')" style="cursor:pointer;border-bottom:1px dashed var(--line);" title="Click to edit date">${formatDate(m.date)}</span>${overrideBadge}` +
+        `<div class="ms-rel">${diff >= 0 ? 'in ' + diff + ' day' + (diff !== 1 ? 's' : '') : Math.abs(diff) + 'd ago'}</div>` +
         (m.overridden ? ` <button onclick="resetDateOverride('${m.id}')" class="action-btn" title="Reset to computed date" style="font-size:var(--text-xs);">Reset</button>` : '');
     } else {
-      dateCell = `<span title="Fixed by university">${formatDate(m.date)}</span> <span class="badge-tag">fixed</span>`;
+      dateCell = `<span class="ms-date" title="Fixed by university">${formatDate(m.date)}</span> <span class="badge-tag">fixed</span>`;
     }
+    const phaseColor = PHASE_COLORS[m.section] || 'var(--ink-3)';
+    const phaseLabel = PHASE_SHORT[m.section] || m.section;
+    const timetableLink = (m.id === 'data_collection' || (m.id && m.id.startsWith('lab_day_'))) ? ' <a href="javascript:scrollToTimetable()" style="font-size:var(--text-xs);color:var(--ink-3);text-decoration:none;" onmouseover="this.style.textDecoration=\'underline\'" onmouseout="this.style.textDecoration=\'none\'">(timetable)</a>' : '';
     tr.innerHTML = `
-      <td>${m.label}${m.optional ? ' <span class="form-hint-inline">(optional)</span>' : ''}${m.compressed ? ' <span class="badge-tag badge-tag-warning">compressed</span>' : ''}${durBadge}${(m.id === 'data_collection' || (m.id && m.id.startsWith('lab_day_'))) ? ' <a href="javascript:scrollToTimetable()" style="font-size:var(--text-xs);color:var(--text-muted);text-decoration:none;" onmouseover="this.style.textDecoration=\'underline\'" onmouseout="this.style.textDecoration=\'none\'">(view timetable)</a>' : ''}</td>
-      <td class="ms-date">${dateCell}</td>
-      <td class="${statusClass}">${statusText}</td>`;
+      <td><div class="ms-name">${m.label}${m.optional ? ' <span style="color:var(--ink-3);font-weight:400;">(opt)</span>' : ''}${m.compressed ? ' <span class="badge-tag badge-tag-warning">compressed</span>' : ''}${timetableLink}</div>${durSub}</td>
+      <td><span class="ms-phase-pill" style="--phase-color:${phaseColor}">${phaseLabel}</span></td>
+      <td>${dateCell}</td>
+      <td><span class="ms-status-chip ${chipClass}">${chipText}</span></td>`;
     tbody.appendChild(tr);
   });
 }
@@ -4292,58 +5802,64 @@ function renderChecklist(milestones, today) {
 
   sectionOrder.filter(key => sections[key]).forEach(sectionKey => {
     const items = sections[sectionKey];
-    const details = document.createElement('details');
-    details.className = 'checklist-section';
-    details.open = true;
+    const phaseCard = document.createElement('div');
+    phaseCard.className = 'checklist-phase';
 
     const sectionChecked = items.filter(m => state.checkedItems.includes(m.id)).length;
     checkedCount += sectionChecked;
 
+    const phaseColor = PHASE_COLORS[sectionKey] || 'var(--ink-3)';
     const bodyId = `section-${sectionKey}`;
-    details.innerHTML = `
-      <summary class="checklist-section-header">
-        <span>${SECTION_LABELS[sectionKey] || sectionKey}<span class="checklist-section-count">${sectionChecked}/${items.length}</span></span>
-        <span class="chevron">\u25BC</span>
-      </summary>
-      <div class="checklist-section-body" id="${bodyId}"></div>`;
-    container.appendChild(details);
+    phaseCard.innerHTML = `
+      <div class="checklist-phase-head">
+        <span class="checklist-phase-name" style="--phase-color:${phaseColor}">${SECTION_LABELS[sectionKey] || sectionKey}</span>
+        <span class="checklist-phase-count" id="count-${sectionKey}">${sectionChecked}/${items.length}</span>
+      </div>
+      <div class="checklist-items" id="${bodyId}"></div>`;
+    container.appendChild(phaseCard);
 
-    const body = details.querySelector('.checklist-section-body');
+    const body = phaseCard.querySelector('.checklist-items');
     items.forEach(m => {
       const checked = state.checkedItems.includes(m.id);
       const item = document.createElement('div');
-      item.className = `check-item${m.keyDate ? ' key-date-item' : ''}`;
-      const durLabel = formatDuration(m.durationMin);
-      const durBadge = durLabel ? ` <span style="color:var(--text-muted);font-size:var(--text-xs);font-weight:400;">\u00B7 ${durLabel}</span>` : '';
-      const customBadge = m.custom ? ` <span class="badge-tag">custom</span>` : '';
-      const compressedBadge = m.compressed ? ` <span class="badge-tag badge-tag-warning" title="Date adjusted to fit before thesis deadline">compressed</span>` : '';
-      const overrideBadge = m.overridden ? ` <span class="badge-tag badge-tag-warning">date edited</span>` : '';
-      // Action buttons use .action-btn class
+      item.className = `checklist-item${checked ? ' done' : ''}`;
+      item.id = `cl-item-${m.id}`;
+      // Build action buttons
       let actions = '';
       const isFixedMs = m.id === 'thesis_submission';
-      // Date edit UI (inline input if this row is being edited; thesis_submission is fixed)
       if (!isFixedMs && _editingDateId === m.id) {
-        actions += `<input type="date" id="date-edit-input-${m.id}" value="${toISO(m.date)}" style="font-size:var(--text-xs);padding:0.1rem 0.3rem;">`;
-        actions += `<button onclick="saveDateOverride('${m.id}')" class="action-btn action-btn-accent">Save</button>`;
-        actions += `<button onclick="cancelDateOverride()" class="action-btn">Cancel</button>`;
+        actions += `<input type="date" id="date-edit-input-${m.id}" value="${toISO(m.date)}" style="font-size:var(--text-xs);padding:0.1rem 0.3rem;" onclick="event.stopPropagation()">`;
+        actions += `<button onclick="event.stopPropagation();saveDateOverride('${m.id}')" class="action-btn action-btn-accent">Save</button>`;
+        actions += `<button onclick="event.stopPropagation();cancelDateOverride()" class="action-btn">Cancel</button>`;
       } else if (!isFixedMs) {
-        actions += `<button onclick="startDateOverride('${m.id}')" class="action-btn" title="Edit the date for this milestone">Edit date</button>`;
-        if (m.overridden) actions += `<button onclick="resetDateOverride('${m.id}')" class="action-btn" title="Reset to computed date">Reset</button>`;
-      } else {
-        actions += `<span class="badge-tag" title="Fixed by university">fixed</span>`;
+        actions += `<button onclick="event.stopPropagation();startDateOverride('${m.id}')" class="action-btn" title="Edit date">Edit date</button>`;
+        if (m.overridden) actions += `<button onclick="event.stopPropagation();resetDateOverride('${m.id}')" class="action-btn" title="Reset">Reset</button>`;
       }
       if (m.custom) {
-        actions += `<button onclick="editCustomMilestone('${m.id}')" class="action-btn">Edit</button><button onclick="deleteCustomMilestone('${m.id}')" class="action-btn">Delete</button>`;
+        actions += `<button onclick="event.stopPropagation();editCustomMilestone('${m.id}')" class="action-btn">Edit</button><button onclick="event.stopPropagation();deleteCustomMilestone('${m.id}')" class="action-btn">Delete</button>`;
       } else if (!m.labDay) {
-        actions += `<button onclick="hideMilestone('${m.id}')" class="action-btn" title="Hide this milestone">Hide</button>`;
+        actions += `<button onclick="event.stopPropagation();hideMilestone('${m.id}')" class="action-btn" title="Hide">Hide</button>`;
       }
+      const badges = [
+        m.custom ? '<span class="badge-tag">custom</span>' : '',
+        m.compressed ? '<span class="badge-tag badge-tag-warning">compressed</span>' : '',
+        m.overridden ? '<span class="badge-tag badge-tag-warning">edited</span>' : ''
+      ].filter(Boolean).join(' ');
+      const noteHTML = m.note ? `<div style="font-size:12px;color:var(--ink-3);margin-top:4px;">${m.note}${m.id === 'equipment_book' && state.labCalc && state.labCalc.totalDays ? ` Book for at least <strong>${state.labCalc.totalDays} day${state.labCalc.totalDays > 1 ? 's' : ''}</strong>.` : ''}</div>` : '';
       item.innerHTML = `
-        <input type="checkbox" id="check-${m.id}" ${checked ? 'checked' : ''} onchange="toggleCheck('${m.id}')">
+        <div class="checklist-cb"></div>
         <div>
-          <label for="check-${m.id}" class="check-item-label${checked ? ' checked' : ''}">${m.label}${customBadge}${compressedBadge}${overrideBadge}${durBadge}</label>
-          <div class="check-item-date">Due: ${formatDate(m.date)} ${actions}</div>
-          ${m.note ? `<div class="check-item-note">${m.note}${m.id === 'equipment_book' && state.labCalc && state.labCalc.totalDays ? ` Based on your calculator estimate, book for at least <strong>${state.labCalc.totalDays} lab day${state.labCalc.totalDays > 1 ? 's' : ''}</strong> (+ 1\u20132 buffer days for no-shows).` : ''}</div>` : ''}
-        </div>`;
+          <span class="checklist-text">${m.label}</span>
+          ${badges ? `<span style="margin-left:6px;">${badges}</span>` : ''}
+          ${noteHTML}
+          <div style="margin-top:4px;">${actions}</div>
+        </div>
+        <span class="checklist-meta">${formatDateShort(m.date)}</span>`;
+      // Wire click on the whole row to toggle check
+      item.addEventListener('click', function(e) {
+        if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.tagName === 'A') return;
+        toggleCheck(m.id);
+      });
       body.appendChild(item);
     });
   });
@@ -4358,14 +5874,11 @@ function toggleCheck(id) {
   else state.checkedItems.splice(idx, 1);
   saveState();
 
-  // Update only the specific checkbox's visual state
-  const checkbox = document.getElementById('check-' + id);
-  if (checkbox) {
-    const label = checkbox.parentElement.querySelector('.check-item-label');
-    if (label) {
-      if (isNowChecked) label.classList.add('checked');
-      else label.classList.remove('checked');
-    }
+  // Update the checklist item's visual state
+  const clItem = document.getElementById('cl-item-' + id);
+  if (clItem) {
+    if (isNowChecked) clItem.classList.add('done');
+    else clItem.classList.remove('done');
   }
 
   // Update section counts
@@ -4380,13 +5893,15 @@ function toggleCheck(id) {
     const items = sections[sectionKey];
     const sectionChecked = items.filter(m => state.checkedItems.includes(m.id)).length;
     totalChecked += sectionChecked;
-    const countEl = document.querySelector(`#section-${sectionKey}`)?.previousElementSibling?.querySelector('.checklist-section-count');
+    const countEl = document.getElementById('count-' + sectionKey);
     if (countEl) countEl.textContent = `${sectionChecked}/${items.length}`;
   });
 
   // Update progress bar
   updateProgress(totalChecked, computed.length);
   renderWorkload();
+  // Update sidebar status
+  renderSideStatus(computed);
 }
 
 function updateProgress(checked, total) {
@@ -4491,14 +6006,26 @@ function dismissCompletion() {
 
 // ── Navigation ──
 function editSetup() {
-  // Go back to setup screens, preserving all state
-  selectRole(state.role);
+  // Go back to wizard, preserving all state
+  document.getElementById('view-landing').classList.remove('active');
+  document.getElementById('app-container').style.display = 'none';
+  document.getElementById('view-wizard').style.display = '';
+  // Restore role selection UI
+  if (state.role) {
+    document.getElementById('btn-master').className = `role-card${state.role === 'master' ? ' selected' : ''}`;
+    document.getElementById('btn-phd').className = `role-card${state.role === 'phd' ? ' selected' : ''}`;
+    populateBPDropdown();
+  }
+  // Restore form values
   document.getElementById('name-input').value = state.name || '';
   document.getElementById('title-input').value = state.studyTitle || '';
   document.getElementById('supervisor-email-input').value = state.supervisorEmail || '';
   if (state.thesisDeadline) document.getElementById('thesis-deadline-input').value = state.thesisDeadline;
   document.getElementById('collection-days-input').value = state.collectionDays || 5;
   document.getElementById('analysis-weeks-input').value = state.analysisWeeks || 1;
+  // Show thesis card for master
+  var thesisCard = document.getElementById('thesis-deadline-card');
+  if (thesisCard) thesisCard.style.display = state.role === 'master' ? 'block' : 'none';
   // Restore quick estimate fields if data exists
   if (state.quickEstimate) {
     const qe = state.quickEstimate;
@@ -4510,33 +6037,13 @@ function editSetup() {
     document.getElementById('quick-estimate-section').open = true;
     updateQuickEstimate();
   }
-  // Restore lab calculator fields if data exists
-  if (state.labCalc) {
-    const lc = state.labCalc;
-    if (lc.conditions) document.getElementById('calc-conditions').value = lc.conditions;
-    if (lc.design) document.getElementById('calc-design').value = lc.design;
-    if (lc.sessionMin) document.getElementById('calc-session-duration').value = lc.sessionMin;
-    document.getElementById('calc-showup').value = lc.showupRate ? Math.round(lc.showupRate * 100) : 50;
-    if (lc.perTimeslot) document.getElementById('calc-per-timeslot').value = lc.perTimeslot;
-    document.getElementById('calc-buffer').value = lc.buffer || 0;
-    if (lc.startMin != null) document.getElementById('calc-lab-start').value = fmtTime(lc.startMin);
-    if (lc.endMin != null) document.getElementById('calc-lab-end').value = fmtTime(lc.endMin);
-    if (lc.lunch != null) document.getElementById('calc-lunch').value = lc.lunch;
-    if (lc.lunchStartMin != null) document.getElementById('calc-lunch-start').value = fmtTime(lc.lunchStartMin);
-    // Re-derive n-per-condition from totalN and design
-    if (lc.totalN && lc.conditions) {
-      const npc = (lc.design === 'within') ? lc.totalN : Math.round(lc.totalN / lc.conditions);
-      document.getElementById('calc-n-per-condition').value = npc;
-    }
-    // Expand the calculator section and recompute
-    document.getElementById('lab-calc-section').open = true;
-    _calcSuppressDirty = true;
-    updateCalc();
-    _calcSuppressDirty = false;
-    _calcDirty = false;
-    renderBlockedSlotsList();
+  // Show confirmation if date is set
+  if (state.bpStart) {
+    showConfirmation();
   }
-  if (state.bpStart) showConfirmation();
+  // Go to step 1 but allow stepping through all reached steps
+  _wizardHighest = 4;
+  wizardShowStep(1);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -4547,13 +6054,15 @@ function resetState() {
   try { localStorage.removeItem("dexlab_planner_state"); } catch (e) {}
   history.replaceState(null, '', window.location.pathname);
   document.body.className = '';
-  document.getElementById('btn-master').className = 'role-btn';
-  document.getElementById('btn-phd').className = 'role-btn';
+  document.getElementById('btn-master').className = 'role-card';
+  document.getElementById('btn-phd').className = 'role-card';
   document.getElementById('bp-select').innerHTML = '<option value="">Choose\u2026</option>';
   document.getElementById('date-input').value = '';
   document.getElementById('name-input').value = '';
   document.getElementById('title-input').value = '';
-  showScreen('screen-role');
+  _wizardStep = 1;
+  _wizardHighest = 1;
+  showLanding();
 }
 
 // ── Init ──
@@ -4570,7 +6079,11 @@ function resetState() {
       history.replaceState(null, '', window.location.pathname);
     }
     if (hash && state.role && state.bpStart) {
-      selectRole(state.role);
+      // Restore from URL hash — go directly to plan
+      document.body.className = `role-${state.role}`;
+      document.getElementById('btn-master').className = `role-card${state.role === 'master' ? ' selected' : ''}`;
+      document.getElementById('btn-phd').className = `role-card${state.role === 'phd' ? ' selected' : ''}`;
+      populateBPDropdown();
       document.getElementById('date-input').value = state.bpStart;
       const sel = document.getElementById('bp-select');
       let matched = false;
@@ -4580,32 +6093,43 @@ function resetState() {
       if (!matched) sel.value = 'custom';
       document.getElementById('name-input').value = state.name || '';
       document.getElementById('title-input').value = state.studyTitle || '';
-      saveState(); // persist to localStorage too
+      saveState();
       renderPlan();
-      showScreen('screen-plan');
+      showPlanView();
       return;
     }
 
     // Otherwise load from localStorage
     const hadState = loadState();
     if (hadState && state.role && state.bpStart) {
-      selectRole(state.role);
+      document.body.className = `role-${state.role}`;
+      document.getElementById('btn-master').className = `role-card${state.role === 'master' ? ' selected' : ''}`;
+      document.getElementById('btn-phd').className = `role-card${state.role === 'phd' ? ' selected' : ''}`;
+      populateBPDropdown();
       document.getElementById('date-input').value = state.bpStart;
-      const sel = document.getElementById('bp-select');
-      let matched = false;
+      const sel2 = document.getElementById('bp-select');
+      let matched2 = false;
       CONFIG.blockPeriods.forEach((bp, i) => {
-        if (bp.start === state.bpStart) { sel.value = i; matched = true; }
+        if (bp.start === state.bpStart) { sel2.value = i; matched2 = true; }
       });
-      if (!matched) sel.value = 'custom';
+      if (!matched2) sel2.value = 'custom';
+      // Show confirmation card in wizard
       showConfirmation();
       if (state.name || state.studyTitle || state.checkedItems.length > 0) {
         document.getElementById('name-input').value = state.name || '';
         document.getElementById('title-input').value = state.studyTitle || '';
         renderPlan();
-        showScreen('screen-plan');
+        showPlanView();
       }
     } else if (hadState && state.role) {
-      selectRole(state.role);
+      // Partial state — show wizard at step 1 with role pre-selected
+      document.getElementById('view-landing').classList.remove('active');
+      document.getElementById('view-wizard').style.display = '';
+      document.body.className = `role-${state.role}`;
+      document.getElementById('btn-master').className = `role-card${state.role === 'master' ? ' selected' : ''}`;
+      document.getElementById('btn-phd').className = `role-card${state.role === 'phd' ? ' selected' : ''}`;
+      populateBPDropdown();
+      wizardShowStep(2);
     }
   } catch (err) {
     console.error('Init failed — clearing corrupted state and starting fresh:', err);
@@ -4617,7 +6141,7 @@ function resetState() {
 
 // ── Onboarding Tour ──
 const TOUR_STEPS = [
-  { target: '.role-buttons', screen: 'screen-role', title: 'Choose Your Role', text: 'Select your role to see relevant milestones — PhD researchers get additional steps for ethics and pre-registration.' },
+  { target: '.role-grid', screen: 'screen-role', title: 'Choose Your Role', text: 'Select your role to see relevant milestones — PhD researchers get additional steps for ethics and pre-registration.' },
   { target: '#lab-calc-section', screen: 'screen-plan', title: 'Lab Timetable Calculator', text: 'Use the lab calculator to figure out how many days you need. It generates a full timetable with timeslots.' },
   { target: '#blocked-slots-section', screen: 'screen-plan', title: 'Blocked Time Slots', text: 'Block times when you can\'t run participants — tutorials, appointments, etc. The timetable skips those slots.' },
   { target: '#custom-milestones-card', screen: 'screen-plan', title: 'Custom Milestones', text: 'Add your own milestones to the timeline — extra meetings, supervisor calls, pilot sessions.' },
@@ -4776,18 +6300,13 @@ function endTour(skipSave) {
 // Auto-start tour for first-time visitors
 setTimeout(function() { if (!isTourDone()) startTour(); }, 500);
 
-// ── Theme toggle ──
-(function() {
-  const saved = (() => { try { return localStorage.getItem('dexlab_theme'); } catch(e) { return null; } })();
-  if (saved === 'dark') document.body.classList.add('dark');
-})();
-function toggleTheme() {
-  const isDark = document.body.classList.toggle('dark');
-  try { localStorage.setItem('dexlab_theme', isDark ? 'dark' : 'light'); } catch(e) {}
-  document.getElementById('theme-toggle-btn').textContent = isDark ? '\u2600\uFE0F' : '\uD83C\uDF19';
-}
+
 </script>
-<button class="theme-toggle" id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle dark mode" aria-label="Toggle dark mode">🌙</button>
-<script>document.getElementById('theme-toggle-btn').textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';</script>
+
+<footer class="foot">
+  <span>DEXLab &middot; Maastricht University SBE</span>
+  <span>Experiment Planner</span>
+</footer>
+
 </body>
 </html>
