@@ -3743,7 +3743,7 @@ function updateCalc() {
 
   // Save to state for plan
   state.labCalc = {
-    totalN, targetN, totalDays, participantsPerDay, slotsPerDay,
+    totalN, targetN, nPerCondition, totalDays, participantsPerDay, slotsPerDay,
     sessionMin, conditions, design, perTimeslot, showupRate, daySlots, buffer,
     startMin, endMin, lunchStartMin, lunch
   };
@@ -3905,7 +3905,7 @@ function discardCalcChanges() {
     var lc = state.labCalc;
     document.getElementById('calc-conditions').value = lc.conditions || 2;
     document.getElementById('calc-design').value = lc.design || 'between';
-    document.getElementById('calc-n-per-condition').value = Math.round((lc.totalN || 60) / (lc.conditions || 2));
+    document.getElementById('calc-n-per-condition').value = lc.nPerCondition || Math.round((lc.targetN || 60) / (lc.conditions || 2));
     document.getElementById('calc-session-duration').value = lc.sessionMin || 30;
     document.getElementById('calc-showup').value = lc.showupRate ? Math.round(lc.showupRate * 100) : 50;
     document.getElementById('calc-per-timeslot').value = lc.perTimeslot || 1;
@@ -5546,8 +5546,10 @@ function renderPlan() {
     if (lc.endMin != null) document.getElementById('calc-lab-end').value = fmtTime(lc.endMin);
     if (lc.lunch != null) document.getElementById('calc-lunch').value = lc.lunch;
     if (lc.lunchStartMin != null) document.getElementById('calc-lunch-start').value = fmtTime(lc.lunchStartMin);
-    if (lc.totalN && lc.conditions) {
-      const npc = (lc.design === 'within') ? lc.totalN : Math.round(lc.totalN / lc.conditions);
+    if (lc.nPerCondition) {
+      document.getElementById('calc-n-per-condition').value = lc.nPerCondition;
+    } else if (lc.totalN && lc.conditions) {
+      const npc = (lc.design === 'within') ? lc.totalN : Math.round(lc.targetN / lc.conditions);
       document.getElementById('calc-n-per-condition').value = npc;
     }
     _calcSuppressDirty = true;
