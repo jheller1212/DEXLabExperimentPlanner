@@ -2201,7 +2201,9 @@ select { cursor: pointer; }
   transition: transform 120ms;
   color: var(--ink-3);
 }
-.disclosure.open .disclosure-head .chev { transform: rotate(90deg); }
+.disclosure.open .disclosure-head .chev,
+details.disclosure[open] .disclosure-head .chev,
+details.disclosure[open] .disclosure-head .chevron { transform: rotate(180deg); }
 .disclosure-body {
   display: none;
   padding: 0 16px 16px;
@@ -2209,7 +2211,8 @@ select { cursor: pointer; }
   margin-top: 0;
   padding-top: 16px;
 }
-.disclosure.open .disclosure-body { display: block; }
+.disclosure.open .disclosure-body,
+details.disclosure[open] .disclosure-body { display: block; }
 
 /* Landing responsive */
 @media (max-width: 768px) {
