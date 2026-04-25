@@ -39,6 +39,13 @@ body {
 
 /* ── Design Tokens ── */
 :root {
+  /* Timeline tokens */
+  --tl-row-h: 44px;
+  --tl-bar-h: 32px;
+  --tl-row-gap: 10px;
+  --mini-tl-gap: 10px;
+  --mini-bar-h: 28px;
+
   /* Colors — Surface & Background */
   --bg: #f6f7f9;
   --surface: #ffffff;
@@ -636,26 +643,23 @@ select { cursor: pointer; }
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--tl-row-gap);
   min-width: 800px;
+  padding-top: 22px;
 }
 .tl-row-gantt {
   position: relative;
-  height: 28px;
+  height: var(--tl-row-h);
   display: flex;
   align-items: center;
 }
 .tl-row-gantt::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: linear-gradient(to right, var(--line) 1px, transparent 1px);
-  background-size: calc(100% / var(--ticks, 12)) 100%;
-  opacity: 0.5;
+  content: none;
 }
 .tl-bar-gantt {
   position: absolute;
-  height: 24px;
+  height: var(--tl-bar-h);
+  top: calc((var(--tl-row-h) - var(--tl-bar-h)) / 2);
   border-radius: 4px;
   display: flex;
   align-items: center;
@@ -675,9 +679,10 @@ select { cursor: pointer; }
   position: absolute;
   width: 14px;
   height: 14px;
-  background: transparent;
+  background: var(--surface);
   border: 2px solid currentColor;
-  transform: rotate(45deg);
+  transform: translate(-50%, -50%) rotate(45deg);
+  top: 50%;
   border-radius: 2px;
   cursor: default;
   z-index: 3;
@@ -687,11 +692,14 @@ select { cursor: pointer; }
   font-size: 10px;
   color: var(--ink-2);
   white-space: nowrap;
-  font-weight: 500;
+  font-weight: 600;
   background: var(--surface);
-  padding: 1px 4px;
-  border-radius: 2px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--line);
+  transform: translateX(-50%);
   pointer-events: none;
+  top: -20px;
   z-index: 4;
 }
 .tl-today-line {
@@ -701,6 +709,7 @@ select { cursor: pointer; }
   width: 2px;
   background: var(--accent);
   z-index: 5;
+  pointer-events: none;
 }
 .tl-today-line::before {
   content: "TODAY";
@@ -1741,6 +1750,19 @@ select { cursor: pointer; }
   gap: 64px;
   padding: 48px 0 64px;
   align-items: center;
+  position: relative;
+  isolation: isolate;
+}
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: -40px -10% -40px auto;
+  width: 720px;
+  background: url("assets/dexlab-logo.png") no-repeat center / contain;
+  opacity: 0.05;
+  z-index: -1;
+  pointer-events: none;
+  filter: grayscale(1);
 }
 .eyebrow {
   font-size: 12px;
@@ -1863,12 +1885,12 @@ select { cursor: pointer; }
 .mini-tl {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--mini-tl-gap, 10px);
   margin-bottom: 20px;
 }
 .mini-tl-row {
   display: grid;
-  grid-template-columns: 110px 1fr;
+  grid-template-columns: 120px 1fr;
   gap: 12px;
   align-items: center;
   font-size: 12px;
@@ -1879,7 +1901,7 @@ select { cursor: pointer; }
   text-align: right;
 }
 .mini-tl-bar {
-  height: 22px;
+  height: var(--mini-bar-h, 28px);
   background: var(--surface-2);
   border-radius: 4px;
   position: relative;
