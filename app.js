@@ -2697,10 +2697,14 @@ function renderGantt(milestones, today, bpStart, bpEnd) {
   const wrap = document.getElementById('gantt-wrap');
   if (!wrap || milestones.length === 0) return;
 
-  // Determine plan range
+  // Determine plan range — extend to include earliest milestone
   const thesisDate = state.thesisDeadline ? parseDate(state.thesisDeadline) : null;
   const planEnd = (thesisDate && thesisDate > bpEnd) ? thesisDate : bpEnd;
-  const planStart = bpStart;
+  let planStart = bpStart;
+  milestones.forEach(m => {
+    const d = parseDate(m.date);
+    if (d && d < planStart) planStart = d;
+  });
   const totalDays = daysBetween(planStart, planEnd);
   if (totalDays <= 0) return;
 
@@ -2737,22 +2741,17 @@ function renderGantt(milestones, today, bpStart, bpEnd) {
     const widthDays = Math.max(1, daysBetween(pd.min, pd.max));
     const widthPct = (widthDays / totalDays * 100).toFixed(2);
 
-    // Phase bar row
+    // Phase bar + milestone diamonds in one row
     rowsHTML += `<div class="tl-row-gantt">`;
     rowsHTML += `<div class="tl-bar-gantt" style="left:${leftPct}%;width:${widthPct}%;background:${color}"><span>${label}</span></div>`;
+    // Milestone diamonds within this row
+    pd.milestones.forEach(m => {
+      const mLeft = (daysBetween(planStart, m.date) / totalDays * 100).toFixed(2);
+      const checked = state.checkedItems.includes(m.id);
+      const opacity = checked ? '0.4' : '1';
+      rowsHTML += `<div class="tl-diamond" style="left:${mLeft}%;color:${color};opacity:${opacity}" title="${escapeHTML(m.label)} — ${formatDateShort(m.date)}"></div>`;
+    });
     rowsHTML += `</div>`;
-
-    // Individual milestone diamonds row (if > 1 milestone in phase)
-    if (pd.milestones.length > 1) {
-      rowsHTML += `<div class="tl-row-gantt" style="height:22px;">`;
-      pd.milestones.forEach(m => {
-        const mLeft = (daysBetween(planStart, m.date) / totalDays * 100).toFixed(2);
-        const checked = state.checkedItems.includes(m.id);
-        const opacity = checked ? '0.4' : '1';
-        rowsHTML += `<div class="tl-diamond" style="left:calc(${mLeft}% - 7px);color:${color};opacity:${opacity}" title="${escapeHTML(m.label)} — ${formatDateShort(m.date)}"></div>`;
-      });
-      rowsHTML += `</div>`;
-    }
   });
 
   // Today line
@@ -2771,20 +2770,33 @@ function renderGantt(milestones, today, bpStart, bpEnd) {
     legendHTML += `<span class="timeline-legend-item"><span class="timeline-legend-dot" style="background:${color}"></span>${label}</span>`;
   });
 
+  // Fixed-width timeline: 80px per week, horizontally scrollable
+  const weekWidth = 80;
+  const gridWidth = numWeeks * weekWidth;
+
   wrap.innerHTML = `
     <div class="timeline-head">
       <h3>Timeline</h3>
       <div class="timeline-legend">${legendHTML}</div>
     </div>
-    <div class="timeline-body">
-      <div class="timeline-grid">
-        <div class="timeline-axis">${axisHTML}</div>
-        <div class="timeline-rows" style="--ticks:${numWeeks}">
+    <div class="timeline-body" id="timeline-body-scroll">
+      <div class="timeline-grid" style="width:${gridWidth}px;min-width:${gridWidth}px;">
+        <div class="timeline-axis" style="min-width:${gridWidth}px;">${axisHTML}</div>
+        <div class="timeline-rows" style="--ticks:${numWeeks};min-width:${gridWidth}px;">
           ${rowsHTML}
           ${todayHTML}
         </div>
       </div>
     </div>`;
+
+  // Auto-scroll to today (centered in viewport)
+  setTimeout(() => {
+    const scrollEl = document.getElementById('timeline-body-scroll');
+    if (scrollEl && today >= planStart && today <= planEnd) {
+      const todayPx = (daysBetween(planStart, today) / totalDays) * gridWidth;
+      scrollEl.scrollLeft = Math.max(0, todayPx - scrollEl.clientWidth / 2);
+    }
+  }, 50);
 }
 
 const PHASE_COLORS = {
