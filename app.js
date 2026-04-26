@@ -2719,33 +2719,33 @@ function renderGantt(milestones, today, bpStart, bpEnd) {
     axisHTML += `<div class="timeline-axis-tick${isMonthStart ? ' month-start' : ''}">${label}</div>`;
   }
 
-  // Group milestones by phase to compute phase bars
-  const phaseOrder = ['phase1_before_sona', 'phase2_sona', 'phase3_before_experiment', 'phase4_go', 'phase5_thesis'];
-  const phaseData = {};
-  milestones.forEach(m => {
-    const sec = m.section || 'phase3_before_experiment';
-    if (!phaseData[sec]) phaseData[sec] = { min: m.date, max: m.date, milestones: [] };
-    if (m.date < phaseData[sec].min) phaseData[sec].min = m.date;
-    if (m.date > phaseData[sec].max) phaseData[sec].max = m.date;
-    phaseData[sec].milestones.push(m);
-  });
+  // Sort ALL milestones chronologically — one unified timeline
+  const sorted = milestones.slice().sort((a, b) => a.date - b.date);
 
-  // Sort phases by earliest milestone date (chronological top-to-bottom)
-  const sortedPhases = phaseOrder.filter(k => phaseData[k]).sort((a, b) => phaseData[a].min - phaseData[b].min);
-
-  // Build phase bars (no diamonds — milestone details are in the Milestones tab)
+  // Build chronological milestone rows — each milestone is a small bar segment
+  // Group consecutive milestones on the same date into one row
   let rowsHTML = '';
-  sortedPhases.forEach(phaseKey => {
-    const pd = phaseData[phaseKey];
-    const color = PHASE_COLORS[phaseKey] || 'var(--ink-3)';
-    const label = PHASE_SHORT[phaseKey] || phaseKey;
-    const leftPct = (daysBetween(planStart, pd.min) / totalDays * 100).toFixed(2);
-    const widthDays = Math.max(1, daysBetween(pd.min, pd.max));
-    const widthPct = Math.max(2, (widthDays / totalDays * 100)).toFixed(2);
-    const count = pd.milestones.length;
+  const phaseOrder = ['phase1_before_sona', 'phase2_sona', 'phase3_before_experiment', 'phase4_go', 'phase5_thesis'];
+  const phasesPresent = new Set();
+
+  sorted.forEach((m, i) => {
+    const sec = m.section || 'phase3_before_experiment';
+    const color = PHASE_COLORS[sec] || 'var(--ink-3)';
+    const phaseLabel = PHASE_SHORT[sec] || '';
+    phasesPresent.add(sec);
+    const checked = state.checkedItems.includes(m.id);
+
+    // Bar spans from this milestone to the next (or a minimum width)
+    const mLeft = (daysBetween(planStart, m.date) / totalDays * 100);
+    const nextDate = (i < sorted.length - 1) ? sorted[i + 1].date : planEnd;
+    const spanDays = Math.max(1, daysBetween(m.date, nextDate));
+    const mWidth = Math.max(1.5, (spanDays / totalDays * 100));
+
+    const opacity = checked ? '0.35' : '1';
+    const shortDate = formatDateShort(m.date);
 
     rowsHTML += `<div class="tl-row-gantt">`;
-    rowsHTML += `<div class="tl-bar-gantt" style="left:${leftPct}%;width:${widthPct}%;background:${color}" title="${count} milestone${count !== 1 ? 's' : ''} in this phase"><span>${label}</span></div>`;
+    rowsHTML += `<div class="tl-bar-gantt" style="left:${mLeft.toFixed(2)}%;width:${mWidth.toFixed(2)}%;background:${color};opacity:${opacity}" title="${escapeHTML(m.label)} — ${shortDate} (${phaseLabel})"><span>${escapeHTML(m.label)}</span></div>`;
     rowsHTML += `</div>`;
   });
 
@@ -2756,9 +2756,10 @@ function renderGantt(milestones, today, bpStart, bpEnd) {
     todayHTML = `<div class="tl-today-line" style="left:${todayPct}%"></div>`;
   }
 
-  // Legend (same chronological order as bars)
+  // Legend — show all phases present, in canonical order
   let legendHTML = '';
-  sortedPhases.forEach(phaseKey => {
+  phaseOrder.forEach(phaseKey => {
+    if (!phasesPresent.has(phaseKey)) return;
     const color = PHASE_COLORS[phaseKey] || 'var(--ink-3)';
     const label = PHASE_SHORT[phaseKey] || phaseKey;
     legendHTML += `<span class="timeline-legend-item"><span class="timeline-legend-dot" style="background:${color}"></span>${label}</span>`;
