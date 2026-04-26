@@ -2730,27 +2730,22 @@ function renderGantt(milestones, today, bpStart, bpEnd) {
     phaseData[sec].milestones.push(m);
   });
 
-  // Build phase bars + milestone diamonds
+  // Sort phases by earliest milestone date (chronological top-to-bottom)
+  const sortedPhases = phaseOrder.filter(k => phaseData[k]).sort((a, b) => phaseData[a].min - phaseData[b].min);
+
+  // Build phase bars (no diamonds — milestone details are in the Milestones tab)
   let rowsHTML = '';
-  phaseOrder.forEach(phaseKey => {
+  sortedPhases.forEach(phaseKey => {
     const pd = phaseData[phaseKey];
-    if (!pd) return;
     const color = PHASE_COLORS[phaseKey] || 'var(--ink-3)';
     const label = PHASE_SHORT[phaseKey] || phaseKey;
     const leftPct = (daysBetween(planStart, pd.min) / totalDays * 100).toFixed(2);
     const widthDays = Math.max(1, daysBetween(pd.min, pd.max));
-    const widthPct = (widthDays / totalDays * 100).toFixed(2);
+    const widthPct = Math.max(2, (widthDays / totalDays * 100)).toFixed(2);
+    const count = pd.milestones.length;
 
-    // Phase bar + milestone diamonds in one row
     rowsHTML += `<div class="tl-row-gantt">`;
-    rowsHTML += `<div class="tl-bar-gantt" style="left:${leftPct}%;width:${widthPct}%;background:${color}"><span>${label}</span></div>`;
-    // Milestone diamonds within this row
-    pd.milestones.forEach(m => {
-      const mLeft = (daysBetween(planStart, m.date) / totalDays * 100).toFixed(2);
-      const checked = state.checkedItems.includes(m.id);
-      const opacity = checked ? '0.4' : '1';
-      rowsHTML += `<div class="tl-diamond" style="left:${mLeft}%;color:${color};opacity:${opacity}" title="${escapeHTML(m.label)} — ${formatDateShort(m.date)}"></div>`;
-    });
+    rowsHTML += `<div class="tl-bar-gantt" style="left:${leftPct}%;width:${widthPct}%;background:${color}" title="${count} milestone${count !== 1 ? 's' : ''} in this phase"><span>${label}</span></div>`;
     rowsHTML += `</div>`;
   });
 
@@ -2761,10 +2756,9 @@ function renderGantt(milestones, today, bpStart, bpEnd) {
     todayHTML = `<div class="tl-today-line" style="left:${todayPct}%"></div>`;
   }
 
-  // Legend
+  // Legend (same chronological order as bars)
   let legendHTML = '';
-  phaseOrder.forEach(phaseKey => {
-    if (!phaseData[phaseKey]) return;
+  sortedPhases.forEach(phaseKey => {
     const color = PHASE_COLORS[phaseKey] || 'var(--ink-3)';
     const label = PHASE_SHORT[phaseKey] || phaseKey;
     legendHTML += `<span class="timeline-legend-item"><span class="timeline-legend-dot" style="background:${color}"></span>${label}</span>`;
