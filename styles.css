@@ -604,6 +604,7 @@ select { cursor: pointer; }
   padding: 20px 0 24px;
   overflow-x: auto;
   overflow-y: hidden;
+  width: 100%;
 }
 .timeline-grid {
   position: relative;
@@ -1047,7 +1048,7 @@ select { cursor: pointer; }
 /* ── Dashboard grid ── */
 .dash {
   display: grid;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: 280px minmax(0, 1fr);
   gap: 32px;
   margin-bottom: 48px;
 }

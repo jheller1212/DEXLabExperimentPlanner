@@ -2780,9 +2780,9 @@ function renderGantt(milestones, today, bpStart, bpEnd) {
       <div class="timeline-legend">${legendHTML}</div>
     </div>
     <div class="timeline-body" id="timeline-body-scroll">
-      <div class="timeline-grid" style="width:${gridWidth}px;min-width:${gridWidth}px;">
-        <div class="timeline-axis" style="min-width:${gridWidth}px;">${axisHTML}</div>
-        <div class="timeline-rows" style="--ticks:${numWeeks};min-width:${gridWidth}px;">
+      <div class="timeline-grid" style="width:${gridWidth}px;">
+        <div class="timeline-axis">${axisHTML}</div>
+        <div class="timeline-rows" style="--ticks:${numWeeks};">
           ${rowsHTML}
           ${todayHTML}
         </div>
