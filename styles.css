@@ -571,6 +571,7 @@ select { cursor: pointer; }
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   overflow: hidden;
+  max-width: 100%;
 }
 .timeline-head {
   padding: 16px 20px;
@@ -602,10 +603,10 @@ select { cursor: pointer; }
   position: relative;
   padding: 20px 0 24px;
   overflow-x: auto;
+  overflow-y: hidden;
 }
 .timeline-grid {
   position: relative;
-  min-width: 100%;
   padding: 0 20px;
 }
 .timeline-axis {
