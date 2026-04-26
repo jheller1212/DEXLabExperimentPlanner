@@ -2700,9 +2700,9 @@ function renderGantt(milestones, today, bpStart, bpEnd) {
   // Determine plan range — extend to include earliest milestone
   const thesisDate = state.thesisDeadline ? parseDate(state.thesisDeadline) : null;
   const planEnd = (thesisDate && thesisDate > bpEnd) ? thesisDate : bpEnd;
-  let planStart = bpStart;
+  let planStart = new Date(bpStart);
   milestones.forEach(m => {
-    const d = parseDate(m.date);
+    const d = m.date instanceof Date ? m.date : parseDate(m.date);
     if (d && d < planStart) planStart = d;
   });
   const totalDays = daysBetween(planStart, planEnd);
