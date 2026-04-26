@@ -149,8 +149,8 @@ function wizardBuildSummary() {
   if (state.role) lines.push('<strong>Role:</strong> ' + (state.role === 'master' ? 'Master Student' : 'PhD Researcher'));
   if (state.weekStart) lines.push('<strong>Data collection starts:</strong> ' + state.weekStart);
   if (state.bpWeeks) lines.push('<strong>Period length:</strong> ' + state.bpWeeks + ' weeks');
-  if (state.name) lines.push('<strong>Name:</strong> ' + state.name);
-  if (state.studyTitle) lines.push('<strong>Study:</strong> ' + state.studyTitle);
+  if (state.name) lines.push('<strong>Name:</strong> ' + escapeHTML(state.name));
+  if (state.studyTitle) lines.push('<strong>Study:</strong> ' + escapeHTML(state.studyTitle));
   el.innerHTML = lines.length > 0 ? '<div class="data-grid" style="gap:0.5rem 1rem;">' + lines.map(function(l) { return '<div>' + l + '</div>'; }).join('') + '</div>' : '<p class="form-hint">No details entered yet.</p>';
 }
 
@@ -2367,9 +2367,8 @@ function renderCustomList() {
   }).join('');
 }
 
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
-}
+// Alias for consistency — both names used in codebase
+var escapeHtml = escapeHTML;
 
 // ── Schedule shift ──
 function shiftSchedule() {
