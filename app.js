@@ -1923,7 +1923,12 @@ function renderPlanHead(bpStart, bpEnd) {
   const weekNum = Math.ceil((weekStart - bpStart) / (7 * 86400000)) + 1;
   let metaHTML = `<span>Block period \xB7 <strong>${formatDate(bpStart)}</strong></span>`;
   if (state.weekStart && state.weekStart !== state.bpStart) {
-    metaHTML += `<span>Data collection \xB7 <strong>Wk ${weekNum}</strong></span>`;
+    // ISO calendar week
+    const cwTmp = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate());
+    cwTmp.setDate(cwTmp.getDate() + 3 - (cwTmp.getDay() + 6) % 7);
+    const cw = Math.ceil((((cwTmp - new Date(cwTmp.getFullYear(), 0, 4)) / 86400000) + 1) / 7);
+    const bpShort = matchedBP ? matchedBP.label.replace(/\s*\(.*\)/, '') : '';
+    metaHTML += `<span>Data collection \xB7 <strong>${bpShort} Wk ${weekNum}</strong> <small>(CW${cw})</small></span>`;
   }
   if (state.thesisDeadline) {
     metaHTML += `<span>Submission \xB7 <strong>${formatDate(parseDate(state.thesisDeadline))}</strong></span>`;
@@ -1937,7 +1942,12 @@ function renderSideDates(bpStart, bpEnd) {
   let html = '';
   html += `<div class="kv-row"><span class="k">Block period start</span><span class="v">${formatDate(bpStart)}</span></div>`;
   if (state.weekStart && state.weekStart !== state.bpStart) {
-    html += `<div class="kv-row"><span class="k">Data collection week</span><span class="v">Week ${weekNum} <small>${formatDate(weekStart)}</small></span></div>`;
+    const matchedBP = CONFIG.blockPeriods.find(bp => bp.start === state.bpStart);
+    const bpShort = matchedBP ? matchedBP.label.replace(/\s*\(.*\)/, '') : '';
+    const cwTmp = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate());
+    cwTmp.setDate(cwTmp.getDate() + 3 - (cwTmp.getDay() + 6) % 7);
+    const cw = Math.ceil((((cwTmp - new Date(cwTmp.getFullYear(), 0, 4)) / 86400000) + 1) / 7);
+    html += `<div class="kv-row"><span class="k">Data collection week</span><span class="v">${bpShort} Wk ${weekNum} <small>CW${cw} · ${formatDate(weekStart)}</small></span></div>`;
   }
   if (state.thesisDeadline) {
     html += `<div class="kv-row"><span class="k">Thesis submission</span><span class="v">${formatDate(parseDate(state.thesisDeadline))}</span></div>`;
@@ -1958,11 +1968,12 @@ function renderSideStatus(computed) {
 
 function renderSideWorkload(computed) {
   const today = new Date(); today.setHours(0,0,0,0);
-  const upcoming = computed.filter(m => m.durationMin && m.durationMin > 0 && !state.checkedItems.includes(m.id) && m.date >= today);
+  // Show all milestones in workload (not just upcoming — this shows plan distribution)
+  const withDuration = computed.filter(m => m.durationMin && m.durationMin > 0);
   const card = document.getElementById('workload-card');
   const bar = document.getElementById('workload-bar');
   const legend = document.getElementById('workload-legend');
-  if (upcoming.length === 0) { card.style.display = 'none'; return; }
+  if (withDuration.length === 0) { card.style.display = 'none'; return; }
   card.style.display = 'block';
 
   // Group by phase
@@ -1975,7 +1986,7 @@ function renderSideWorkload(computed) {
   ];
   const totals = {};
   let grandTotal = 0;
-  upcoming.forEach(m => {
+  withDuration.forEach(m => {
     const key = m.section || 'phase3_before_experiment';
     totals[key] = (totals[key] || 0) + m.durationMin;
     grandTotal += m.durationMin;
@@ -2716,14 +2727,18 @@ function renderGantt(milestones, today, bpStart, bpEnd) {
   const totalDays = daysBetween(planStart, planEnd);
   if (totalDays <= 0) return;
 
-  // Week ticks
+  // Week ticks — use ISO calendar weeks
   const numWeeks = Math.ceil(totalDays / 7);
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   let axisHTML = '';
   for (let w = 0; w < numWeeks; w++) {
     const tickDate = addDays(planStart, w * 7);
     const isMonthStart = tickDate.getDate() <= 7 && w > 0;
-    const label = isMonthStart ? months[tickDate.getMonth()] : `W${w + 1}`;
+    // ISO week number
+    const tmp = new Date(tickDate.getFullYear(), tickDate.getMonth(), tickDate.getDate());
+    tmp.setDate(tmp.getDate() + 3 - (tmp.getDay() + 6) % 7);
+    const cw = Math.ceil((((tmp - new Date(tmp.getFullYear(), 0, 4)) / 86400000) + 1) / 7);
+    const label = isMonthStart ? months[tickDate.getMonth()] : `CW${cw}`;
     axisHTML += `<div class="timeline-axis-tick${isMonthStart ? ' month-start' : ''}">${label}</div>`;
   }
 
@@ -2753,7 +2768,7 @@ function renderGantt(milestones, today, bpStart, bpEnd) {
     const shortDate = formatDateShort(m.date);
 
     rowsHTML += `<div class="tl-row-gantt">`;
-    rowsHTML += `<div class="tl-bar-gantt" style="left:${mLeft.toFixed(2)}%;width:${mWidth.toFixed(2)}%;background:${color};opacity:${opacity}" title="${escapeHTML(m.label)} — ${shortDate} (${phaseLabel})"><span>${escapeHTML(m.label)}</span></div>`;
+    rowsHTML += `<div class="tl-bar-gantt" style="left:${mLeft.toFixed(2)}%;width:${mWidth.toFixed(2)}%;background:${color};opacity:${opacity};cursor:pointer" title="${escapeHTML(m.label)}&#10;${shortDate} · ${phaseLabel}"></div>`;
     rowsHTML += `</div>`;
   });
 
