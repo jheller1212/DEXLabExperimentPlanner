@@ -30,9 +30,9 @@ body {
 /* ── Design Tokens ── */
 :root {
   /* Timeline tokens */
-  --tl-row-h: 28px;
-  --tl-bar-h: 22px;
-  --tl-row-gap: 3px;
+  --tl-row-h: 20px;
+  --tl-bar-h: 18px;
+  --tl-row-gap: 1px;
   --mini-tl-gap: 10px;
   --mini-bar-h: 28px;
 
@@ -651,21 +651,39 @@ select { cursor: pointer; }
   position: absolute;
   height: var(--tl-bar-h);
   top: calc((var(--tl-row-h) - var(--tl-bar-h)) / 2);
-  border-radius: 4px;
+  border-radius: 3px;
   display: flex;
   align-items: center;
-  padding: 0 8px;
-  font-size: 10px;
+  padding: 0 6px;
+  font-size: 9px;
   font-weight: 500;
   color: #fff;
   white-space: nowrap;
-  cursor: default;
+  cursor: pointer;
   box-shadow: 0 1px 2px rgba(0,0,0,0.06);
   overflow: hidden;
   text-overflow: ellipsis;
   transition: filter 120ms;
 }
-.tl-bar-gantt:hover { filter: brightness(1.08); }
+.tl-bar-gantt:hover { filter: brightness(1.08); z-index: 10; }
+/* Instant tooltip on hover */
+.tl-bar-gantt::after {
+  content: attr(data-tip);
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 0;
+  background: var(--ink);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 400;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 20;
+}
+.tl-bar-gantt:hover::after { display: block; }
 .tl-diamond {
   position: absolute;
   width: 14px;
