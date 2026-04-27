@@ -2768,7 +2768,7 @@ function renderGantt(milestones, today, bpStart, bpEnd) {
     const shortDate = formatDateShort(m.date);
 
     rowsHTML += `<div class="tl-row-gantt">`;
-    rowsHTML += `<div class="tl-bar-gantt" style="left:${mLeft.toFixed(2)}%;width:${mWidth.toFixed(2)}%;background:${color};opacity:${opacity};cursor:pointer" title="${escapeHTML(m.label)}&#10;${shortDate} · ${phaseLabel}"></div>`;
+    rowsHTML += `<div class="tl-bar-gantt" style="left:${mLeft.toFixed(2)}%;width:${mWidth.toFixed(2)}%;background:${color};opacity:${opacity};cursor:pointer" title="${escapeHTML(m.label)}&#10;${shortDate} · ${phaseLabel}"><span>${escapeHTML(m.label)}</span></div>`;
     rowsHTML += `</div>`;
   });
 

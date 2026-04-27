@@ -449,73 +449,67 @@
 
     <!-- ═══ Tab Panel: Overview ═══ -->
     <div class="plan-tabpanel active" role="tabpanel" id="panel-overview" aria-labelledby="tab-overview">
-      <div class="dash">
-        <!-- Sidebar -->
-        <div class="side">
-          <!-- Key dates -->
-          <div class="side-card" id="side-dates-card">
-            <h3>Key dates</h3>
-            <div class="kv" id="side-dates-kv"></div>
-            <button class="btn btn-sm btn-ghost mt-3" id="edit-dates-btn" onclick="toggleDateEdit()" style="font-size:11px;">Edit dates</button>
-            <div id="plan-dates-edit" class="hidden">
-              <div class="form-grid mt-3">
-                <div class="form-row">
-                  <label for="edit-bp-start" class="label-sm">Block period start</label>
-                  <input type="date" id="edit-bp-start" onchange="onDateEditChange()">
-                </div>
-                <div class="form-row">
-                  <label for="edit-week-start" class="label-sm">Data collection week</label>
-                  <input type="date" id="edit-week-start" onchange="onDateEditChange()">
-                </div>
-                <div class="form-row hidden" id="edit-thesis-row">
-                  <label for="edit-thesis-deadline" class="label-sm">Thesis submission deadline</label>
-                  <input type="date" id="edit-thesis-deadline" onchange="onDateEditChange()">
-                </div>
+      <!-- Info cards row (horizontal) -->
+      <div class="overview-cards">
+        <!-- Key dates -->
+        <div class="side-card" id="side-dates-card">
+          <h3>Key dates</h3>
+          <div class="kv" id="side-dates-kv"></div>
+          <button class="btn btn-sm btn-ghost mt-3" id="edit-dates-btn" onclick="toggleDateEdit()" style="font-size:11px;">Edit dates</button>
+          <div id="plan-dates-edit" class="hidden">
+            <div class="form-grid mt-3">
+              <div class="form-row">
+                <label for="edit-bp-start" class="label-sm">Block period start</label>
+                <input type="date" id="edit-bp-start" onchange="onDateEditChange()">
+              </div>
+              <div class="form-row">
+                <label for="edit-week-start" class="label-sm">Data collection week</label>
+                <input type="date" id="edit-week-start" onchange="onDateEditChange()">
+              </div>
+              <div class="form-row hidden" id="edit-thesis-row">
+                <label for="edit-thesis-deadline" class="label-sm">Thesis submission deadline</label>
+                <input type="date" id="edit-thesis-deadline" onchange="onDateEditChange()">
               </div>
             </div>
-            <div id="dates-changed-banner" class="notice notice-warning hidden mt-3">
-              Dates updated — plan recalculated. <a href="javascript:downloadICS()" style="color:var(--warn);font-weight:600;">Re-download calendar</a>
-            </div>
-            <div id="buffer-indicator" class="hidden mt-3"></div>
           </div>
-
-          <!-- Workload -->
-          <div class="side-card hidden" id="workload-card">
-            <h3>Workload</h3>
-            <div class="workload-bar" id="workload-bar"></div>
-            <div class="workload-legend" id="workload-legend"></div>
+          <div id="dates-changed-banner" class="notice notice-warning hidden mt-3">
+            Dates updated — plan recalculated. <a href="javascript:downloadICS()" style="color:var(--warn);font-weight:600;">Re-download calendar</a>
           </div>
-
-          <!-- Status -->
-          <div class="side-card" id="side-status-card">
-            <h3>Status</h3>
-            <div id="side-status-content"></div>
-          </div>
-
-          <!-- Shift schedule (moved from inline) -->
-          <div class="side-card">
-            <h3>Schedule tools</h3>
-            <button class="btn btn-sm btn-ghost" onclick="shiftSchedule()" style="font-size:12px;width:100%;">Shift schedule&hellip;</button>
-            <p style="font-size:11px;color:var(--ink-3);margin-top:6px;">Move data collection by N days &mdash; downstream milestones follow.</p>
-          </div>
+          <div id="buffer-indicator" class="hidden mt-3"></div>
         </div>
 
-        <!-- Main content -->
-        <div class="main">
-          <!-- Legacy plan-dates-display kept for JS compatibility -->
-          <div id="plan-dates-display" style="display:none;"></div>
-          <div id="plan-dates-card" style="display:none;"></div>
-          <div id="workload-content" style="display:none;"></div>
-
-          <!-- Gantt Timeline -->
-          <div class="timeline-wrap" id="gantt-wrap"></div>
-
-          <!-- Vertical Timeline (detailed list) -->
-          <div class="card" style="margin-top:16px;">
-            <p class="section-title">Milestone list</p>
-            <ol class="timeline-list" id="timeline-list"></ol>
-          </div>
+        <!-- Status -->
+        <div class="side-card" id="side-status-card">
+          <h3>Status</h3>
+          <div id="side-status-content"></div>
         </div>
+
+        <!-- Workload -->
+        <div class="side-card hidden" id="workload-card">
+          <h3>Workload</h3>
+          <div class="workload-bar" id="workload-bar"></div>
+          <div class="workload-legend" id="workload-legend"></div>
+        </div>
+
+        <!-- Schedule tools -->
+        <div class="side-card">
+          <h3>Schedule tools</h3>
+          <button class="btn btn-sm btn-ghost" onclick="shiftSchedule()" style="font-size:12px;width:100%;">Shift schedule&hellip;</button>
+          <p style="font-size:11px;color:var(--ink-3);margin-top:6px;">Move data collection by N days &mdash; downstream milestones follow.</p>
+        </div>
+      </div>
+
+      <!-- Hidden legacy elements for JS compatibility -->
+      <div id="plan-dates-display" style="display:none;"></div>
+      <div id="plan-dates-card" style="display:none;"></div>
+      <div id="workload-content" style="display:none;"></div>
+
+      <!-- Full-width Gantt Timeline -->
+      <div class="timeline-wrap" id="gantt-wrap" style="margin-top:24px;"></div>
+
+      <!-- Hidden milestone list (kept for JS compatibility, visible in Milestones tab) -->
+      <div style="display:none;">
+        <ol class="timeline-list" id="timeline-list"></ol>
       </div>
     </div>
 
