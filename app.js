@@ -360,8 +360,6 @@ function computeMilestones() {
       date = prevWorkingDay(addDays(weekStart, -1), holidaySet);
     } else if (m.id === 'data_cleaning') {
       date = analysisStartDate;
-    } else if (m.id === 'analysis_complete') {
-      date = analysisEndDate;
     } else if (m.id !== 'data_collection') {
       date = nextWorkingDay(date, holidaySet);
     }
@@ -460,11 +458,11 @@ function computeMilestones() {
   // SONA chain: sona_request → sona_upload → sona_active (anchored to BP)
   enforceChainOrder(['sona_request', 'sona_upload', 'sona_active'], addDays(bpStart, -42), bpStart);
 
-  // Post-experiment chain (master only): data_cleaning → analysis_complete →
+  // Post-experiment chain (master only): data_cleaning →
   // first_draft → supervisor_feedback → revision_complete → final_check
   if (thesisDate && state.role === 'master') {
     enforceChainOrder(
-      ['data_cleaning', 'analysis_complete', 'first_draft', 'supervisor_feedback', 'revision_complete', 'final_check'],
+      ['data_cleaning', 'first_draft', 'supervisor_feedback', 'revision_complete', 'final_check'],
       collectionEndDate, thesisDate
     );
   }
@@ -1098,8 +1096,7 @@ const MILESTONES = [
   { id: "data_collection", label: "Data collection starts", offsetDays: 0, relativeTo: "week", roles: ["master","phd"], optional: false, section: "phase4_go", keyDate: true, note: "Your chosen data collection week begins. SONA participant slots open earlier (when requested by the SONA coordinator) so students can sign up in advance.", dynamic: true },
   // ── Phase 5: After data collection (master thesis) ──
   { id: "prepare_measures", label: "Prepare variables, scales, and analysis plan", offsetDays: -7, relativeTo: "week", roles: ["master"], optional: false, section: "phase3_before_experiment", note: "Define your dependent and independent variables, finalize measurement scales, plan manipulation checks, and outline your analysis strategy. Having this ready before data collection means you can start analysis immediately once data is in.", durationMin: 180 },
-  { id: "data_cleaning", label: "Data analysis starts \u2014 cleaning and preparation", offsetDays: 1, relativeTo: "collectionEnd", roles: ["master"], optional: false, section: "phase5_thesis", note: "Analysis starts the day after data collection ends. Export data, check for exclusions, clean variables, and prepare your analysis dataset. A clean dataset saves hours of debugging later.", durationMin: 240 },
-  { id: "analysis_complete", label: "Data analysis complete", offsetDays: 0, relativeTo: "collectionEnd", roles: ["master"], optional: false, section: "phase5_thesis", note: "End of your analysis window (set on the setup screen). Run your pre-registered analyses and any exploratory analyses. Document your steps so you can write the results section directly from your output." },
+  { id: "data_cleaning", label: "Data analysis (cleaning, preparation, analysis)", offsetDays: 1, relativeTo: "collectionEnd", roles: ["master"], optional: false, section: "phase5_thesis", note: "Analysis starts the day after data collection ends. Export data, check for exclusions, clean variables, prepare your dataset, run your pre-registered analyses and any exploratory analyses. Budget about 1 week for this entire task.", durationMin: 2400 },
   { id: "first_draft", label: "First full draft to supervisor", offsetDays: -21, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", keyDate: true, note: "Submit a complete first draft — intro, method, results, and discussion. It does not need to be perfect, but it needs to be complete. Your supervisor needs enough to give meaningful feedback." },
   { id: "supervisor_feedback", label: "Receive supervisor feedback", offsetDays: -18, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", note: "Expect ~3–5 days for your supervisor to review. Use this time to polish figures, check references, and proofread. If you haven't heard back, send a reminder." },
   { id: "revision_complete", label: "Revisions complete — final draft ready", offsetDays: -7, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", note: "Incorporate all supervisor feedback. This is your last chance to improve content. After this, only formatting and final checks remain." },
@@ -2393,7 +2390,7 @@ function shiftSchedule() {
   // Warn if analysis now runs past thesis deadline
   if (state.thesisDeadline) {
     const computed = computeMilestones();
-    const analysisEnd = computed.find(m => m.id === 'analysis_complete');
+    const analysisEnd = computed.find(m => m.id === 'data_cleaning');
     const thesis = parseDate(state.thesisDeadline);
     if (analysisEnd && analysisEnd.date > thesis) {
       alert('Heads up: after this shift, your analysis window ends AFTER your thesis deadline. Consider reducing analysis weeks or moving the thesis deadline.');
@@ -2768,7 +2765,7 @@ function renderGantt(milestones, today, bpStart, bpEnd) {
     const shortDate = formatDateShort(m.date);
 
     rowsHTML += `<div class="tl-row-gantt">`;
-    rowsHTML += `<div class="tl-bar-gantt" style="left:${mLeft.toFixed(2)}%;width:${mWidth.toFixed(2)}%;background:${color};opacity:${opacity};cursor:pointer" title="${escapeHTML(m.label)}&#10;${shortDate} · ${phaseLabel}"><span>${escapeHTML(m.label)}</span></div>`;
+    rowsHTML += `<div class="tl-bar-gantt" style="left:${mLeft.toFixed(2)}%;width:${mWidth.toFixed(2)}%;background:${color};opacity:${opacity}" data-tip="${escapeHTML(m.label)} — ${shortDate}"><span>${escapeHTML(m.label)}</span></div>`;
     rowsHTML += `</div>`;
   });
 
