@@ -827,8 +827,8 @@ function updateCalc() {
       participantsRemaining -= dayParticipants;
       d = addDays(d, 1);
     }
-    const ttOpen = timetableWasOpen ? 'block' : 'none';
-    const ttChev = timetableWasOpen ? '\u25BC' : '\u25B6';
+    const ttOpen = 'block';
+    const ttChev = '\u25BC';
     timetableHTML = `
       <div class="mt-4">
         <button class="toggle-btn" onclick="var b=document.getElementById('timetable-body');b.style.display=b.style.display==='none'?'block':'none';this.querySelector('.chev').textContent=b.style.display==='none'?'\u25B6':'\u25BC';">
@@ -2589,6 +2589,14 @@ function renderPlan() {
     document.getElementById('calc-n-per-condition').value = qe.nPerCondition;
     document.getElementById('calc-session-duration').value = qe.sessionMin;
     if (qe.showupRate) document.getElementById('calc-showup').value = Math.round(qe.showupRate * 100);
+    _calcSuppressDirty = true;
+    updateCalc();
+    _calcSuppressDirty = false;
+  } else {
+    // No saved data — run calc with defaults so results are visible
+    _calcSuppressDirty = true;
+    updateCalc();
+    _calcSuppressDirty = false;
   }
 
   // Nudge on Lab tab if full calculator hasn't been used
