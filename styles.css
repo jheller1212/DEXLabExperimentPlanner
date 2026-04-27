@@ -30,9 +30,9 @@ body {
 /* ── Design Tokens ── */
 :root {
   /* Timeline tokens */
-  --tl-row-h: 56px;
-  --tl-bar-h: 34px;
-  --tl-row-gap: 14px;
+  --tl-row-h: 28px;
+  --tl-bar-h: 22px;
+  --tl-row-gap: 3px;
   --mini-tl-gap: 10px;
   --mini-bar-h: 28px;
 
@@ -637,7 +637,6 @@ select { cursor: pointer; }
   flex-direction: column;
   gap: var(--tl-row-gap);
   min-width: 800px;
-  padding-top: 22px;
 }
 .tl-row-gantt {
   position: relative;
@@ -655,8 +654,8 @@ select { cursor: pointer; }
   border-radius: 4px;
   display: flex;
   align-items: center;
-  padding: 0 10px;
-  font-size: 11px;
+  padding: 0 8px;
+  font-size: 10px;
   font-weight: 500;
   color: #fff;
   white-space: nowrap;
