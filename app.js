@@ -21,8 +21,25 @@ function startPlanning() {
   updateNavActive('nav-planner');
 }
 function showExamplePlan() {
-  // For now, just start planning — example plan can be wired later
-  startPlanning();
+  // Load a realistic example plan
+  state.role = 'master';
+  state.bpStart = CONFIG.blockPeriods[1] ? CONFIG.blockPeriods[1].start : CONFIG.blockPeriods[0].start;
+  state.bpWeeks = CONFIG.blockPeriods[1] ? CONFIG.blockPeriods[1].weeks : 8;
+  state.name = 'Alex';
+  state.studyTitle = 'The Effect of AI Recommendations on Consumer Trust';
+  state.collectionDays = 5;
+  state.analysisWeeks = 1;
+  // Data collection in week 5 of the block period
+  const bpStart = parseDate(state.bpStart);
+  state.weekStart = formatDateISO(addDays(bpStart, 4 * 7));
+  state.thesisDeadline = formatDateISO(addDays(bpStart, (state.bpWeeks + 2) * 7));
+  state.quickEstimate = { conditions: 2, design: 'between', nPerCondition: 50, sessionMin: 30, showupRate: 0.5 };
+  // Mark a few milestones as done for realism
+  state.checkedItems = ['power_analysis', 'supervisor_checkin', 'equipment_book', 'inform_team'];
+  _milestoneCacheKey = null;
+  renderPlan();
+  showPlanView();
+  updateNavActive('nav-planner');
 }
 function showPlanView() {
   document.getElementById('view-landing').classList.remove('active');
@@ -286,6 +303,9 @@ function buildHolidaySet(startDate, endDate) {
   return new Set(holidays.map(h => h.date.toDateString()));
 }
 
+function formatDateISO(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
 function formatDate(d) {
   const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
