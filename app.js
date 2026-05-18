@@ -2981,10 +2981,43 @@ const PHASE_SHORT = {
   phase6_defense: 'Revision & Defense'
 };
 
+let _msSortCol = 'date';
+let _msSortAsc = true;
+
+function sortMilestoneTable(col) {
+  if (_msSortCol === col) {
+    _msSortAsc = !_msSortAsc;
+  } else {
+    _msSortCol = col;
+    _msSortAsc = true;
+  }
+  // Update header arrows
+  ['name', 'phase', 'date', 'status'].forEach(c => {
+    const el = document.getElementById('sort-arrow-' + c);
+    const th = el && el.parentElement;
+    if (el) el.innerHTML = c === col ? (_msSortAsc ? '&darr;' : '&uarr;') : '';
+    if (th) th.classList.toggle('ms-sort-active', c === col);
+  });
+  renderPlan();
+}
+
 function renderMilestoneTable(milestones, today) {
   const tbody = document.getElementById('milestone-tbody');
   tbody.innerHTML = '';
-  milestones.forEach(m => {
+  // Sort milestones
+  const phaseOrder = ['phase1_before_sona', 'phase2_sona', 'phase3_before_experiment', 'phase4_go', 'phase5_thesis', 'phase6_defense'];
+  const sorted = milestones.slice().sort((a, b) => {
+    let cmp = 0;
+    if (_msSortCol === 'date') cmp = a.date - b.date;
+    else if (_msSortCol === 'name') cmp = a.label.localeCompare(b.label);
+    else if (_msSortCol === 'phase') cmp = phaseOrder.indexOf(a.section) - phaseOrder.indexOf(b.section);
+    else if (_msSortCol === 'status') {
+      const rank = m => { const d = daysBetween(today, m.date); return state.checkedItems.includes(m.id) ? 999 : d; };
+      cmp = rank(a) - rank(b);
+    }
+    return _msSortAsc ? cmp : -cmp;
+  });
+  sorted.forEach(m => {
     const tr = document.createElement('tr');
     const diff = daysBetween(today, m.date);
     const checked = state.checkedItems.includes(m.id);

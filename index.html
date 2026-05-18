@@ -522,7 +522,12 @@
       <!-- Milestone table -->
       <div class="milestones-card">
         <table class="ms-table" id="milestone-table">
-          <thead><tr><th>Milestone</th><th>Phase</th><th>Deadline</th><th>Status</th></tr></thead>
+          <thead><tr>
+            <th class="ms-sortable" onclick="sortMilestoneTable('name')">Milestone <span class="ms-sort-arrow" id="sort-arrow-name"></span></th>
+            <th class="ms-sortable" onclick="sortMilestoneTable('phase')">Phase <span class="ms-sort-arrow" id="sort-arrow-phase"></span></th>
+            <th class="ms-sortable ms-sort-active" onclick="sortMilestoneTable('date')">Deadline <span class="ms-sort-arrow" id="sort-arrow-date">&darr;</span></th>
+            <th class="ms-sortable" onclick="sortMilestoneTable('status')">Status <span class="ms-sort-arrow" id="sort-arrow-status"></span></th>
+          </tr></thead>
           <tbody id="milestone-tbody"></tbody>
         </table>
       </div>
