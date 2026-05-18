@@ -1132,10 +1132,11 @@ const MILESTONES = [
   { id: "data_cleaning", label: "Data analysis (cleaning, preparation, analysis)", offsetDays: 1, relativeTo: "collectionEnd", roles: ["master"], optional: false, section: "phase5_thesis", note: "Analysis starts the day after data collection ends. Export data, check for exclusions, clean variables, prepare your dataset, run your pre-registered analyses and any exploratory analyses. Budget about 1 week for this entire task.", durationMin: 2400 },
   { id: "first_draft", label: "First full draft to supervisor", offsetDays: -21, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", keyDate: true, note: "Submit a complete first draft — intro, method, results, and discussion. It does not need to be perfect, but it needs to be complete. Your supervisor needs enough to give meaningful feedback." },
   { id: "supervisor_feedback", label: "Receive supervisor feedback", offsetDays: -18, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", note: "Expect ~3–5 days for your supervisor to review. Use this time to polish figures, check references, and proofread. If you haven't heard back, send a reminder." },
-  { id: "revision_complete", label: "Revisions complete — final draft ready", offsetDays: -7, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", note: "Incorporate all supervisor feedback. This is your last chance to improve content. After this, only formatting and final checks remain." },
-  { id: "final_check", label: "Final formatting, references, and plagiarism check", offsetDays: -3, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", note: "Check formatting requirements, run a plagiarism self-check, verify all references are complete, and ensure figures/tables are numbered correctly." },
-  { id: "thesis_submission", label: "Thesis submission deadline", offsetDays: 0, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", keyDate: true, note: "Your thesis submission deadline. Make sure you know the exact submission procedure — some programmes require both a digital upload and a physical copy." },
-  { id: "plan_defense", label: "Plan thesis defense with supervisor", offsetDays: 3, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", note: "Contact your supervisor to schedule your thesis defense. Discuss the format, who will be on the committee, and what to prepare. The sooner you arrange this, the easier it is to find a date that works for everyone.", durationMin: 30 },
+  // ── Phase 6: Revision, Submission & Defense ──
+  { id: "revision_complete", label: "Revisions complete — final draft ready", offsetDays: -7, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase6_defense", note: "Incorporate all supervisor feedback. This is your last chance to improve content. After this, only formatting and final checks remain." },
+  { id: "final_check", label: "Final formatting, references, and plagiarism check", offsetDays: -3, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase6_defense", note: "Check formatting requirements, run a plagiarism self-check, verify all references are complete, and ensure figures/tables are numbered correctly." },
+  { id: "thesis_submission", label: "Thesis submission deadline", offsetDays: 0, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase6_defense", keyDate: true, note: "Your thesis submission deadline. Make sure you know the exact submission procedure — some programmes require both a digital upload and a physical copy." },
+  { id: "plan_defense", label: "Plan thesis defense with supervisor", offsetDays: 3, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase6_defense", note: "Contact your supervisor to schedule your thesis defense. Discuss the format, who will be on the committee, and what to prepare. The sooner you arrange this, the easier it is to find a date that works for everyone.", durationMin: 30 },
 ];
 
 const SECTION_LABELS = {
@@ -1144,6 +1145,7 @@ const SECTION_LABELS = {
   phase3_before_experiment: "Phase 3: Before Experiment",
   phase4_go: "Phase 4: Data Collection",
   phase5_thesis: "Phase 5: Analysis & Writing",
+  phase6_defense: "Phase 6: Revision & Defense",
 };
 
 // ── App State ──
@@ -2013,7 +2015,8 @@ function renderSideWorkload(computed) {
     { key: 'phase2_sona', label: 'SONA Setup', color: 'var(--p2)' },
     { key: 'phase3_before_experiment', label: 'Before Experiment', color: 'var(--p3)' },
     { key: 'phase4_go', label: 'Data Collection', color: 'var(--p4)' },
-    { key: 'phase5_thesis', label: 'Analysis & Writing', color: 'var(--p5)' }
+    { key: 'phase5_thesis', label: 'Analysis & Writing', color: 'var(--p5)' },
+    { key: 'phase6_defense', label: 'Revision & Defense', color: 'var(--p6)' }
   ];
   const totals = {};
   let grandTotal = 0;
@@ -2779,7 +2782,7 @@ function renderGantt(milestones, today, bpStart, bpEnd) {
   // Build chronological milestone rows — each milestone is a small bar segment
   // Group consecutive milestones on the same date into one row
   let rowsHTML = '';
-  const phaseOrder = ['phase1_before_sona', 'phase2_sona', 'phase3_before_experiment', 'phase4_go', 'phase5_thesis'];
+  const phaseOrder = ['phase1_before_sona', 'phase2_sona', 'phase3_before_experiment', 'phase4_go', 'phase5_thesis', 'phase6_defense'];
   const phasesPresent = new Set();
 
   sorted.forEach((m, i) => {
@@ -2823,6 +2826,19 @@ function renderGantt(milestones, today, bpStart, bpEnd) {
   const weekWidth = 80;
   const gridWidth = numWeeks * weekWidth;
 
+  // Block period overlay — show BPs that overlap the plan range
+  let bpOverlayHTML = '';
+  CONFIG.blockPeriods.forEach(bp => {
+    const bpS = parseDate(bp.start);
+    const bpE = addDays(bpS, bp.weeks * 7 - 1);
+    if (bpE < planStart || bpS > planEnd) return;
+    const leftPct = Math.max(0, daysBetween(planStart, bpS) / totalDays * 100);
+    const rightPct = Math.min(100, daysBetween(planStart, bpE) / totalDays * 100);
+    const widthPct = rightPct - leftPct;
+    if (widthPct <= 0) return;
+    bpOverlayHTML += `<div class="tl-bp-overlay" style="left:${leftPct.toFixed(2)}%;width:${widthPct.toFixed(2)}%"><span>${escapeHTML(bp.label)}</span></div>`;
+  });
+
   wrap.innerHTML = `
     <div class="timeline-head">
       <h3>Timeline</h3>
@@ -2831,6 +2847,7 @@ function renderGantt(milestones, today, bpStart, bpEnd) {
     <div class="timeline-body" id="timeline-body-scroll">
       <div class="timeline-grid" style="width:${gridWidth}px;">
         <div class="timeline-axis">${axisHTML}</div>
+        <div class="tl-bp-row">${bpOverlayHTML}</div>
         <div class="timeline-rows" style="--ticks:${numWeeks};">
           ${rowsHTML}
           ${todayHTML}
@@ -2853,14 +2870,16 @@ const PHASE_COLORS = {
   phase2_sona: 'var(--p2)',
   phase3_before_experiment: 'var(--p3)',
   phase4_go: 'var(--p4)',
-  phase5_thesis: 'var(--p5)'
+  phase5_thesis: 'var(--p5)',
+  phase6_defense: 'var(--p6)'
 };
 const PHASE_SHORT = {
   phase1_before_sona: 'Before SONA',
   phase2_sona: 'SONA Setup',
   phase3_before_experiment: 'Before Experiment',
   phase4_go: 'Data Collection',
-  phase5_thesis: 'Analysis & Writing'
+  phase5_thesis: 'Analysis & Writing',
+  phase6_defense: 'Revision & Defense'
 };
 
 function renderMilestoneTable(milestones, today) {
@@ -2909,7 +2928,7 @@ function renderChecklist(milestones, today) {
   const container = document.getElementById('checklist-container');
   container.innerHTML = '';
 
-  const sectionOrder = ['phase1_before_sona', 'phase2_sona', 'phase3_before_experiment', 'phase4_go', 'phase5_thesis'];
+  const sectionOrder = ['phase1_before_sona', 'phase2_sona', 'phase3_before_experiment', 'phase4_go', 'phase5_thesis', 'phase6_defense'];
   const sections = {};
   milestones.forEach(m => {
     if (!sections[m.section]) sections[m.section] = [];
