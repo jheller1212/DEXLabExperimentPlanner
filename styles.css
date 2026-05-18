@@ -1252,6 +1252,10 @@ select { cursor: pointer; }
   font-weight: 600;
   background: var(--surface-2);
 }
+.ms-sortable { cursor: pointer; user-select: none; }
+.ms-sortable:hover { color: var(--ink); }
+.ms-sort-active { color: var(--ink); }
+.ms-sort-arrow { font-size: 10px; opacity: 0.7; }
 .ms-table tr:last-child td { border-bottom: none; }
 .ms-table tr:hover td { background: var(--surface-2); }
 .ms-phase-pill {
