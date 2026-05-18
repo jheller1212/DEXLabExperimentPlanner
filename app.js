@@ -1136,7 +1136,8 @@ const MILESTONES = [
   { id: "revision_complete", label: "Revisions complete — final draft ready", offsetDays: -7, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase6_defense", note: "Incorporate all supervisor feedback. This is your last chance to improve content. After this, only formatting and final checks remain." },
   { id: "final_check", label: "Final formatting, references, and plagiarism check", offsetDays: -3, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase6_defense", note: "Check formatting requirements, run a plagiarism self-check, verify all references are complete, and ensure figures/tables are numbered correctly." },
   { id: "thesis_submission", label: "Thesis submission deadline", offsetDays: 0, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase6_defense", keyDate: true, note: "Your thesis submission deadline. Make sure you know the exact submission procedure — some programmes require both a digital upload and a physical copy." },
-  { id: "plan_defense", label: "Plan thesis defense with supervisor", offsetDays: 3, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase6_defense", note: "Contact your supervisor to schedule your thesis defense. Discuss the format, who will be on the committee, and what to prepare. The sooner you arrange this, the easier it is to find a date that works for everyone.", durationMin: 30 },
+  { id: "plan_defense", label: "Plan thesis defense with supervisor", offsetDays: 3, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase6_defense", note: "Contact your supervisor to schedule your thesis defense. Discuss the format, who will be on the committee, and what to prepare. The defense must take place within 2 weeks after the submission deadline. The sooner you arrange this, the easier it is to find a date that works for everyone.", durationMin: 30 },
+  { id: "defense_deadline", label: "Thesis defense (latest date)", offsetDays: 14, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase6_defense", keyDate: true, note: "Your thesis defense must be completed by this date — 2 weeks after submission. Coordinate with your supervisor well in advance to secure a slot." },
 ];
 
 const SECTION_LABELS = {
@@ -2643,6 +2644,11 @@ function renderPlan() {
     updateCalc();
     _calcSuppressDirty = false;
   }
+  // Auto-open lab calculator when data has been seeded
+  const labCalcDetails = document.getElementById('lab-calc-section');
+  if (labCalcDetails && (state.labCalc || state.quickEstimate)) {
+    labCalcDetails.open = true;
+  }
 
   // Nudge on Lab tab if full calculator hasn't been used
   var labNudge = document.getElementById('lab-calc-nudge');
@@ -3146,8 +3152,8 @@ function dismissCompletion() {
 function editSetup() {
   // Go back to wizard, preserving all state
   document.getElementById('view-landing').classList.remove('active');
-  document.getElementById('app-container').style.display = 'none';
-  document.getElementById('view-wizard').style.display = '';
+  document.getElementById('app-container').classList.remove('active');
+  document.getElementById('view-wizard').classList.add('active');
   // Restore role selection UI
   if (state.role) {
     document.getElementById('btn-master').className = `role-card${state.role === 'master' ? ' selected' : ''}`;
