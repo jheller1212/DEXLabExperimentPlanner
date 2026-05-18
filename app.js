@@ -231,9 +231,9 @@ const CONFIG = {
   // Timeline-only overlays (not selectable for data collection).
   // BP3/BP6 are short skills/resit blocks; summer is the break between years.
   timelineOverlays: [
-    { label: "BP3", start: "2027-01-04", weeks: 4, style: "minor" },
-    { label: "BP6", start: "2027-06-07", weeks: 5, style: "minor" },
-    { label: "Summer Break", start: "2027-07-12", weeks: 7, style: "break" },
+    { label: "BP3", start: "2027-01-11", weeks: 2, style: "minor" },
+    { label: "BP6", start: "2027-06-21", weeks: 2, style: "minor" },
+    { label: "Summer Break", start: "2027-07-05", weeks: 8, style: "break" },
   ],
 };
 // ============================================================
