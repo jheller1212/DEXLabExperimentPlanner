@@ -23,8 +23,11 @@ function startPlanning() {
 function showExamplePlan() {
   // Load a realistic example plan
   state.role = 'master';
-  state.bpStart = CONFIG.blockPeriods[1] ? CONFIG.blockPeriods[1].start : CONFIG.blockPeriods[0].start;
-  state.bpWeeks = CONFIG.blockPeriods[1] ? CONFIG.blockPeriods[1].weeks : 8;
+  // Pick the first block period that hasn't ended yet, or fall back to the last one
+  const now = new Date();
+  const exBP = CONFIG.blockPeriods.find(bp => addDays(parseDate(bp.start), bp.weeks * 7) > now) || CONFIG.blockPeriods[CONFIG.blockPeriods.length - 1];
+  state.bpStart = exBP.start;
+  state.bpWeeks = exBP.weeks;
   state.name = 'Alex';
   state.studyTitle = 'The Effect of AI Recommendations on Consumer Trust';
   state.collectionDays = 5;
