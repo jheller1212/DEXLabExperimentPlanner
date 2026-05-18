@@ -186,9 +186,10 @@ const CONFIG = {
   blockPeriods: [
     { label: "BP4 \u2014 2025/26", start: "2026-02-09", weeks: 8 },
     { label: "BP5 \u2014 2025/26", start: "2026-04-13", weeks: 9 },
-    { label: "BP1 \u2014 2026/27", start: "2026-09-07", weeks: 8 },
-    { label: "BP2 \u2014 2026/27", start: "2026-11-02", weeks: 8 },
-    // FILL IN: add more block periods as the academic calendar is published
+    { label: "BP1 \u2014 2026/27", start: "2026-08-31", weeks: 8 },
+    { label: "BP2 \u2014 2026/27", start: "2026-10-26", weeks: 8 },
+    { label: "BP4 \u2014 2026/27", start: "2027-02-01", weeks: 9 },
+    { label: "BP5 \u2014 2026/27", start: "2027-04-12", weeks: 9 },
   ],
 
   // Dutch national public holidays (fixed-date only).
@@ -203,16 +204,25 @@ const CONFIG = {
     { date: "2026-02-17", label: "Carnival (UM closure)" },
     { date: "2026-04-27", label: "King's Day" },
     { date: "2026-05-05", label: "Liberation Day" },
-    // ── 2026/27 — fill in when academic calendar is published ──
-    // { date: "2026-12-25", label: "Christmas Day" },
-    // { date: "2026-12-26", label: "Second Christmas Day" },
-    // { date: "2027-01-01", label: "New Year's Day" },
+    // ── 2026/27 ──
+    { date: "2026-12-25", label: "Christmas Day" },
+    { date: "2026-12-26", label: "Second Christmas Day" },
+    { date: "2027-01-01", label: "New Year's Day" },
+    { date: "2027-02-08", label: "Carnival (UM closure)" },
+    { date: "2027-02-09", label: "Carnival (UM closure)" },
+    { date: "2027-02-10", label: "Carnival (UM closure)" },
+    { date: "2027-02-11", label: "Carnival (UM closure)" },
+    { date: "2027-02-12", label: "Carnival (UM closure)" },
+    { date: "2027-04-27", label: "King's Day" },
+    { date: "2027-05-05", label: "Liberation Day" },
   ],
 
   // Bridge days (brugdagen) — UM-specific, not national holidays.
   bridgeDays: [
     { date: "2026-05-04", label: "Bridge Day (UM)" },
     { date: "2026-05-15", label: "Bridge Day \u2014 Ascension (UM)" },
+    { date: "2027-04-26", label: "Bridge Day (UM)" },
+    { date: "2027-05-07", label: "Bridge Day \u2014 Ascension (UM)" },
   ],
 };
 // ============================================================
