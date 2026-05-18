@@ -227,6 +227,14 @@ const CONFIG = {
     { date: "2027-04-26", label: "Bridge Day (UM)" },
     { date: "2027-05-07", label: "Bridge Day \u2014 Ascension (UM)" },
   ],
+
+  // Timeline-only overlays (not selectable for data collection).
+  // BP3/BP6 are short skills/resit blocks; summer is the break between years.
+  timelineOverlays: [
+    { label: "BP3", start: "2027-01-04", weeks: 4, style: "minor" },
+    { label: "BP6", start: "2027-06-07", weeks: 5, style: "minor" },
+    { label: "Summer Break", start: "2027-07-12", weeks: 7, style: "break" },
+  ],
 };
 // ============================================================
 // END OF ANNUAL CONFIG — DO NOT EDIT BELOW THIS LINE
@@ -2832,9 +2840,11 @@ function renderGantt(milestones, today, bpStart, bpEnd) {
   const weekWidth = 80;
   const gridWidth = numWeeks * weekWidth;
 
-  // Block period overlay — show BPs that overlap the plan range
+  // Block period overlay — show BPs and timeline overlays that overlap the plan range
   let bpOverlayHTML = '';
-  CONFIG.blockPeriods.forEach(bp => {
+  const allOverlays = CONFIG.blockPeriods.map(bp => ({ label: bp.label, start: bp.start, weeks: bp.weeks, style: 'bp' }))
+    .concat((CONFIG.timelineOverlays || []).map(o => ({ label: o.label, start: o.start, weeks: o.weeks, style: o.style || 'minor' })));
+  allOverlays.forEach(bp => {
     const bpS = parseDate(bp.start);
     const bpE = addDays(bpS, bp.weeks * 7 - 1);
     if (bpE < planStart || bpS > planEnd) return;
@@ -2842,7 +2852,7 @@ function renderGantt(milestones, today, bpStart, bpEnd) {
     const rightPct = Math.min(100, daysBetween(planStart, bpE) / totalDays * 100);
     const widthPct = rightPct - leftPct;
     if (widthPct <= 0) return;
-    bpOverlayHTML += `<div class="tl-bp-overlay" style="left:${leftPct.toFixed(2)}%;width:${widthPct.toFixed(2)}%"><span>${escapeHTML(bp.label)}</span></div>`;
+    bpOverlayHTML += `<div class="tl-bp-overlay tl-bp-${bp.style}" style="left:${leftPct.toFixed(2)}%;width:${widthPct.toFixed(2)}%" data-tip="${escapeHTML(bp.label)}"><span>${escapeHTML(bp.label)}</span></div>`;
   });
 
   wrap.innerHTML = `

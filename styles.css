@@ -604,7 +604,7 @@ select { cursor: pointer; }
   position: relative;
   padding: 20px 0 24px;
   overflow-x: auto;
-  overflow-y: hidden;
+  overflow-y: visible;
   width: 100%;
 }
 .timeline-grid {
@@ -708,7 +708,39 @@ select { cursor: pointer; }
   color: var(--ink-3);
   white-space: nowrap;
   letter-spacing: 0.02em;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
+.tl-bp-minor {
+  background: var(--surface-raised, #f4f4f5);
+  border-style: dashed;
+}
+.tl-bp-minor span { font-weight: 500; opacity: 0.7; }
+.tl-bp-break {
+  background: repeating-linear-gradient(135deg, transparent, transparent 3px, var(--line) 3px, var(--line) 5px);
+  border-color: var(--line);
+}
+.tl-bp-break span { font-weight: 500; color: var(--ink-3); opacity: 0.7; }
+/* Tooltip on BP overlays */
+.tl-bp-overlay[data-tip]::after {
+  content: attr(data-tip);
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--ink);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 400;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 20;
+}
+.tl-bp-overlay[data-tip]:hover::after { display: block; }
+.tl-bp-overlay:hover { opacity: 0.85; }
 .tl-diamond {
   position: absolute;
   width: 14px;
