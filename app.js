@@ -499,9 +499,35 @@ function computeMilestones() {
   // SONA chain: sona_request → sona_upload → sona_active (anchored to BP)
   enforceChainOrder(['sona_request', 'sona_upload', 'sona_active'], addDays(bpStart, -42), bpStart);
 
-  // Post-experiment chain (master only): data_cleaning →
-  // first_draft → supervisor_feedback → revision_complete → final_check
+  // Post-experiment chain (master only): expand spacing when time allows,
+  // compress only when deadline is tight.
+  // Ideal allocation: analysis 2w, writing 2w, feedback 2w, revision 2w, final 3d = ~59 days
+  // Minimum:          analysis 1w, writing 1w, feedback 1w, revision 1w, final 3d = ~31 days
   if (thesisDate && state.role === 'master') {
+    const availDays = Math.max(0, Math.round((thesisDate - collectionEndDate) / 86400000));
+    // Ideal durations (days) for each gap between milestones
+    const gaps = [
+      { id: 'data_cleaning',       min: 7,  ideal: 14 },  // analysis
+      { id: 'first_draft',         min: 7,  ideal: 14 },  // writing
+      { id: 'supervisor_feedback', min: 7,  ideal: 14 },  // feedback
+      { id: 'revision_complete',   min: 7,  ideal: 14 },  // revisions
+      { id: 'final_check',         min: 3,  ideal: 3 },   // final check (fixed)
+    ];
+    const minTotal = gaps.reduce((s, g) => s + g.min, 0);
+    const idealTotal = gaps.reduce((s, g) => s + g.ideal, 0);
+    // Scale between min and ideal based on available time
+    const scale = availDays <= minTotal ? 0 : Math.min(1, (availDays - minTotal) / (idealTotal - minTotal));
+    let cursor = new Date(collectionEndDate);
+    gaps.forEach(g => {
+      const days = Math.round(g.min + (g.ideal - g.min) * scale);
+      cursor = addDays(cursor, days);
+      const ms = result.find(m => m.id === g.id);
+      if (ms) {
+        ms.date = nextWorkingDay(new Date(cursor), holidaySet);
+        if (scale < 0.5) ms.compressed = true;
+      }
+    });
+    // Still enforce ordering as a safety net
     enforceChainOrder(
       ['data_cleaning', 'first_draft', 'supervisor_feedback', 'revision_complete', 'final_check'],
       collectionEndDate, thesisDate
