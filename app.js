@@ -1135,6 +1135,7 @@ const MILESTONES = [
   { id: "revision_complete", label: "Revisions complete — final draft ready", offsetDays: -7, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", note: "Incorporate all supervisor feedback. This is your last chance to improve content. After this, only formatting and final checks remain." },
   { id: "final_check", label: "Final formatting, references, and plagiarism check", offsetDays: -3, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", note: "Check formatting requirements, run a plagiarism self-check, verify all references are complete, and ensure figures/tables are numbered correctly." },
   { id: "thesis_submission", label: "Thesis submission deadline", offsetDays: 0, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", keyDate: true, note: "Your thesis submission deadline. Make sure you know the exact submission procedure — some programmes require both a digital upload and a physical copy." },
+  { id: "plan_defense", label: "Plan thesis defense with supervisor", offsetDays: 3, relativeTo: "thesis", roles: ["master"], optional: false, section: "phase5_thesis", note: "Contact your supervisor to schedule your thesis defense. Discuss the format, who will be on the committee, and what to prepare. The sooner you arrange this, the easier it is to find a date that works for everyone.", durationMin: 30 },
 ];
 
 const SECTION_LABELS = {
