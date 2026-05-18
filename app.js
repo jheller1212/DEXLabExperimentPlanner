@@ -1,3 +1,10 @@
+// ── Analytics (Umami) ──
+function track(event, data) {
+  if (typeof umami !== 'undefined' && umami.track) {
+    umami.track(event, data);
+  }
+}
+
 // ── Landing page & wizard glue ──
 var _wizardStep = 1;
 var _wizardHighest = 1;
@@ -52,6 +59,7 @@ function showPlanView() {
   document.querySelectorAll('#app-container .screen').forEach(function(s) { s.classList.remove('active'); });
   document.getElementById('screen-plan').classList.add('active');
   updateNavActive('nav-planner');
+  track('plan-generated', { role: state.role });
 }
 
 function wizardShowStep(n) {
@@ -1345,6 +1353,7 @@ function getShareURL() {
 }
 
 function copyShareLink() {
+  track('share-link-copied');
   const url = getShareURL();
   navigator.clipboard.writeText(url).then(() => {
     showToast('Link copied! Bookmark it or share it to return to this plan.');
@@ -1479,6 +1488,7 @@ function copySupervisorUpdate() {
 
 // ── ICS Calendar Export ──
 function downloadICS() {
+  track('ics-download');
   // Prompt for name/title if not set
   if (!state.name) {
     const name = prompt('Enter your name (for calendar events):');
@@ -1882,6 +1892,7 @@ function showScreensUpTo(id) {
 // ── Screen 1: Role ──
 function selectRole(role) {
   state.role = role;
+  track('role-selected', { role });
   document.body.className = `role-${role}`;
   document.getElementById('btn-master').className = `role-card${role === 'master' ? ' selected' : ''}`;
   document.getElementById('btn-phd').className = `role-card${role === 'phd' ? ' selected' : ''}`;
@@ -2915,10 +2926,12 @@ function renderGantt(milestones, today, bpStart, bpEnd) {
     phasesPresent.add(sec);
     const checked = state.checkedItems.includes(m.id);
 
-    // Bar spans from this milestone to the next (or a minimum width)
+    // Bar spans from this milestone to the next (or a minimum width).
+    // Lab day milestones are single-day events — cap their width at 1 day.
     const mLeft = (daysBetween(planStart, m.date) / totalDays * 100);
     const nextDate = (i < sorted.length - 1) ? sorted[i + 1].date : planEnd;
-    const spanDays = Math.max(1, daysBetween(m.date, nextDate));
+    const rawSpan = Math.max(1, daysBetween(m.date, nextDate));
+    const spanDays = m.labDay ? 1 : rawSpan;
     const mWidth = Math.max(1.5, (spanDays / totalDays * 100));
 
     const opacity = checked ? '0.35' : '1';
@@ -3306,6 +3319,7 @@ function composeFeedbackText() {
 }
 
 function sendFeedbackEmail() {
+  track('feedback-sent', { rating: feedbackRating });
   if (feedbackRating === 0) { showToast('Please select a rating first'); return; }
   const ctx = getFeedbackContext();
   const subject = encodeURIComponent(`DEXLab Planner Feedback (${ctx.role}, ${ctx.pct}% complete)`);
