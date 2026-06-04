@@ -142,20 +142,20 @@
       <p class="wizard-sub">Answer a few questions and we&rsquo;ll generate your timeline.</p>
     </div>
 
-    <div class="steps" id="wizard-steps">
-      <div class="step active" data-step="1" onclick="wizardGoToStep(1)">
+    <div class="steps" id="wizard-steps" role="tablist" aria-label="Wizard steps">
+      <div class="step active" data-step="1" role="tab" tabindex="0" aria-selected="true" onclick="wizardGoToStep(1)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();wizardGoToStep(1)}">
         <span class="step-num-new">01</span>
         <span class="step-name-new">Role</span>
       </div>
-      <div class="step" data-step="2" onclick="wizardGoToStep(2)">
+      <div class="step" data-step="2" role="tab" tabindex="0" aria-selected="false" onclick="wizardGoToStep(2)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();wizardGoToStep(2)}">
         <span class="step-num-new">02</span>
         <span class="step-name-new">Schedule</span>
       </div>
-      <div class="step" data-step="3" onclick="wizardGoToStep(3)">
+      <div class="step" data-step="3" role="tab" tabindex="0" aria-selected="false" onclick="wizardGoToStep(3)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();wizardGoToStep(3)}">
         <span class="step-num-new">03</span>
         <span class="step-name-new">Details</span>
       </div>
-      <div class="step" data-step="4" onclick="wizardGoToStep(4)">
+      <div class="step" data-step="4" role="tab" tabindex="0" aria-selected="false" onclick="wizardGoToStep(4)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();wizardGoToStep(4)}">
         <span class="step-num-new">04</span>
         <span class="step-name-new">Generate</span>
       </div>
@@ -172,12 +172,12 @@
         <div class="card-title">Choose your role</div>
         <div class="card-sub">Your role determines which milestones appear &mdash; PhD researchers get additional steps for ethics applications and pre-registration.</div>
         <div class="role-grid">
-          <div class="role-card" id="btn-master" onclick="selectRole('master')">
+          <div class="role-card" id="btn-master" role="button" tabindex="0" onclick="selectRole('master')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectRole('master')}">
             <div class="role-eyebrow">Thesis track</div>
             <div class="role-name">Master Student</div>
             <div class="role-desc">Standard milestones for SONA, lab booking, and data collection.</div>
           </div>
-          <div class="role-card" id="btn-phd" onclick="selectRole('phd')">
+          <div class="role-card" id="btn-phd" role="button" tabindex="0" onclick="selectRole('phd')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectRole('phd')}">
             <div class="role-eyebrow">Doctoral track</div>
             <div class="role-name">PhD Researcher</div>
             <div class="role-desc">Additional steps for ethics applications, pre-registration, and open science.</div>

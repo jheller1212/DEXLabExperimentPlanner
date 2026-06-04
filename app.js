@@ -75,6 +75,7 @@ function wizardShowStep(n) {
   steps.forEach(function(s) {
     var si = parseInt(s.getAttribute('data-step'));
     s.classList.remove('active', 'done');
+    s.setAttribute('aria-selected', si === n ? 'true' : 'false');
     if (si === n) s.classList.add('active');
     else if (si < n) s.classList.add('done');
   });
