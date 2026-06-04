@@ -1289,7 +1289,7 @@ function decodeState(hash) {
         if (p.get('cm')) {
           try {
             const arr = JSON.parse(decodeURIComponent(escape(atob(p.get('cm')))));
-            state.customMilestones = arr.map(a => ({
+            state.customMilestones = arr.filter(a => /^[a-z0-9_-]+$/.test(a[0])).map(a => ({
               id: a[0], label: escapeHTML(a[1]), date: a[2], section: a[3], durationMin: parseInt(a[4]) || 0, note: escapeHTML(a[5] || ''),
             }));
           } catch (e) {}
@@ -2534,8 +2534,8 @@ function renderCustomList() {
         <span class="mono" style="font-size:var(--text-xs);color:var(--ink-3);">${formatDate(parseDate(c.date))}</span>
       </div>
       <div style="display:flex;gap:0.25rem;">
-        <button class="btn btn-sm btn-ghost" onclick="editCustomMilestone('${c.id}')">Edit</button>
-        <button class="btn btn-sm btn-ghost" onclick="deleteCustomMilestone('${c.id}')">Delete</button>
+        <button class="btn btn-sm btn-ghost" onclick="editCustomMilestone('${escapeHTML(c.id)}')">Edit</button>
+        <button class="btn btn-sm btn-ghost" onclick="deleteCustomMilestone('${escapeHTML(c.id)}')">Delete</button>
       </div>
     </div>`;
   }).join('');
@@ -2698,7 +2698,7 @@ function showBookmarkReminder() {
 }
 
 function renderPlan() {
-  if (!state.role || !state.bpStart) { startOver(); return; }
+  if (!state.role || !state.bpStart) { showLanding(); return; }
   const bpStart = parseDate(state.bpStart);
   const bpEnd = addDays(bpStart, state.bpWeeks * 7 - 1);
   const today = new Date(); today.setHours(0,0,0,0);
@@ -2867,7 +2867,7 @@ function renderTimeline(milestones, holidays, today) {
     li.innerHTML = `
       <div class="tl-dot${isOverdue ? '' : (isPast ? ' past' : '')}${isHoliday ? ' holiday' : ''}"></div>
       <span class="tl-date">${formatDateShort(item.date)}</span>
-      <span class="tl-label">${item.label}${isOverdue ? ' \u2014 OVERDUE' : ''}${(item.id && (item.id === 'data_collection' || item.id.startsWith('lab_day_'))) ? ' <a href="javascript:scrollToTimetable()" style="font-size:var(--text-xs);color:var(--ink-3);text-decoration:none;" onmouseover="this.style.textDecoration=\'underline\'" onmouseout="this.style.textDecoration=\'none\'">(view timetable)</a>' : ''}</span>`;
+      <span class="tl-label">${escapeHTML(item.label)}${isOverdue ? ' \u2014 OVERDUE' : ''}${(item.id && (item.id === 'data_collection' || item.id.startsWith('lab_day_'))) ? ' <a href="javascript:scrollToTimetable()" style="font-size:var(--text-xs);color:var(--ink-3);text-decoration:none;" onmouseover="this.style.textDecoration=\'underline\'" onmouseout="this.style.textDecoration=\'none\'">(view timetable)</a>' : ''}</span>`;
     list.appendChild(li);
   });
 
@@ -3087,7 +3087,7 @@ function renderMilestoneTable(milestones, today) {
     const phaseLabel = PHASE_SHORT[m.section] || m.section;
     const timetableLink = (m.id === 'data_collection' || (m.id && m.id.startsWith('lab_day_'))) ? ' <a href="javascript:scrollToTimetable()" style="font-size:var(--text-xs);color:var(--ink-3);text-decoration:none;" onmouseover="this.style.textDecoration=\'underline\'" onmouseout="this.style.textDecoration=\'none\'">(timetable)</a>' : '';
     tr.innerHTML = `
-      <td><div class="ms-name">${m.label}${m.optional ? ' <span style="color:var(--ink-3);font-weight:400;">(opt)</span>' : ''}${m.compressed ? ' <span class="badge-tag badge-tag-warning">compressed</span>' : ''}${timetableLink}</div>${durSub}</td>
+      <td><div class="ms-name">${escapeHTML(m.label)}${m.optional ? ' <span style="color:var(--ink-3);font-weight:400;">(opt)</span>' : ''}${m.compressed ? ' <span class="badge-tag badge-tag-warning">compressed</span>' : ''}${timetableLink}</div>${durSub}</td>
       <td><span class="ms-phase-pill" style="--phase-color:${phaseColor}">${phaseLabel}</span></td>
       <td>${dateCell}</td>
       <td><span class="ms-status-chip ${chipClass}">${chipText}</span></td>`;
@@ -3148,7 +3148,7 @@ function renderChecklist(milestones, today) {
         if (m.overridden) actions += `<button onclick="event.stopPropagation();resetDateOverride('${m.id}')" class="action-btn" title="Reset">Reset</button>`;
       }
       if (m.custom) {
-        actions += `<button onclick="event.stopPropagation();editCustomMilestone('${m.id}')" class="action-btn">Edit</button><button onclick="event.stopPropagation();deleteCustomMilestone('${m.id}')" class="action-btn">Delete</button>`;
+        actions += `<button onclick="event.stopPropagation();editCustomMilestone('${escapeHTML(m.id)}')" class="action-btn">Edit</button><button onclick="event.stopPropagation();deleteCustomMilestone('${escapeHTML(m.id)}')" class="action-btn">Delete</button>`;
       } else if (!m.labDay) {
         actions += `<button onclick="event.stopPropagation();hideMilestone('${m.id}')" class="action-btn" title="Hide">Hide</button>`;
       }
@@ -3185,11 +3185,11 @@ function renderChecklist(milestones, today) {
             <p style="font-size:11px;color:var(--ink-3);margin-top:6px;">The .ics file includes a meeting invite for your supervisor${state.supervisorEmail ? ' (' + escapeHTML(state.supervisorEmail) + ')' : ''}. Import it into Outlook or Apple Calendar.</p>
           </div>`;
       }
-      const noteHTML = m.note ? `<div style="font-size:12px;color:var(--ink-3);margin-top:4px;">${m.note}${m.id === 'equipment_book' && state.labCalc && state.labCalc.totalDays ? ` Book for at least <strong>${state.labCalc.totalDays} day${state.labCalc.totalDays > 1 ? 's' : ''}</strong>.` : ''}</div>` : '';
+      const noteHTML = m.note ? `<div style="font-size:12px;color:var(--ink-3);margin-top:4px;">${escapeHTML(m.note)}${m.id === 'equipment_book' && state.labCalc && state.labCalc.totalDays ? ` Book for at least <strong>${state.labCalc.totalDays} day${state.labCalc.totalDays > 1 ? 's' : ''}</strong>.` : ''}</div>` : '';
       item.innerHTML = `
         <div class="checklist-cb"></div>
         <div>
-          <span class="checklist-text">${m.label}</span>
+          <span class="checklist-text">${escapeHTML(m.label)}</span>
           ${badges ? `<span style="margin-left:6px;">${badges}</span>` : ''}
           ${noteHTML}
           <div style="margin-top:4px;">${actions}</div>
