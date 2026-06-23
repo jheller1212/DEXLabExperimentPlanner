@@ -256,6 +256,16 @@ function escapeHTML(str) {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 }
 
+// Escape text for an iCalendar (RFC 5545) TEXT value: backslash, semicolon,
+// comma and newlines must be escaped or clients truncate/garble the field.
+function icsEscape(str) {
+  return String(str == null ? '' : str)
+    .replace(/\\/g, '\\\\')
+    .replace(/;/g, '\\;')
+    .replace(/,/g, '\\,')
+    .replace(/\r?\n/g, '\\n');
+}
+
 // ── Easter Algorithm (Meeus/Jones/Butcher) ──
 function getEaster(year) {
   const a = year % 19;
@@ -282,7 +292,7 @@ function getEasterHolidays(year) {
     { date: add(easter, -2), label: "Good Friday" },
     { date: add(easter, 1), label: "Easter Monday" },
     { date: add(easter, 39), label: "Ascension Day" },
-    { date: add(easter, 49), label: "Whit Monday" },
+    { date: add(easter, 50), label: "Whit Monday" },
   ];
 }
 
@@ -410,7 +420,9 @@ function computeMilestones() {
       date = prevWorkingDay(addDays(weekStart, -1), holidaySet);
     } else if (m.id === 'data_cleaning') {
       date = analysisStartDate;
-    } else if (m.id !== 'data_collection') {
+    } else {
+      // Snap to the next working day so data collection never starts on a
+      // weekend/holiday — keeps it consistent with the lab days and timetable.
       date = nextWorkingDay(date, holidaySet);
     }
     // Enrich data_collection label with collection period
@@ -474,17 +486,25 @@ function computeMilestones() {
     });
   }
 
-  // Data collection must stay within BP weeks 2–7
-  const bpWeek2Start = addDays(bpStart, 7);   // start of week 2
-  const bpWeek7End = addDays(bpStart, 7 * 7); // end of week 7
+  // Data collection must stay within BP weeks 2–7. Clamp to working days so the
+  // milestone never lands on a weekend (the window edges are Mon/Sun).
+  const bpWeek2Start = nextWorkingDay(addDays(bpStart, 7), holidaySet);   // start of week 2
+  const bpWeek7End = addDays(bpStart, 48);                                // Sunday ending week 7
+  const bpWeek7LastWorkday = prevWorkingDay(bpWeek7End, holidaySet);      // Fri of week 7
   const dataCollMs = result.find(m => m.id === 'data_collection');
   if (dataCollMs) {
-    if (dataCollMs.date < bpWeek2Start) dataCollMs.date = new Date(bpWeek2Start);
-    if (dataCollMs.date > bpWeek7End) { dataCollMs.date = new Date(bpWeek7End); dataCollMs.compressed = true; }
+    let clamped = false;
+    if (dataCollMs.date < bpWeek2Start) { dataCollMs.date = new Date(bpWeek2Start); clamped = true; }
+    if (dataCollMs.date > bpWeek7End) { dataCollMs.date = new Date(bpWeek7LastWorkday); dataCollMs.compressed = true; clamped = true; }
     // Also clamp endDate if it exists
     if (dataCollMs.endDate && dataCollMs.endDate > bpWeek7End) {
-      dataCollMs.endDate = new Date(bpWeek7End);
+      dataCollMs.endDate = new Date(bpWeek7LastWorkday);
       dataCollMs.compressed = true;
+    }
+    // Keep the label's start date in sync with the (re)clamped date.
+    if (clamped && dataCollMs.endDate) {
+      const cd = collectionDays;
+      dataCollMs.label = `Data collection: ${formatDateShort(dataCollMs.date)} → ${formatDateShort(dataCollMs.endDate)} (${cd} lab day${cd !== 1 ? 's' : ''})`;
     }
   }
 
@@ -748,6 +768,7 @@ function fmtTime(totalMin) {
 function buildDaySlots(startMin, endMin, lunchStartMin, lunchDuration, slotDuration) {
   // Build slots around the lunch break
   const slots = [];
+  if (slotDuration <= 0) return slots; // guard against a zero-length slot spinning forever
   let cursor = startMin;
   while (cursor + slotDuration <= endMin) {
     const slotEnd = cursor + slotDuration;
@@ -1047,7 +1068,7 @@ function closeBlockedSlotForm() {
 function saveBlockedSlot() {
   const startVal = document.getElementById('bs-start').value;
   const endVal = document.getElementById('bs-end').value;
-  const label = escapeHtml(document.getElementById('bs-label').value.trim());
+  const label = document.getElementById('bs-label').value.trim(); // stored raw; escaped at render
   const startMatch = startVal.match(/^(\d{1,2}):(\d{2})$/);
   const endMatch = endVal.match(/^(\d{1,2}):(\d{2})$/);
   if (!startMatch || !endMatch) return;
@@ -1269,8 +1290,8 @@ function decodeState(hash) {
       if (p.get('r') && p.get('s')) {
         const r = p.get('r');
         state.role = (r === 'm' ? 'master' : r === 'p' ? 'phd' : r);
-        state.name = escapeHTML(p.get('n') || "");
-        state.studyTitle = escapeHTML(p.get('t') || "");
+        state.name = p.get('n') || "";
+        state.studyTitle = p.get('t') || "";
         state.bpStart = expandDate(p.get('s'));
         state.weekStart = expandDate(p.get('ws')) || state.bpStart;
         state.bpWeeks = Math.max(1, Math.min(52, parseInt(p.get('w')) || 8));
@@ -1284,14 +1305,14 @@ function decodeState(hash) {
           state.collectionDays = 5;
         }
         state.analysisWeeks = Math.max(1, Math.min(12, parseInt(p.get('aw')) || 1));
-        state.supervisorEmail = escapeHTML(p.get('se') || "");
+        state.supervisorEmail = p.get('se') || "";
         state.manualLabDays = Math.max(0, Math.min(30, parseInt(p.get('ml')) || 0));
         state.customMilestones = [];
         if (p.get('cm')) {
           try {
             const arr = JSON.parse(decodeURIComponent(escape(atob(p.get('cm')))));
             state.customMilestones = arr.filter(a => /^[a-z0-9_-]+$/.test(a[0])).map(a => ({
-              id: a[0], label: escapeHTML(a[1]), date: a[2], section: a[3], durationMin: parseInt(a[4]) || 0, note: escapeHTML(a[5] || ''),
+              id: a[0], label: a[1] || '', date: a[2], section: a[3], durationMin: parseInt(a[4]) || 0, note: a[5] || '',
             }));
           } catch (e) {}
         }
@@ -1316,9 +1337,9 @@ function decodeState(hash) {
               dayIndex: Math.max(1, Math.min(365, parseInt(a[0]) || 1)),
               startMin: Math.max(0, Math.min(1440, parseInt(a[1]) || 0)),
               endMin: Math.max(0, Math.min(1440, parseInt(a[2]) || 0)),
-              label: escapeHTML(a[3] || ''),
+              label: a[3] || '',
               recurring: !!(a[4]),
-              groupId: escapeHTML(a[5] || ''),
+              groupId: a[5] || '',
             }));
           } catch (e) {}
         }
@@ -1333,13 +1354,13 @@ function decodeState(hash) {
     const p = JSON.parse(json);
     if ((p.v === 1 || p.v === 2 || p.v === 3 || p.v === 4 || p.v === 5) && p.r && p.s) {
       state.role = p.r;
-      state.name = escapeHTML(p.n || "");
-      state.studyTitle = escapeHTML(p.t || "");
+      state.name = p.n || "";
+      state.studyTitle = p.t || "";
       state.bpStart = p.s;
       state.weekStart = p.ws || p.s;
       state.bpWeeks = Math.max(1, Math.min(52, p.w || 8));
       state.thesisDeadline = p.td || null;
-      state.supervisorEmail = escapeHTML(p.se || "");
+      state.supervisorEmail = p.se || "";
       state.manualLabDays = Math.max(0, Math.min(30, p.ml || 0));
       state.checkedItems = p.c || [];
       return true;
@@ -1373,7 +1394,7 @@ function copyProgressSummary() {
 
   const total = computed.length;
   const done = computed.filter(m => state.checkedItems.includes(m.id)).length;
-  const pct = Math.round((done / total) * 100);
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
   const displayName = state.name || 'Student';
   const titleLine = state.studyTitle ? ` \u2014 ${state.studyTitle}` : '';
 
@@ -1424,7 +1445,7 @@ function buildSupervisorBody() {
 
   const total = computed.length;
   const done = computed.filter(m => state.checkedItems.includes(m.id)).length;
-  const pct = Math.round((done / total) * 100);
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
   const displayName = state.name || 'Student';
   const titleLine = state.studyTitle ? ` \u2014 ${state.studyTitle}` : '';
 
@@ -1520,21 +1541,22 @@ function downloadICS() {
   const seq = state.calSequence || 0;
   computed.forEach(m => {
     const dateStr = toICSDateOnly(m.date);
+    // DTEND is exclusive for all-day events — must be the day after the last day.
+    const endStr = toICSDateOnly(addDays(m.date, 1));
     const uid = `${m.id}-${state.bpStart}@dexlab-planner`;
-    const description = (m.note || '').replace(/\n/g, '\\n');
     ics.push('BEGIN:VEVENT');
     ics.push(`UID:${uid}`);
     ics.push(`SEQUENCE:${seq}`);
     ics.push(`DTSTAMP:${stamp}`);
     ics.push(`DTSTART;VALUE=DATE:${dateStr}`);
-    ics.push(`DTEND;VALUE=DATE:${dateStr}`);
-    ics.push(`SUMMARY:[DEXLab] ${m.label}`);
-    ics.push(`DESCRIPTION:${description}\\n\\nPlan: ${displayName}${studyLabel}`);
+    ics.push(`DTEND;VALUE=DATE:${endStr}`);
+    ics.push(`SUMMARY:${icsEscape('[DEXLab] ' + m.label)}`);
+    ics.push(`DESCRIPTION:${icsEscape((m.note || '') + '\n\nPlan: ' + displayName + studyLabel)}`);
     // Reminder 1 day before
     ics.push('BEGIN:VALARM');
     ics.push('TRIGGER:-P1D');
     ics.push('ACTION:DISPLAY');
-    ics.push(`DESCRIPTION:DEXLab reminder: ${m.label}`);
+    ics.push(`DESCRIPTION:${icsEscape('DEXLab reminder: ' + m.label)}`);
     ics.push('END:VALARM');
     ics.push('END:VEVENT');
   });
@@ -1646,10 +1668,10 @@ function downloadDefenseICS() {
     `DTSTAMP:${stamp}`,
     `DTSTART:${toICSDate(start)}`,
     `DTEND:${toICSDate(end)}`,
-    `SUMMARY:Thesis Defense — ${escapeHTML(name)}`,
-    `DESCRIPTION:Thesis defense for "${title}" by ${name}.\\n\\nGenerated by DEXLab Experiment Planner.`,
-    room ? `LOCATION:${room}` : '',
-    `ORGANIZER;CN=${name}:MAILTO:${state.supervisorEmail || 'noreply@example.com'}`,
+    `SUMMARY:${icsEscape('Thesis Defense — ' + name)}`,
+    `DESCRIPTION:${icsEscape('Thesis defense for "' + title + '" by ' + name + '.\n\nGenerated by DEXLab Experiment Planner.')}`,
+    room ? `LOCATION:${icsEscape(room)}` : '',
+    `ORGANIZER;CN=${icsEscape(name)}:MAILTO:${state.supervisorEmail || 'noreply@example.com'}`,
   ];
   if (state.supervisorEmail) {
     ics.push(`ATTENDEE;ROLE=REQ-PARTICIPANT;RSVP=TRUE;CN=Supervisor:MAILTO:${state.supervisorEmail}`);
@@ -2488,15 +2510,14 @@ function saveCustomMilestone() {
   const durationMin = parseInt(document.getElementById('cm-duration').value) || 0;
   const note = document.getElementById('cm-note').value.trim();
   const editId = document.getElementById('cm-edit-id').value;
-  const safeLabel = escapeHtml(label);
-  const safeNote = escapeHtml(note);
+  // Stored raw; every render path escapes via escapeHTML.
   if (!state.customMilestones) state.customMilestones = [];
   if (editId) {
     const idx = state.customMilestones.findIndex(c => c.id === editId);
-    if (idx !== -1) state.customMilestones[idx] = { id: editId, label: safeLabel, date, section, durationMin, note: safeNote };
+    if (idx !== -1) state.customMilestones[idx] = { id: editId, label, date, section, durationMin, note };
   } else {
     const id = 'custom_' + Date.now().toString(36);
-    state.customMilestones.push({ id, label: safeLabel, date, section, durationMin, note: safeNote });
+    state.customMilestones.push({ id, label, date, section, durationMin, note });
   }
   saveState();
   history.replaceState(null, '', '#' + encodeState());
