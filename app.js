@@ -1848,6 +1848,19 @@ function _switchPlanTabDirect(name) {
   document.querySelectorAll('.plan-tabpanel').forEach(function(p) {
     p.classList.toggle('active', p.id === 'panel-' + name);
   });
+  // When opening the Lab tab, surface the calculator instead of leaving it
+  // collapsed behind a one-line accordion. Expand it and, if no estimate has
+  // been run yet, show a prompt in the result box so it never looks blank.
+  // (We don't auto-run updateCalc here — it would overwrite the student's
+  // collection length and persist a lab booking they didn't choose.)
+  if (name === 'lab') {
+    var section = document.getElementById('lab-calc-section');
+    var result = document.getElementById('calc-result');
+    if (section && !section.open) section.open = true;
+    if (result && result.textContent.trim() === '') {
+      result.innerHTML = '<p class="form-hint" style="margin:0;">Fill in your study details above and your lab-day estimate and day-by-day timetable will appear here.</p>';
+    }
+  }
 }
 
 // ── Screen Management ──
@@ -2694,8 +2707,8 @@ function generatePlan() {
   showScreen('screen-plan');
   // Show bookmark reminder
   showBookmarkReminder();
-  // Enable leave warning
-  window.onbeforeunload = function() { return true; };
+  // No leave warning: the plan is already persisted to localStorage and the
+  // URL hash, so a "you may lose your work" prompt would be misleading.
   // Onboarding tour for first-time users (after plan renders)
   setTimeout(startTour, 600);
 }
@@ -3505,7 +3518,6 @@ function resetState() {
 
 // ── Onboarding Tour ──
 const TOUR_STEPS = [
-  { target: '.role-grid', screen: 'screen-role', title: 'Choose Your Role', text: 'Select your role to see relevant milestones — PhD researchers get additional steps for ethics and pre-registration.' },
   { target: '#lab-calc-section', screen: 'screen-plan', title: 'Lab Timetable Calculator', text: 'Use the lab calculator to figure out how many days you need. It generates a full timetable with timeslots.' },
   { target: '#blocked-slots-section', screen: 'screen-plan', title: 'Blocked Time Slots', text: 'Block times when you can\'t run participants — tutorials, appointments, etc. The timetable skips those slots.' },
   { target: '#custom-milestones-card', screen: 'screen-plan', title: 'Custom Milestones', text: 'Add your own milestones to the timeline — extra meetings, supervisor calls, pilot sessions.' },
@@ -3661,7 +3673,9 @@ function endTour(skipSave) {
   }
 }
 
-// Auto-start tour for first-time visitors
-setTimeout(function() { if (!isTourDone()) startTour(); }, 500);
+// The tour starts only after a plan is generated (see generatePlan), so its
+// steps point at elements that actually exist on screen. No page-load
+// auto-start — that previously fired on the landing page and showed a
+// "Tour paused" banner over the homepage before the user had done anything.
 
 
