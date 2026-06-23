@@ -98,7 +98,7 @@ function wizardShowStep(n) {
     nextBtn.style.color = '';
   }
   // Scroll to top of wizard
-  document.getElementById('view-wizard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.getElementById('view-wizard').scrollIntoView({ behavior: _scrollBehavior(), block: 'start' });
 }
 
 function wizardNext() {
@@ -253,6 +253,11 @@ const CONFIG = {
 function escapeHTML(str) {
   if (typeof str !== 'string') return str;
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+}
+
+// Scroll animation that respects the user's reduced-motion preference.
+function _scrollBehavior() {
+  return (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) ? 'auto' : 'smooth';
 }
 
 // Escape text for an iCalendar (RFC 5545) TEXT value: backslash, semicolon,
@@ -691,7 +696,7 @@ function scrollToTimetable() {
   if (calc) {
     calc.open = true;
     setTimeout(function() {
-      calc.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      calc.scrollIntoView({ behavior: _scrollBehavior(), block: 'start' });
     }, 50);
   }
   var ttBody = document.getElementById('timetable-body');
@@ -1784,7 +1789,7 @@ function showGoogleCalPanel() {
   }).join('');
 
   panel.style.display = 'block';
-  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  panel.scrollIntoView({ behavior: _scrollBehavior(), block: 'nearest' });
 }
 
 // ── localStorage ──
@@ -2544,7 +2549,7 @@ function editCustomMilestone(id) {
   const c = (state.customMilestones || []).find(x => x.id === id);
   if (!c) return;
   openCustomForm(c);
-  document.getElementById('custom-milestones-card').scrollIntoView({ behavior: 'smooth' });
+  document.getElementById('custom-milestones-card').scrollIntoView({ behavior: _scrollBehavior() });
 }
 
 function deleteCustomMilestone(id) {
@@ -3456,7 +3461,7 @@ function editSetup() {
   // Go to step 1 but allow stepping through all reached steps
   _wizardHighest = 4;
   wizardShowStep(1);
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  window.scrollTo({ top: 0, behavior: _scrollBehavior() });
 }
 
 function resetState() {
@@ -3720,6 +3725,18 @@ function endTour(skipSave) {
   document.querySelectorAll('.info-pill[data-tip]').forEach(function (el) {
     if (!el.getAttribute('aria-label')) el.setAttribute('aria-label', el.getAttribute('data-tip'));
     if (!el.hasAttribute('role')) el.setAttribute('role', 'button');
+    // Touch devices have no hover: tap toggles the tooltip open.
+    el.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var wasOpen = el.classList.contains('info-pill-open');
+      document.querySelectorAll('.info-pill-open').forEach(function (o) { o.classList.remove('info-pill-open'); });
+      if (!wasOpen) el.classList.add('info-pill-open');
+    });
+  });
+  // Tap elsewhere dismisses any open tooltip.
+  document.addEventListener('click', function () {
+    document.querySelectorAll('.info-pill-open').forEach(function (o) { o.classList.remove('info-pill-open'); });
   });
 })();
 

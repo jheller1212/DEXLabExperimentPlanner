@@ -46,7 +46,7 @@ body {
   /* Colors — Ink (Text) */
   --ink: #0b2545;
   --ink-2: #1f3a63;
-  --ink-3: #5a6b85;
+  --ink-3: #4a5a74;
   --ink-4: #6b7a8d;
 
   /* Colors — Lines & Borders */
@@ -250,7 +250,7 @@ label.label-sm { font-size: var(--text-sm); }
 .input-narrow { width: 5rem; }
 .info-pill { cursor: help; display: inline-flex; align-items: center; justify-content: center; width: 1rem; height: 1rem; border-radius: var(--radius-full); background: var(--line); color: var(--ink-3); font-size: var(--text-xs); font-weight: 700; line-height: 1; position: relative; }
 .info-pill[data-tip]::after { content: attr(data-tip); position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff; font-size: var(--text-xs); font-weight: 400; padding: 0.4rem 0.6rem; border-radius: var(--radius); white-space: normal; width: max-content; max-width: 220px; line-height: 1.4; pointer-events: none; opacity: 0; transition: opacity var(--transition-fast); z-index: var(--z-dropdown); }
-.info-pill[data-tip]:hover::after, .info-pill[data-tip]:focus::after { opacity: 1; }
+.info-pill[data-tip]:hover::after, .info-pill[data-tip]:focus::after, .info-pill[data-tip].info-pill-open::after { opacity: 1; }
 .mb-0 { margin-bottom: 0; }
 .mb-2 { margin-bottom: var(--space-2); }
 .mb-3 { margin-bottom: var(--space-3); }
@@ -2344,8 +2344,18 @@ details.disclosure[open] .disclosure-body { display: block; }
   .page { padding: 16px; }
   .mini-tl-row { grid-template-columns: 80px 1fr; }
 }
+.scroll-hint { display: none; }
+@media (max-width: 768px) {
+  /* The Gantt is 800px wide and scrolls horizontally on phones; tell the user. */
+  .scroll-hint { display: block; margin-top: 24px; margin-bottom: -8px; font-size: 12px; color: var(--ink-3); font-style: italic; }
+  .scroll-hint + .timeline-wrap { margin-top: 8px !important; }
+}
 @media (max-width: 480px) {
   .hero h1 { font-size: 32px; }
   .strip { grid-template-columns: 1fr; }
-  .nav-links { display: none; }
+  /* Keep primary nav reachable on phones: collapse the brand to its (still
+     clickable) logo to make room, and compact the links instead of hiding them. */
+  .brand-text { display: none; }
+  .nav-links { display: flex; gap: 2px; }
+  .nav-link { padding: 5px 8px; font-size: 12px; }
 }
