@@ -255,7 +255,7 @@
           </summary>
           <div class="disclosure-body">
             <p class="field-hint mb-3">
-              Estimate how many lab days you need. Leave fields blank if you don&rsquo;t know yet &mdash; defaults will be used. For a detailed timetable with blocked slots, use the full calculator on the Lab &amp; Booking tab after generating your plan.
+              A quick ballpark of how many lab days you&rsquo;ll need &mdash; just four questions. Leave any blank if you don&rsquo;t know yet and a sensible default is used.
             </p>
             <p class="section-subtitle">Experiment setup</p>
             <div class="form-grid">
@@ -280,38 +280,8 @@
                 <input type="number" id="qe-session-duration" min="5" max="240" placeholder="30" inputmode="numeric" oninput="updateQuickEstimate()">
               </div>
             </div>
-            <p class="section-subtitle mt-3">Lab schedule <span style="font-weight:400;color:var(--ink-3);">(optional &mdash; defaults shown)</span></p>
-            <div class="form-grid">
-              <div class="field">
-                <label class="field-label" for="qe-showup">Expected show-up rate (%) <span class="info-pill" data-tip="Discuss with your supervisor what a realistic show-up rate is for your type of experiment. 50% is a safe default for SONA studies. This determines how many slots you need to open to reach your target N." tabindex="0">?</span></label>
-                <input type="number" id="qe-showup" min="10" max="100" placeholder="50" inputmode="numeric" oninput="updateQuickEstimate()">
-              </div>
-              <div class="field">
-                <label class="field-label" for="qe-per-timeslot">Participants per timeslot</label>
-                <input type="number" id="qe-per-timeslot" min="1" max="50" placeholder="1" inputmode="numeric" oninput="updateQuickEstimate()">
-              </div>
-              <div class="field">
-                <label class="field-label" for="qe-buffer">Buffer between sessions (min)</label>
-                <input type="number" id="qe-buffer" min="0" max="30" placeholder="0" inputmode="numeric" oninput="updateQuickEstimate()">
-              </div>
-              <div class="field">
-                <label class="field-label" for="qe-lab-start">Lab available from</label>
-                <input type="time" id="qe-lab-start" value="09:00" oninput="updateQuickEstimate()">
-              </div>
-              <div class="field">
-                <label class="field-label" for="qe-lab-end">Lab available until</label>
-                <input type="time" id="qe-lab-end" value="17:00" oninput="updateQuickEstimate()">
-              </div>
-              <div class="field">
-                <label class="field-label" for="qe-lunch">Lunch break (minutes)</label>
-                <input type="number" id="qe-lunch" min="0" max="120" placeholder="30" inputmode="numeric" oninput="updateQuickEstimate()">
-              </div>
-              <div class="field">
-                <label class="field-label" for="qe-lunch-start">Lunch starts at</label>
-                <input type="time" id="qe-lunch-start" value="12:00" oninput="updateQuickEstimate()">
-              </div>
-            </div>
             <div id="qe-result" class="result-box hidden mt-3" style="font-size:var(--text-base);"></div>
+            <p class="field-hint mt-2" style="margin-bottom:0;">Assumes a standard lab schedule (50% show-up, 9:00&ndash;17:00, 30&nbsp;min lunch). Fine-tune show-up rate, lab hours, blocked slots and more in the full <strong>Lab Timetable Calculator</strong> on the Lab &amp; Booking tab after generating your plan.</p>
           </div>
         </details>
       </div>
