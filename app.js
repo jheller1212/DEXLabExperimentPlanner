@@ -705,23 +705,21 @@ function scrollToTimetable() {
 
 // ── Quick Estimate (Screen 4) ──
 function updateQuickEstimate() {
-  // Read values — use placeholder defaults when fields are blank
+  // The wizard estimate only asks the four core questions; lab-schedule details
+  // (show-up, slots, hours, lunch) live in the full Lab Timetable Calculator and
+  // use safe defaults here so this stays a quick, ballpark figure.
   const conditions = parseInt(document.getElementById('qe-conditions').value) || 2;
   const design = document.getElementById('qe-design').value;
   const nPerCondition = parseInt(document.getElementById('qe-n-per-condition').value) || 50;
   const sessionMin = parseInt(document.getElementById('qe-session-duration').value) || 30;
-  const showupRate = Math.max(10, Math.min(100, parseInt(document.getElementById('qe-showup').value) || 50)) / 100;
-  const perTimeslot = parseInt(document.getElementById('qe-per-timeslot').value) || 1;
-  const buffer = parseInt(document.getElementById('qe-buffer').value) || 0;
-  const lunch = parseInt(document.getElementById('qe-lunch').value) || 30;
-
-  // Parse lab hours
-  const startParts = (document.getElementById('qe-lab-start').value || '09:00').split(':');
-  const endParts = (document.getElementById('qe-lab-end').value || '17:00').split(':');
-  const lunchStartParts = (document.getElementById('qe-lunch-start').value || '12:00').split(':');
-  const labStartMin = parseInt(startParts[0]) * 60 + parseInt(startParts[1]);
-  const labEndMin = parseInt(endParts[0]) * 60 + parseInt(endParts[1]);
-  const lunchStartMin = parseInt(lunchStartParts[0]) * 60 + parseInt(lunchStartParts[1]);
+  // Lab-schedule defaults (mirrored by the full calculator's defaults)
+  const showupRate = 0.5;
+  const perTimeslot = 1;
+  const buffer = 0;
+  const lunch = 30;
+  const labStartMin = 9 * 60;   // 09:00
+  const labEndMin = 17 * 60;    // 17:00
+  const lunchStartMin = 12 * 60; // 12:00
 
   // Total participants needed
   let targetN;
@@ -3450,7 +3448,6 @@ function editSetup() {
     document.getElementById('qe-design').value = qe.design;
     document.getElementById('qe-n-per-condition').value = qe.nPerCondition;
     document.getElementById('qe-session-duration').value = qe.sessionMin;
-    if (qe.showupRate) document.getElementById('qe-showup').value = Math.round(qe.showupRate * 100);
     document.getElementById('quick-estimate-section').open = true;
     updateQuickEstimate();
   }
