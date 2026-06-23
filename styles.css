@@ -1,6 +1,7 @@
 /* ── Reset & Base ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { font-size: 16px; scroll-behavior: smooth; scroll-padding-top: 6rem; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 body {
   font-family: var(--font-body);
   background: var(--bg);
@@ -1256,6 +1257,17 @@ select { cursor: pointer; }
 .ms-sortable:hover { color: var(--ink); }
 .ms-sort-active { color: var(--ink); }
 .ms-sort-arrow { font-size: 10px; opacity: 0.7; }
+/* Sortable headers are buttons for keyboard access; strip native button chrome. */
+.ms-sort-btn {
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+.ms-sort-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
 .ms-table tr:last-child td { border-bottom: none; }
 .ms-table tr:hover td { background: var(--surface-2); }
 .ms-phase-pill {
@@ -1466,6 +1478,7 @@ select { cursor: pointer; }
 .role-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .plan-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .checklist-item:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.checklist-cb:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .step:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .nav-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }

@@ -75,9 +75,8 @@ function wizardShowStep(n) {
   steps.forEach(function(s) {
     var si = parseInt(s.getAttribute('data-step'));
     s.classList.remove('active', 'done');
-    s.setAttribute('aria-selected', si === n ? 'true' : 'false');
-    if (si === n) s.classList.add('active');
-    else if (si < n) s.classList.add('done');
+    if (si === n) { s.classList.add('active'); s.setAttribute('aria-current', 'step'); }
+    else { s.removeAttribute('aria-current'); if (si < n) s.classList.add('done'); }
   });
   // Update footer buttons
   var backBtn = document.getElementById('wizard-back-btn');
@@ -2369,7 +2368,7 @@ function showShiftModal(deltaDays, subsequentCount, precedingCount) {
   var overlay = document.createElement('div');
   overlay.id = 'shift-confirm-overlay';
   overlay.style.cssText = 'position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;font-family:var(--font-body);';
-  overlay.innerHTML = '<div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:var(--space-6);max-width:420px;width:90%;box-shadow:var(--shadow-lg);">' +
+  overlay.innerHTML = '<div role="dialog" aria-modal="true" aria-label="Adjust related milestones" style="background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:var(--space-6);max-width:420px;width:90%;box-shadow:var(--shadow-lg);">' +
     '<h3 style="margin:0 0 var(--space-2);font-family:var(--font-display);font-size:var(--text-lg);color:var(--ink);">Adjust related milestones?</h3>' +
     body +
     '<div class="flex-actions" style="justify-content:flex-end;flex-wrap:wrap;gap:var(--space-2);">' +
@@ -2378,7 +2377,10 @@ function showShiftModal(deltaDays, subsequentCount, precedingCount) {
   document.body.appendChild(overlay);
   var primary = overlay.querySelector('.btn-primary');
   if (primary) primary.focus();
-  overlay._escHandler = function(e) { if (e.key === 'Escape') shiftConfirmSkip(); };
+  overlay._escHandler = function(e) {
+    if (e.key === 'Escape') { shiftConfirmSkip(); return; }
+    trapTabKey(overlay, e);
+  };
   document.addEventListener('keydown', overlay._escHandler);
 }
 
@@ -3068,9 +3070,12 @@ function sortMilestoneTable(col) {
   // Update header arrows
   ['name', 'phase', 'date', 'status'].forEach(c => {
     const el = document.getElementById('sort-arrow-' + c);
-    const th = el && el.parentElement;
+    const th = el && el.closest('th');
     if (el) el.innerHTML = c === col ? (_msSortAsc ? '&darr;' : '&uarr;') : '';
-    if (th) th.classList.toggle('ms-sort-active', c === col);
+    if (th) {
+      th.classList.toggle('ms-sort-active', c === col);
+      th.setAttribute('aria-sort', c === col ? (_msSortAsc ? 'ascending' : 'descending') : 'none');
+    }
   });
   renderPlan();
 }
@@ -3222,7 +3227,7 @@ function renderChecklist(milestones, today) {
       }
       const noteHTML = m.note ? `<div style="font-size:12px;color:var(--ink-3);margin-top:4px;">${escapeHTML(m.note)}${m.id === 'equipment_book' && state.labCalc && state.labCalc.totalDays ? ` Book for at least <strong>${state.labCalc.totalDays} day${state.labCalc.totalDays > 1 ? 's' : ''}</strong>.` : ''}</div>` : '';
       item.innerHTML = `
-        <div class="checklist-cb"></div>
+        <div class="checklist-cb" role="checkbox" tabindex="0" aria-checked="${checked ? 'true' : 'false'}" aria-label="Mark complete: ${escapeHTML(m.label)}"></div>
         <div>
           <span class="checklist-text">${escapeHTML(m.label)}</span>
           ${badges ? `<span style="margin-left:6px;">${badges}</span>` : ''}
@@ -3235,6 +3240,14 @@ function renderChecklist(milestones, today) {
       item.addEventListener('click', function(e) {
         if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.tagName === 'A') return;
         toggleCheck(m.id);
+      });
+      // Keyboard: the checkbox is focusable and toggles on Enter/Space
+      const cb = item.querySelector('.checklist-cb');
+      if (cb) cb.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+          e.preventDefault();
+          toggleCheck(m.id);
+        }
       });
       body.appendChild(item);
     });
@@ -3255,6 +3268,8 @@ function toggleCheck(id) {
   if (clItem) {
     if (isNowChecked) clItem.classList.add('done');
     else clItem.classList.remove('done');
+    const cb = clItem.querySelector('.checklist-cb');
+    if (cb) cb.setAttribute('aria-checked', isNowChecked ? 'true' : 'false');
   }
 
   // Update section counts
@@ -3308,6 +3323,23 @@ function getFeedbackContext() {
   return { role, checked, total, pct };
 }
 
+// Return the visible, focusable elements inside a container (for focus traps).
+function _focusableEls(container) {
+  return Array.prototype.slice.call(container.querySelectorAll(
+    'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  )).filter(function (el) { return el.offsetParent !== null; });
+}
+
+// Keep Tab focus inside an open modal (call from its keydown handler).
+function trapTabKey(container, e) {
+  if (e.key !== 'Tab') return;
+  var f = _focusableEls(container);
+  if (!f.length) return;
+  var first = f[0], last = f[f.length - 1];
+  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+}
+
 function openFeedback() {
   const ctx = getFeedbackContext();
   const overlay = document.getElementById('feedback-overlay');
@@ -3331,7 +3363,10 @@ function closeFeedback() {
   if (_feedbackTrigger) { _feedbackTrigger.focus(); _feedbackTrigger = null; }
 }
 document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape' && document.getElementById('feedback-overlay').classList.contains('show')) closeFeedback();
+  const fb = document.getElementById('feedback-overlay');
+  if (!fb.classList.contains('show')) return;
+  if (e.key === 'Escape') closeFeedback();
+  else trapTabKey(fb.querySelector('.feedback-modal') || fb, e);
 });
 
 function setRating(n) {
@@ -3677,5 +3712,15 @@ function endTour(skipSave) {
 // steps point at elements that actually exist on screen. No page-load
 // auto-start — that previously fired on the landing page and showed a
 // "Tour paused" banner over the homepage before the user had done anything.
+
+// Expose each info-pill's tooltip text to assistive tech and touch users.
+// The CSS only reveals the tip on :hover/:focus, which is invisible to screen
+// readers and unreachable by tap; mirroring data-tip into aria-label fixes that.
+(function () {
+  document.querySelectorAll('.info-pill[data-tip]').forEach(function (el) {
+    if (!el.getAttribute('aria-label')) el.setAttribute('aria-label', el.getAttribute('data-tip'));
+    if (!el.hasAttribute('role')) el.setAttribute('role', 'button');
+  });
+})();
 
 

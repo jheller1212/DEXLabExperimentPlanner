@@ -142,20 +142,20 @@
       <p class="wizard-sub">Answer a few questions and we&rsquo;ll generate your timeline.</p>
     </div>
 
-    <div class="steps" id="wizard-steps" role="tablist" aria-label="Wizard steps">
-      <div class="step active" data-step="1" role="tab" tabindex="0" aria-selected="true" onclick="wizardGoToStep(1)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();wizardGoToStep(1)}">
+    <div class="steps" id="wizard-steps" role="group" aria-label="Setup steps">
+      <div class="step active" data-step="1" role="button" tabindex="0" aria-current="step" aria-label="Step 1: Role" onclick="wizardGoToStep(1)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();wizardGoToStep(1)}">
         <span class="step-num-new">01</span>
         <span class="step-name-new">Role</span>
       </div>
-      <div class="step" data-step="2" role="tab" tabindex="0" aria-selected="false" onclick="wizardGoToStep(2)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();wizardGoToStep(2)}">
+      <div class="step" data-step="2" role="button" tabindex="0" aria-label="Step 2: Schedule" onclick="wizardGoToStep(2)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();wizardGoToStep(2)}">
         <span class="step-num-new">02</span>
         <span class="step-name-new">Schedule</span>
       </div>
-      <div class="step" data-step="3" role="tab" tabindex="0" aria-selected="false" onclick="wizardGoToStep(3)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();wizardGoToStep(3)}">
+      <div class="step" data-step="3" role="button" tabindex="0" aria-label="Step 3: Details" onclick="wizardGoToStep(3)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();wizardGoToStep(3)}">
         <span class="step-num-new">03</span>
         <span class="step-name-new">Details</span>
       </div>
-      <div class="step" data-step="4" role="tab" tabindex="0" aria-selected="false" onclick="wizardGoToStep(4)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();wizardGoToStep(4)}">
+      <div class="step" data-step="4" role="button" tabindex="0" aria-label="Step 4: Generate" onclick="wizardGoToStep(4)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();wizardGoToStep(4)}">
         <span class="step-num-new">04</span>
         <span class="step-name-new">Generate</span>
       </div>
@@ -524,10 +524,10 @@
       <div class="milestones-card">
         <table class="ms-table" id="milestone-table">
           <thead><tr>
-            <th class="ms-sortable" onclick="sortMilestoneTable('name')">Milestone <span class="ms-sort-arrow" id="sort-arrow-name"></span></th>
-            <th class="ms-sortable" onclick="sortMilestoneTable('phase')">Phase <span class="ms-sort-arrow" id="sort-arrow-phase"></span></th>
-            <th class="ms-sortable ms-sort-active" onclick="sortMilestoneTable('date')">Deadline <span class="ms-sort-arrow" id="sort-arrow-date">&darr;</span></th>
-            <th class="ms-sortable" onclick="sortMilestoneTable('status')">Status <span class="ms-sort-arrow" id="sort-arrow-status"></span></th>
+            <th class="ms-sortable" scope="col" aria-sort="none"><button type="button" class="ms-sort-btn" onclick="sortMilestoneTable('name')">Milestone <span class="ms-sort-arrow" id="sort-arrow-name"></span></button></th>
+            <th class="ms-sortable" scope="col" aria-sort="none"><button type="button" class="ms-sort-btn" onclick="sortMilestoneTable('phase')">Phase <span class="ms-sort-arrow" id="sort-arrow-phase"></span></button></th>
+            <th class="ms-sortable ms-sort-active" scope="col" aria-sort="ascending"><button type="button" class="ms-sort-btn" onclick="sortMilestoneTable('date')">Deadline <span class="ms-sort-arrow" id="sort-arrow-date">&darr;</span></button></th>
+            <th class="ms-sortable" scope="col" aria-sort="none"><button type="button" class="ms-sort-btn" onclick="sortMilestoneTable('status')">Status <span class="ms-sort-arrow" id="sort-arrow-status"></span></button></th>
           </tr></thead>
           <tbody id="milestone-tbody"></tbody>
         </table>
