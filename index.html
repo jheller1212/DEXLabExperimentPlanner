@@ -752,6 +752,9 @@
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
+<!-- Floating feedback button (shown on the plan view) -->
+<button id="feedback-fab" class="feedback-fab hidden" onclick="openFeedback()" aria-label="Give feedback on this tool">Feedback</button>
+
 <!-- Feedback Modal -->
 <div class="feedback-overlay" id="feedback-overlay" onclick="if(event.target===this)closeFeedback()">
   <div class="feedback-modal" role="dialog" aria-modal="true" aria-labelledby="fb-heading" style="position:relative;">
