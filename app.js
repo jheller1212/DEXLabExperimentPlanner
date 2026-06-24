@@ -3439,6 +3439,9 @@ function updateProgress(checked, total) {
 }
 
 let feedbackRating = 0;
+// Web3Forms relay — feedback is emailed to j.heller@maastrichtuniversity.nl.
+// Set to '' to disable the relay and fall back to the user's mail client.
+const WEB3FORMS_ACCESS_KEY = '84ebf4a4-ea33-4340-b3c6-bfec151bfc07';
 
 function getFeedbackContext() {
   const role = state.role || 'unknown';
@@ -3475,6 +3478,9 @@ function openFeedback() {
   document.querySelectorAll('#fb-stars button').forEach(b => b.classList.remove('active'));
   document.getElementById('fb-good').value = '';
   document.getElementById('fb-improve').value = '';
+  var fbContact = document.getElementById('fb-contact');
+  if (fbContact) fbContact.value = '';
+  document.querySelectorAll('input[name="fb-recommend"]').forEach(function (r) { r.checked = false; });
   overlay.classList.add('show');
   document.body.style.overflow = 'hidden';
   _feedbackTrigger = document.activeElement;
@@ -3507,11 +3513,60 @@ function composeFeedbackText() {
   const stars = feedbackRating > 0 ? '\u2605'.repeat(feedbackRating) + '\u2606'.repeat(5 - feedbackRating) : 'No rating';
   const good = document.getElementById('fb-good').value.trim();
   const improve = document.getElementById('fb-improve').value.trim();
+  const recommend = (document.querySelector('input[name="fb-recommend"]:checked') || {}).value || '';
+  const contact = (document.getElementById('fb-contact') || {}).value ? document.getElementById('fb-contact').value.trim() : '';
   let text = `DEXLab Planner Feedback\n\nRating: ${stars} (${feedbackRating}/5)\n`;
+  if (recommend) text += `Would recommend: ${recommend}\n`;
   if (good) text += `\nWhat went well:\n${good}\n`;
   if (improve) text += `\nWhat could be improved:\n${improve}\n`;
+  if (contact) text += `\nContact: ${contact}\n`;
   text += `\n---\nRole: ${ctx.role}\nProgress: ${ctx.checked}/${ctx.total} milestones (${ctx.pct}%)\nBlock period: ${state.bpStart || 'N/A'}\nStudy: ${state.studyTitle || 'N/A'}\n`;
   return text;
+}
+
+// Submit feedback via the Web3Forms relay (one click, lands in the inbox).
+// Falls back to the mail client / clipboard if the relay isn't configured or fails.
+function submitFeedback() {
+  if (feedbackRating === 0) { showToast('Please select a rating first'); return; }
+  const recommend = (document.querySelector('input[name="fb-recommend"]:checked') || {}).value || '';
+  track('feedback-sent', { rating: feedbackRating, recommend: recommend || 'n/a' });
+  if (!WEB3FORMS_ACCESS_KEY) { sendFeedbackEmail(); return; }
+  const ctx = getFeedbackContext();
+  const btn = document.getElementById('fb-submit-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+  const payload = {
+    access_key: WEB3FORMS_ACCESS_KEY,
+    subject: `DEXLab Planner Feedback (${ctx.role}, ${ctx.pct}% complete)`,
+    from_name: 'DEXLab Experiment Planner',
+    rating: `${feedbackRating}/5`,
+    would_recommend: recommend || 'Not answered',
+    what_went_well: document.getElementById('fb-good').value.trim(),
+    what_could_improve: document.getElementById('fb-improve').value.trim(),
+    contact: document.getElementById('fb-contact').value.trim(),
+    role: ctx.role,
+    progress: `${ctx.checked}/${ctx.total} (${ctx.pct}%)`,
+    block_period: state.bpStart || 'N/A',
+    study: state.studyTitle || 'N/A',
+  };
+  fetch('https://api.web3forms.com/submit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify(payload)
+  }).then(function (r) { return r.json(); }).then(function (res) {
+    if (res && res.success) {
+      showToast('Thanks! Your feedback was sent.');
+      closeFeedback();
+      try { localStorage.setItem('dexlab_feedback_shown', '1'); } catch (e) {}
+    } else {
+      showToast('Could not send — copying to clipboard instead.');
+      copyFeedback();
+    }
+  }).catch(function () {
+    showToast('Could not send — copying to clipboard instead.');
+    copyFeedback();
+  }).finally(function () {
+    if (btn) { btn.disabled = false; btn.textContent = 'Submit feedback'; }
+  });
 }
 
 function sendFeedbackEmail() {

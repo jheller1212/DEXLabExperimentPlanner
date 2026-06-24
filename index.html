@@ -774,9 +774,21 @@
       <label for="fb-improve">What could be improved?</label>
       <textarea id="fb-improve" placeholder="e.g. I wish I could also plan..."></textarea>
     </div>
+    <div class="fb-field">
+      <label>Would you recommend this tool to other students?</label>
+      <div id="fb-recommend" style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:0.25rem;">
+        <label style="display:inline-flex;align-items:center;gap:0.3rem;font-weight:400;cursor:pointer;"><input type="radio" name="fb-recommend" value="Yes"> Yes</label>
+        <label style="display:inline-flex;align-items:center;gap:0.3rem;font-weight:400;cursor:pointer;"><input type="radio" name="fb-recommend" value="Maybe"> Maybe</label>
+        <label style="display:inline-flex;align-items:center;gap:0.3rem;font-weight:400;cursor:pointer;"><input type="radio" name="fb-recommend" value="No"> No</label>
+      </div>
+    </div>
+    <div class="fb-field">
+      <label for="fb-contact">Your email or programme <span style="font-weight:400;color:var(--ink-3);">(optional — only if you're happy to be contacted)</span></label>
+      <input type="text" id="fb-contact" placeholder="e.g. i.student@student.maastrichtuniversity.nl" style="width:100%;">
+    </div>
     <div class="fb-actions">
-      <button type="button" class="btn btn-sm btn-primary" onclick="sendFeedbackEmail()">Send via Email</button>
-      <button type="button" class="btn btn-sm btn-ghost" onclick="copyFeedback()">Copy to Clipboard</button>
+      <button type="button" id="fb-submit-btn" class="btn btn-sm btn-primary" onclick="submitFeedback()">Submit feedback</button>
+      <button type="button" class="btn btn-sm btn-ghost" onclick="copyFeedback()">Copy to clipboard</button>
     </div>
     <div class="fb-context" id="fb-context"></div>
   </div>
@@ -787,7 +799,7 @@
 <footer class="foot">
   <span>DEXLab &middot; Maastricht University SBE</span>
   <span>Experiment Planner</span>
-  <span class="foot-privacy">This site uses <a href="https://umami.is" target="_blank" rel="noopener" class="foot-link">Umami Analytics</a> (cookieless) to count page visits. No personal data is stored on external servers. Your planner data is saved locally in your browser.</span>
+  <span class="foot-privacy">This site uses <a href="https://umami.is" target="_blank" rel="noopener" class="foot-link">Umami Analytics</a> (cookieless) to count page visits. Your planner data is saved locally in your browser. Feedback you choose to submit (including any optional contact details) is sent to the DEXLab team via <a href="https://web3forms.com" target="_blank" rel="noopener" class="foot-link">Web3Forms</a>.</span>
 </footer>
 
 </body>
