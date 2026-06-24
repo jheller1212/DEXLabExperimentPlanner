@@ -2112,8 +2112,12 @@ function onDateInput() {
   CONFIG.blockPeriods.forEach((bp, i) => {
     if (bp.start === val) { sel.value = i; state.bpStart = bp.start; state.bpWeeks = bp.weeks; matched = true; }
   });
-  if (!matched && selectedBPIndex === null) {
-    sel.value = 'custom'; state.bpWeeks = 8; state.bpStart = val;
+  if (!matched) {
+    // A custom start date that isn't a block-period start defines its own
+    // 8-week window. Keep bpStart in sync (even if a BP was selected first) so
+    // the data-collection week can never precede the block period start, which
+    // produced negative "Wk -N" numbers and past/impossible plans.
+    sel.value = 'custom'; selectedBPIndex = null; state.bpWeeks = 8; state.bpStart = val;
   }
   document.getElementById('week-select-row').style.display = 'none';
   showConfirmation();
@@ -2223,7 +2227,7 @@ function renderPlanHead(bpStart, bpEnd) {
 
   // Meta spans
   const weekStart = parseDate(state.weekStart || state.bpStart);
-  const weekNum = Math.ceil((weekStart - bpStart) / (7 * 86400000)) + 1;
+  const weekNum = Math.max(1, Math.ceil((weekStart - bpStart) / (7 * 86400000)) + 1);
   let metaHTML = `<span>Block period \xB7 <strong>${formatDate(bpStart)}</strong></span>`;
   if (state.weekStart && state.weekStart !== state.bpStart) {
     // ISO calendar week
@@ -2241,7 +2245,7 @@ function renderPlanHead(bpStart, bpEnd) {
 
 function renderSideDates(bpStart, bpEnd) {
   const weekStart = parseDate(state.weekStart || state.bpStart);
-  const weekNum = Math.ceil((weekStart - bpStart) / (7 * 86400000)) + 1;
+  const weekNum = Math.max(1, Math.ceil((weekStart - bpStart) / (7 * 86400000)) + 1);
   let html = '';
   html += `<div class="kv-row"><span class="k">Block period start</span><span class="v">${formatDate(bpStart)}</span></div>`;
   if (state.weekStart && state.weekStart !== state.bpStart) {
@@ -2865,6 +2869,28 @@ function updateProposalConflictNotice(computed) {
   }
 }
 
+// Flag a data-collection week that is before the block period or in the past —
+// the kind of impossible plan you get from clicking through without checking dates.
+function updatePlanDateWarnings(today) {
+  var el = document.getElementById('date-sanity-notice');
+  if (!el) return;
+  var bpStart = parseDate(state.bpStart);
+  var weekStart = parseDate(state.weekStart || state.bpStart);
+  var msgs = [];
+  if (weekStart && bpStart && weekStart < bpStart) {
+    msgs.push('your data collection week (' + formatDateShort(weekStart) + ') is before your block period starts (' + formatDateShort(bpStart) + ')');
+  } else if (weekStart && today && weekStart < today) {
+    msgs.push('your data collection week (' + formatDateShort(weekStart) + ') is in the past');
+  }
+  if (msgs.length) {
+    el.innerHTML = '<strong>Check your dates:</strong> ' + msgs.join('; ') + '. Use &ldquo;Edit setup&rdquo; or &ldquo;Edit dates&rdquo; to correct them.';
+    el.classList.remove('hidden');
+  } else {
+    el.classList.add('hidden');
+    el.innerHTML = '';
+  }
+}
+
 function renderPlan() {
   if (!state.role || !state.bpStart) { showLanding(); return; }
   const bpStart = parseDate(state.bpStart);
@@ -2883,6 +2909,7 @@ function renderPlan() {
   const holidaysInRange = getHolidaysInRange(bpStart, holidayEnd);
 
   updateProposalConflictNotice(computed);
+  updatePlanDateWarnings(today);
   renderDatesDisplay();
   renderSideDates(bpStart, bpEnd);
   renderSideStatus(computed);
