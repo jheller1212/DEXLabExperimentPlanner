@@ -295,11 +295,16 @@
         <div class="card-title">Thesis timeline</div>
         <div class="card-sub">Master students only — plan from data collection to hand-in.</div>
         <div class="field">
-          <label class="field-label" for="thesis-deadline-input">When is your thesis submission deadline?</label>
+          <label class="field-label" for="thesis-deadline-select">When is your thesis submission deadline?</label>
           <p class="field-hint mb-2">
             This adds milestones for data analysis, writing, supervisor feedback, and final submission so you can plan the full arc from experiment to hand-in.
           </p>
-          <input type="date" id="thesis-deadline-input">
+          <select id="thesis-deadline-select" onchange="onThesisDeadlineSelect()">
+            <option value="">Choose&hellip;</option>
+            <option value="2027-01-15">Master thesis &mdash; 15 January 2027</option>
+            <option value="custom">Other date (e.g. resit)&hellip;</option>
+          </select>
+          <input type="date" id="thesis-deadline-input" class="hidden mt-2" onchange="onThesisDeadlineCustom()">
         </div>
 
         <div class="field mt-3">
