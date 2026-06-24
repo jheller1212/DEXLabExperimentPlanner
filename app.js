@@ -18,12 +18,16 @@ function showLanding() {
   document.getElementById('view-landing').classList.add('active');
   document.getElementById('view-wizard').classList.remove('active');
   document.getElementById('app-container').classList.remove('active');
+  var fab = document.getElementById('feedback-fab');
+  if (fab) fab.classList.add('hidden');
   updateNavActive('nav-home');
 }
 function startPlanning() {
   document.getElementById('view-landing').classList.remove('active');
   document.getElementById('view-wizard').classList.add('active');
   document.getElementById('app-container').classList.remove('active');
+  var fab = document.getElementById('feedback-fab');
+  if (fab) fab.classList.add('hidden');
   wizardShowStep(1);
   updateNavActive('nav-planner');
 }
@@ -58,6 +62,8 @@ function showPlanView() {
   // Mark plan screen as active for existing JS compatibility
   document.querySelectorAll('#app-container .screen').forEach(function(s) { s.classList.remove('active'); });
   document.getElementById('screen-plan').classList.add('active');
+  var fab = document.getElementById('feedback-fab');
+  if (fab) fab.classList.remove('hidden');
   updateNavActive('nav-planner');
   track('plan-generated', { role: state.role });
 }
