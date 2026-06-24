@@ -279,6 +279,10 @@
                 <label class="field-label" for="qe-session-duration">Session duration (minutes)</label>
                 <input type="number" id="qe-session-duration" min="5" max="240" placeholder="30" inputmode="numeric" oninput="updateQuickEstimate()">
               </div>
+              <div class="field">
+                <label class="field-label" for="qe-per-timeslot">Participants per timeslot <span class="info-pill" data-tip="How many participants you run at the same time in one session. 1 for individual lab studies; higher if you run group sessions or multiple stations. This directly divides the number of lab days you need." tabindex="0">?</span></label>
+                <input type="number" id="qe-per-timeslot" min="1" max="50" placeholder="1" inputmode="numeric" oninput="updateQuickEstimate()">
+              </div>
             </div>
             <div id="qe-result" class="result-box hidden mt-3" style="font-size:var(--text-base);"></div>
             <p class="field-hint mt-2" style="margin-bottom:0;">Assumes a standard lab schedule (50% show-up, 9:00&ndash;17:00, 30&nbsp;min lunch). Fine-tune show-up rate, lab hours, blocked slots and more in the full <strong>Lab Timetable Calculator</strong> on the Lab &amp; Booking tab after generating your plan.</p>

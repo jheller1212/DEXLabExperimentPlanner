@@ -710,9 +710,9 @@ function updateQuickEstimate() {
   const design = document.getElementById('qe-design').value;
   const nPerCondition = parseInt(document.getElementById('qe-n-per-condition').value) || 50;
   const sessionMin = parseInt(document.getElementById('qe-session-duration').value) || 30;
+  const perTimeslot = Math.max(1, parseInt(document.getElementById('qe-per-timeslot').value) || 1);
   // Lab-schedule defaults (mirrored by the full calculator's defaults)
   const showupRate = 0.5;
-  const perTimeslot = 1;
   const buffer = 0;
   const lunch = 30;
   const labStartMin = 9 * 60;   // 09:00
@@ -3446,6 +3446,7 @@ function editSetup() {
     document.getElementById('qe-design').value = qe.design;
     document.getElementById('qe-n-per-condition').value = qe.nPerCondition;
     document.getElementById('qe-session-duration').value = qe.sessionMin;
+    if (qe.perTimeslot) document.getElementById('qe-per-timeslot').value = qe.perTimeslot;
     document.getElementById('quick-estimate-section').open = true;
     updateQuickEstimate();
   }
