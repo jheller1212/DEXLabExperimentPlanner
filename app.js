@@ -195,8 +195,6 @@ const CONFIG = {
   // Add/remove rows each year. 'weeks' is total period length including exam week.
   // BP5 is typically 9 weeks due to spring holidays; all others are 8.
   blockPeriods: [
-    { label: "BP4 \u2014 2025/26", start: "2026-02-09", weeks: 8 },
-    { label: "BP5 \u2014 2025/26", start: "2026-04-13", weeks: 9 },
     { label: "BP1 \u2014 2026/27", start: "2026-08-31", weeks: 8 },
     { label: "BP2 \u2014 2026/27", start: "2026-10-26", weeks: 8 },
     { label: "BP4 \u2014 2026/27", start: "2027-02-01", weeks: 9 },
