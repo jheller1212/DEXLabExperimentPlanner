@@ -295,6 +295,18 @@
         <div class="card-title">Thesis timeline</div>
         <div class="card-sub">Master students only — plan from data collection to hand-in.</div>
         <div class="field">
+          <label class="field-label" for="proposal-date-select">When is your research proposal due? <span style="font-weight:400;color:var(--ink-3);">(optional)</span></label>
+          <p class="field-hint mb-2">
+            Adds a &ldquo;Submit research proposal&rdquo; milestone at the start of your thesis cycle.
+          </p>
+          <select id="proposal-date-select" onchange="onProposalDateSelect()">
+            <option value="">Not applicable / skip</option>
+            <option value="2026-07-03">Research proposal &mdash; 3 July 2026</option>
+            <option value="custom">Other date (e.g. resit)&hellip;</option>
+          </select>
+          <input type="date" id="proposal-date-input" class="hidden mt-2" onchange="onProposalDateCustom()">
+        </div>
+        <div class="field mt-3">
           <label class="field-label" for="thesis-deadline-select">When is your thesis submission deadline?</label>
           <p class="field-hint mb-2">
             This adds milestones for data analysis, writing, supervisor feedback, and final submission so you can plan the full arc from experiment to hand-in.
