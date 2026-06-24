@@ -125,7 +125,7 @@ function wizardNext() {
       document.getElementById('supervisor-email-input').value = state.supervisorEmail || '';
       var thesisCard = document.getElementById('thesis-deadline-card');
       if (thesisCard) thesisCard.style.display = state.role === 'master' ? 'block' : 'none';
-      if (state.thesisDeadline) document.getElementById('thesis-deadline-input').value = state.thesisDeadline;
+      syncThesisDeadlineUI();
       document.getElementById('collection-days-input').value = state.collectionDays || 5;
       document.getElementById('analysis-weeks-input').value = state.analysisWeeks || 1;
       document.getElementById('quick-estimate-section').open = true;
@@ -156,6 +156,19 @@ function wizardNext() {
       state.collectionDays = parseInt(document.getElementById('collection-days-input').value) || 5;
       state.analysisWeeks = parseInt(document.getElementById('analysis-weeks-input').value) || 1;
     }
+    // Guard: a thesis deadline on/before data collection starts would push the
+    // Revision & Defense phase to the front of the timeline. Catch it here.
+    if (state.role === 'master' && state.thesisDeadline) {
+      var thDate = parseDate(state.thesisDeadline);
+      var collStart = parseDate(state.weekStart || state.bpStart);
+      if (thDate && collStart && thDate <= collStart) {
+        showToast('Your thesis submission date is on or before your data collection starts — please pick a later date.');
+        wizardShowStep(3);
+        var ti = document.getElementById('thesis-deadline-select');
+        if (ti) ti.focus();
+        return;
+      }
+    }
     if (typeof generatePlan === 'function') generatePlan();
     showPlanView();
   }
@@ -163,6 +176,42 @@ function wizardNext() {
 
 function wizardBack() {
   if (_wizardStep > 1) wizardShowStep(_wizardStep - 1);
+}
+
+// Thesis submission deadline: preset dropdown with a custom-date fallback
+// (resits etc.). The hidden date input remains the source of truth read at
+// generate time, so a preset just fills it.
+function onThesisDeadlineSelect() {
+  var sel = document.getElementById('thesis-deadline-select');
+  var input = document.getElementById('thesis-deadline-input');
+  if (!sel || !input) return;
+  if (sel.value === 'custom') {
+    input.classList.remove('hidden');
+    input.value = '';
+    state.thesisDeadline = null;
+    input.focus();
+  } else {
+    input.classList.add('hidden');
+    input.value = sel.value;
+    state.thesisDeadline = sel.value || null;
+  }
+}
+
+function onThesisDeadlineCustom() {
+  var input = document.getElementById('thesis-deadline-input');
+  if (input) state.thesisDeadline = input.value || null;
+}
+
+// Reflect the saved thesis date into the dropdown + custom input on load.
+function syncThesisDeadlineUI() {
+  var sel = document.getElementById('thesis-deadline-select');
+  var input = document.getElementById('thesis-deadline-input');
+  if (!sel || !input) return;
+  var val = state.thesisDeadline || '';
+  var isPreset = val && Array.prototype.some.call(sel.options, function (o) { return o.value === val; });
+  if (isPreset) { sel.value = val; input.value = val; input.classList.add('hidden'); }
+  else if (val) { sel.value = 'custom'; input.value = val; input.classList.remove('hidden'); }
+  else { sel.value = ''; input.value = ''; input.classList.add('hidden'); }
 }
 
 function wizardGoToStep(n) {
@@ -2055,7 +2104,7 @@ function showConfirmation() {
     document.getElementById('supervisor-email-input').value = state.supervisorEmail || '';
     const thesisCard = document.getElementById('thesis-deadline-card');
     thesisCard.style.display = state.role === 'master' ? 'block' : 'none';
-    if (state.thesisDeadline) document.getElementById('thesis-deadline-input').value = state.thesisDeadline;
+    syncThesisDeadlineUI();
     document.getElementById('collection-days-input').value = state.collectionDays || 5;
     document.getElementById('analysis-weeks-input').value = state.analysisWeeks || 1;
     document.getElementById('quick-estimate-section').open = true;
