@@ -125,6 +125,7 @@ function wizardNext() {
       document.getElementById('supervisor-email-input').value = state.supervisorEmail || '';
       var thesisCard = document.getElementById('thesis-deadline-card');
       if (thesisCard) thesisCard.style.display = state.role === 'master' ? 'block' : 'none';
+      syncProposalDateUI();
       syncThesisDeadlineUI();
       document.getElementById('collection-days-input').value = state.collectionDays || 5;
       document.getElementById('analysis-weeks-input').value = state.analysisWeeks || 1;
@@ -140,6 +141,8 @@ function wizardNext() {
       state.supervisorEmail = document.getElementById('supervisor-email-input').value.trim();
       var td = document.getElementById('thesis-deadline-input');
       if (td && td.value) state.thesisDeadline = td.value;
+      var pd = document.getElementById('proposal-date-input');
+      state.proposalDate = (pd && pd.value) ? pd.value : null;
       state.collectionDays = parseInt(document.getElementById('collection-days-input').value) || 5;
       state.analysisWeeks = parseInt(document.getElementById('analysis-weeks-input').value) || 1;
       if (typeof saveState === 'function') saveState();
@@ -153,6 +156,8 @@ function wizardNext() {
       state.supervisorEmail = document.getElementById('supervisor-email-input').value.trim();
       var td2 = document.getElementById('thesis-deadline-input');
       if (td2 && td2.value) state.thesisDeadline = td2.value;
+      var pd2 = document.getElementById('proposal-date-input');
+      state.proposalDate = (pd2 && pd2.value) ? pd2.value : null;
       state.collectionDays = parseInt(document.getElementById('collection-days-input').value) || 5;
       state.analysisWeeks = parseInt(document.getElementById('analysis-weeks-input').value) || 1;
     }
@@ -200,6 +205,40 @@ function onThesisDeadlineSelect() {
 function onThesisDeadlineCustom() {
   var input = document.getElementById('thesis-deadline-input');
   if (input) state.thesisDeadline = input.value || null;
+}
+
+// Research proposal date: preset dropdown with a custom-date fallback. Mirrors
+// the thesis-deadline pattern; the hidden date input is the source of truth.
+function onProposalDateSelect() {
+  var sel = document.getElementById('proposal-date-select');
+  var input = document.getElementById('proposal-date-input');
+  if (!sel || !input) return;
+  if (sel.value === 'custom') {
+    input.classList.remove('hidden');
+    input.value = '';
+    state.proposalDate = null;
+    input.focus();
+  } else {
+    input.classList.add('hidden');
+    input.value = sel.value;
+    state.proposalDate = sel.value || null;
+  }
+}
+
+function onProposalDateCustom() {
+  var input = document.getElementById('proposal-date-input');
+  if (input) state.proposalDate = input.value || null;
+}
+
+function syncProposalDateUI() {
+  var sel = document.getElementById('proposal-date-select');
+  var input = document.getElementById('proposal-date-input');
+  if (!sel || !input) return;
+  var val = state.proposalDate || '';
+  var isPreset = val && Array.prototype.some.call(sel.options, function (o) { return o.value === val; });
+  if (isPreset) { sel.value = val; input.value = val; input.classList.add('hidden'); }
+  else if (val) { sel.value = 'custom'; input.value = val; input.classList.remove('hidden'); }
+  else { sel.value = ''; input.value = ''; input.classList.add('hidden'); }
 }
 
 // Reflect the saved thesis date into the dropdown + custom input on load.
@@ -458,19 +497,23 @@ function computeMilestones() {
   const analysisStartDate = nextWorkingDay(addDays(collectionEndDate, 1), holidaySet);
   const analysisEndDate = addDays(analysisStartDate, analysisWeeks * 7 - 1);
 
+  const proposalDate = state.proposalDate ? parseDate(state.proposalDate) : null;
   const roleMilestones = MILESTONES.filter(m => {
     if (!m.roles.includes(state.role)) return false;
     if (m.relativeTo === 'thesis' && !thesisDate) return false;
+    if (m.relativeTo === 'proposal' && !proposalDate) return false;
     return true;
   });
   const result = roleMilestones.map(m => {
-    const anchor = m.relativeTo === 'thesis' ? thesisDate : (m.relativeTo === 'collectionEnd') ? collectionEndDate : (m.relativeTo === 'bp') ? bpStart : weekStart;
+    const anchor = m.relativeTo === 'thesis' ? thesisDate : (m.relativeTo === 'proposal') ? proposalDate : (m.relativeTo === 'collectionEnd') ? collectionEndDate : (m.relativeTo === 'bp') ? bpStart : weekStart;
     let date = addDays(anchor, m.offsetDays);
     if (m.id === 'equipment_prep') {
       // Must be at least 1 working day before data collection
       date = prevWorkingDay(addDays(weekStart, -1), holidaySet);
     } else if (m.id === 'data_cleaning') {
       date = analysisStartDate;
+    } else if (m.id === 'research_proposal') {
+      // Hard deadline on an exact date — keep it as chosen, don't snap.
     } else {
       // Snap to the next working day so data collection never starts on a
       // weekend/holiday — keeps it consistent with the lab days and timetable.
@@ -688,7 +731,7 @@ let _milestoneCacheResult = null;
 function getCachedMilestones() {
   const labCalcKey = state.labCalc ? `${state.labCalc.totalDays},${state.labCalc.participantsPerDay}` : '';
   const blockedKey = (state.blockedSlots || []).map(b => `${b.dayIndex}:${b.startMin}-${b.endMin}`).join(';');
-  const key = `${state.role}|${state.bpStart}|${state.bpWeeks}|${state.weekStart}|${state.thesisDeadline}|${state.collectionDays}|${state.analysisWeeks}|${state.manualLabDays}|${labCalcKey}|${blockedKey}`;
+  const key = `${state.role}|${state.bpStart}|${state.bpWeeks}|${state.weekStart}|${state.thesisDeadline}|${state.proposalDate}|${state.collectionDays}|${state.analysisWeeks}|${state.manualLabDays}|${labCalcKey}|${blockedKey}`;
   if (key === _milestoneCacheKey && _milestoneCacheResult) {
     return _milestoneCacheResult;
   }
@@ -1222,6 +1265,8 @@ function showToast(msg, type) {
 // ── Milestones ──
 // relativeTo: "bp" = offset from BP start date, "week" (default) = offset from chosen data collection week
 const MILESTONES = [
+  // ── Thesis cycle kickoff (master only, shown when a proposal date is set) ──
+  { id: "research_proposal", label: "Submit research proposal", offsetDays: 0, relativeTo: "proposal", roles: ["master"], optional: false, section: "phase1_before_sona", keyDate: true, note: "Hand in your research proposal — the start of your thesis cycle. Make sure your design, hypotheses, and planned analysis are aligned with your supervisor before submitting." },
   // ── Phase 1: Before requesting participants ──
   { id: "ethics_check", label: "Confirm ERCIC ethics approval is in hand", offsetDays: -56, relativeTo: "week", roles: ["phd"], optional: false, section: "phase1_before_sona", note: "ERCIC reviews take months \u2014 you should have submitted well before this point. Check the timeline and requirements at maastrichtuniversity.nl/ethical-review-committee-inner-city-faculties-ercic. If you haven\u2019t submitted yet, do it NOW and inform your supervisor. Do not start data collection without approval.", durationMin: 30 },
   { id: "prereg", label: "Pre-register on OSF or AsPredicted", offsetDays: -21, relativeTo: "week", roles: ["phd"], optional: false, section: "phase3_before_experiment", note: "Pre-register after your power analysis and SONA request, but before data collection starts. Separates confirmatory from exploratory.", durationMin: 120 },
@@ -1272,6 +1317,7 @@ let state = {
   weekStart: null,   // chosen data collection week start
   bpWeeks: 8,
   thesisDeadline: null,
+  proposalDate: null,
   supervisorEmail: "",
   manualLabDays: 0,
   collectionDays: 5,
@@ -1300,6 +1346,7 @@ function encodeState() {
   if (state.weekStart && state.weekStart !== state.bpStart) params.set('ws', compactDate(state.weekStart));
   if (state.bpWeeks !== 8) params.set('w', state.bpWeeks);
   if (state.thesisDeadline) params.set('td', compactDate(state.thesisDeadline));
+  if (state.proposalDate) params.set('pd', compactDate(state.proposalDate));
   if (state.collectionDays && state.collectionDays !== 5) params.set('cd', state.collectionDays);
   if (state.analysisWeeks && state.analysisWeeks !== 1) params.set('aw', state.analysisWeeks);
   if (state.manualLabDays) params.set('ml', state.manualLabDays);
@@ -1345,6 +1392,7 @@ function decodeState(hash) {
         state.weekStart = expandDate(p.get('ws')) || state.bpStart;
         state.bpWeeks = Math.max(1, Math.min(52, parseInt(p.get('w')) || 8));
         state.thesisDeadline = expandDate(p.get('td')) || null;
+        state.proposalDate = expandDate(p.get('pd')) || null;
         if (p.get('cd')) {
           state.collectionDays = Math.max(1, Math.min(60, parseInt(p.get('cd')) || 5));
         } else if (p.get('cw')) {
@@ -1409,6 +1457,7 @@ function decodeState(hash) {
       state.weekStart = p.ws || p.s;
       state.bpWeeks = Math.max(1, Math.min(52, p.w || 8));
       state.thesisDeadline = p.td || null;
+      state.proposalDate = p.pd || null;
       state.supervisorEmail = p.se || "";
       state.manualLabDays = Math.max(0, Math.min(30, p.ml || 0));
       state.checkedItems = p.c || [];
@@ -2104,6 +2153,7 @@ function showConfirmation() {
     document.getElementById('supervisor-email-input').value = state.supervisorEmail || '';
     const thesisCard = document.getElementById('thesis-deadline-card');
     thesisCard.style.display = state.role === 'master' ? 'block' : 'none';
+    syncProposalDateUI();
     syncThesisDeadlineUI();
     document.getElementById('collection-days-input').value = state.collectionDays || 5;
     document.getElementById('analysis-weeks-input').value = state.analysisWeeks || 1;
@@ -3512,7 +3562,7 @@ function editSetup() {
 function resetState() {
   if (!confirm('This will permanently delete your plan and all checked items. Make sure you\'ve saved your link (Copy Link) if you want to keep it.\n\nReset everything?')) return;
   window.onbeforeunload = null;
-  state = { version: 1, role: null, name: "", studyTitle: "", bpStart: null, weekStart: null, bpWeeks: 8, thesisDeadline: null, supervisorEmail: "", manualLabDays: 0, collectionDays: 5, analysisWeeks: 1, customMilestones: [], hiddenMilestones: [], dateOverrides: {}, blockedSlots: [], checkedItems: [], lastUpdated: null, calExportedHash: null, calSequence: 0 };
+  state = { version: 1, role: null, name: "", studyTitle: "", bpStart: null, weekStart: null, bpWeeks: 8, thesisDeadline: null, proposalDate: null, supervisorEmail: "", manualLabDays: 0, collectionDays: 5, analysisWeeks: 1, customMilestones: [], hiddenMilestones: [], dateOverrides: {}, blockedSlots: [], checkedItems: [], lastUpdated: null, calExportedHash: null, calSequence: 0 };
   try { localStorage.removeItem("dexlab_planner_state"); } catch (e) {}
   history.replaceState(null, '', window.location.pathname);
   document.body.className = '';
@@ -3596,7 +3646,7 @@ function resetState() {
   } catch (err) {
     console.error('Init failed — clearing corrupted state and starting fresh:', err);
     try { localStorage.removeItem('dexlab_planner_state'); } catch (e) {}
-    state = { version: 1, role: null, name: "", studyTitle: "", bpStart: null, weekStart: null, bpWeeks: 8, thesisDeadline: null, supervisorEmail: "", manualLabDays: 0, collectionDays: 5, analysisWeeks: 1, customMilestones: [], hiddenMilestones: [], dateOverrides: {}, blockedSlots: [], checkedItems: [], lastUpdated: null, calExportedHash: null, calSequence: 0 };
+    state = { version: 1, role: null, name: "", studyTitle: "", bpStart: null, weekStart: null, bpWeeks: 8, thesisDeadline: null, proposalDate: null, supervisorEmail: "", manualLabDays: 0, collectionDays: 5, analysisWeeks: 1, customMilestones: [], hiddenMilestones: [], dateOverrides: {}, blockedSlots: [], checkedItems: [], lastUpdated: null, calExportedHash: null, calSequence: 0 };
     showScreen('screen-role');
   }
 })();
