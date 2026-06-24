@@ -2834,6 +2834,31 @@ function showBookmarkReminder() {
   planScreen.insertBefore(div, planScreen.querySelector('.progress-bar-container'));
 }
 
+// The research proposal is a go/no-go gate — nothing should be scheduled before
+// it. If any experiment milestone falls before the proposal date, warn (don't
+// silently reschedule, since prep dates are tied to the chosen data collection).
+function updateProposalConflictNotice(computed) {
+  var el = document.getElementById('proposal-conflict-notice');
+  if (!el) return;
+  if (!state.proposalDate || state.role !== 'master') { el.classList.add('hidden'); el.innerHTML = ''; return; }
+  var propDate = parseDate(state.proposalDate);
+  var earliest = null;
+  (computed || []).forEach(function (m) {
+    if (m.id === 'research_proposal') return;
+    var d = m.date instanceof Date ? m.date : parseDate(m.date);
+    if (d && (!earliest || d < earliest.date)) earliest = { date: d, label: m.label };
+  });
+  if (earliest && earliest.date < propDate) {
+    el.innerHTML = '<strong>Check your timeline:</strong> &ldquo;' + escapeHTML(earliest.label) + '&rdquo; falls on ' +
+      formatDateShort(earliest.date) + ', before your research proposal (' + formatDateShort(propDate) +
+      '). The proposal is the go/no-go that lets you start your thesis, so nothing should come before it &mdash; move the proposal earlier, or push your data collection later.';
+    el.classList.remove('hidden');
+  } else {
+    el.classList.add('hidden');
+    el.innerHTML = '';
+  }
+}
+
 function renderPlan() {
   if (!state.role || !state.bpStart) { showLanding(); return; }
   const bpStart = parseDate(state.bpStart);
@@ -2851,6 +2876,7 @@ function renderPlan() {
   const holidayEnd = (thesisDate && thesisDate > bpEnd) ? thesisDate : bpEnd;
   const holidaysInRange = getHolidaysInRange(bpStart, holidayEnd);
 
+  updateProposalConflictNotice(computed);
   renderDatesDisplay();
   renderSideDates(bpStart, bpEnd);
   renderSideStatus(computed);
