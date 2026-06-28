@@ -4,7 +4,7 @@ A backwards-planning tool for Master thesis students and PhD researchers at the 
 
 Enter your role, block period, and deadline — get every milestone, lab booking step, and deadline laid out in calendar order with Dutch public holiday warnings.
 
-**Live:** [jheller1212.github.io/DEXLabExperimentPlanner](https://jheller1212.github.io/DEXLabExperimentPlanner/)
+**Live:** [dexlab-experiment-planner.vercel.app](https://dexlab-experiment-planner.vercel.app)
 
 ## Features
 
@@ -23,7 +23,7 @@ Enter your role, block period, and deadline — get every milestone, lab booking
 ## Tech Stack
 
 - Vanilla HTML + CSS + JavaScript (no framework, no build tools)
-- Static site hosted on GitHub Pages (auto-deploy on push to `main`)
+- Static site hosted on Vercel (auto-deploy on push to `main`)
 - State: localStorage + shareable URL hash encoding (compressed base64)
 
 ## File Structure
@@ -50,7 +50,7 @@ Edit the `CONFIG` object at the top of `app.js`:
 2. **`fixedHolidays`** — add any new fixed-date holidays or UM closures
 3. **`bridgeDays`** — add UM-specific bridge days
 
-Push to `main` — GitHub Actions deploys automatically in ~30 seconds.
+Push to `main` — Vercel deploys automatically in ~30 seconds.
 
 ## Development
 
