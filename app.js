@@ -337,16 +337,33 @@ const CONFIG = {
   // Only list: fixed holidays + UM-specific closures.
   fixedHolidays: [
     // ── 2025/26 ──
+    // Winter break (UM collective closure): after exam week → first working Monday after New Year (reopens Mon 5 Jan 2026)
+    { date: "2025-12-22", label: "Winter break (UM closure)" },
+    { date: "2025-12-23", label: "Winter break (UM closure)" },
+    { date: "2025-12-24", label: "Winter break (UM closure)" },
     { date: "2025-12-25", label: "Christmas Day" },
     { date: "2025-12-26", label: "Second Christmas Day" },
+    { date: "2025-12-29", label: "Winter break (UM closure)" },
+    { date: "2025-12-30", label: "Winter break (UM closure)" },
+    { date: "2025-12-31", label: "Winter break (UM closure)" },
     { date: "2026-01-01", label: "New Year's Day" },
+    { date: "2026-01-02", label: "Winter break (UM closure)" },
     { date: "2026-02-16", label: "Carnival (UM closure)" },
     { date: "2026-02-17", label: "Carnival (UM closure)" },
     { date: "2026-04-27", label: "King's Day" },
     { date: "2026-05-05", label: "Liberation Day" },
     // ── 2026/27 ──
+    // Winter break (UM collective closure): after exam week → first working Monday after New Year (reopens Mon 4 Jan 2027)
+    { date: "2026-12-21", label: "Winter break (UM closure)" },
+    { date: "2026-12-22", label: "Winter break (UM closure)" },
+    { date: "2026-12-23", label: "Winter break (UM closure)" },
+    { date: "2026-12-24", label: "Winter break (UM closure)" },
     { date: "2026-12-25", label: "Christmas Day" },
     { date: "2026-12-26", label: "Second Christmas Day" },
+    { date: "2026-12-28", label: "Winter break (UM closure)" },
+    { date: "2026-12-29", label: "Winter break (UM closure)" },
+    { date: "2026-12-30", label: "Winter break (UM closure)" },
+    { date: "2026-12-31", label: "Winter break (UM closure)" },
     { date: "2027-01-01", label: "New Year's Day" },
     { date: "2027-02-08", label: "Carnival (UM closure)" },
     { date: "2027-02-09", label: "Carnival (UM closure)" },
