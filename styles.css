@@ -497,6 +497,24 @@ select { cursor: pointer; }
   margin-bottom: 1rem;
 }
 
+/* ── Example-plan banner ── */
+.example-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+  font-size: var(--text-sm);
+  color: var(--ink);
+}
+.example-banner.hidden { display: none; }
+@media print { .example-banner { display: none !important; } }
+
 /* ── Progress bar ── */
 .progress-bar-container {
   background: var(--bg);

@@ -8,6 +8,7 @@ function track(event, data) {
 // ── Landing page & wizard glue ──
 var _wizardStep = 1;
 var _wizardHighest = 1;
+var _exampleMode = false; // true while viewing the demo plan — suppresses persistence
 
 function updateNavActive(active) {
   document.querySelectorAll('.nav-links .nav-link').forEach(function(l) { l.classList.remove('active'); });
@@ -15,6 +16,7 @@ function updateNavActive(active) {
   if (el) el.classList.add('active');
 }
 function showLanding() {
+  _exampleMode = false;
   document.getElementById('view-landing').classList.add('active');
   document.getElementById('view-wizard').classList.remove('active');
   document.getElementById('app-container').classList.remove('active');
@@ -28,11 +30,15 @@ function startPlanning() {
   document.getElementById('app-container').classList.remove('active');
   var fab = document.getElementById('feedback-fab');
   if (fab) fab.classList.add('hidden');
+  _exampleMode = false;
+  var di = document.getElementById('date-input');
+  if (di) di.min = formatDateISO(new Date()); // can't start data collection in the past
   wizardShowStep(1);
   updateNavActive('nav-planner');
 }
 function showExamplePlan() {
   // Load a realistic example plan
+  _exampleMode = true;
   state.role = 'master';
   // Pick the first block period that hasn't ended yet, or fall back to the last one
   const now = new Date();
@@ -54,6 +60,18 @@ function showExamplePlan() {
   renderPlan();
   showPlanView();
   updateNavActive('nav-planner');
+}
+// Leave the example and start a real plan. Nothing was persisted (saveState
+// no-ops in example mode), so just clear in-memory state and open the wizard.
+function exitExample() {
+  _exampleMode = false;
+  state = { version: 1, role: null, name: "", studyTitle: "", bpStart: null, weekStart: null, bpWeeks: 8, thesisDeadline: null, proposalDate: null, supervisorEmail: "", manualLabDays: 0, collectionDays: 5, analysisWeeks: 1, customMilestones: [], hiddenMilestones: [], dateOverrides: {}, blockedSlots: [], checkedItems: [], lastUpdated: null, calExportedHash: null, calSequence: 0 };
+  _milestoneCacheKey = null;
+  document.getElementById('btn-master').className = 'role-card';
+  document.getElementById('btn-phd').className = 'role-card';
+  _wizardStep = 1;
+  _wizardHighest = 1;
+  startPlanning();
 }
 function showPlanView() {
   document.getElementById('view-landing').classList.remove('active');
@@ -103,6 +121,13 @@ function wizardShowStep(n) {
     nextBtn.style.borderColor = '';
     nextBtn.style.color = '';
   }
+  // Move focus to the new step's heading so keyboard/screen-reader users are
+  // taken to (and hear) the step they just advanced to.
+  var activeContent = document.getElementById('wizard-step-' + n);
+  if (activeContent) {
+    var heading = activeContent.querySelector('.card-title');
+    if (heading) { heading.setAttribute('tabindex', '-1'); heading.focus({ preventScroll: true }); }
+  }
   // Scroll to top of wizard
   document.getElementById('view-wizard').scrollIntoView({ behavior: _scrollBehavior(), block: 'start' });
 }
@@ -111,14 +136,21 @@ function wizardNext() {
   if (_wizardStep === 1) {
     // Validate: role must be selected
     if (typeof state !== 'undefined' && !state.role) {
-      alert('Please select a role to continue.');
+      showToast('Please choose Master or PhD to continue.', 'warning');
+      var rc = document.getElementById('btn-master');
+      if (rc) rc.focus();
       return;
     }
     wizardShowStep(2);
   } else if (_wizardStep === 2) {
     // Validate: date must be selected
     if (typeof state !== 'undefined' && !state.weekStart) {
-      alert('Please select a date or block period to continue.');
+      showToast('Please choose a week or a start date to continue.', 'warning');
+      var weekRow = document.getElementById('week-select-row');
+      var focusEl = (weekRow && !weekRow.classList.contains('hidden'))
+        ? document.getElementById('week-select')
+        : document.getElementById('bp-select');
+      if (focusEl) focusEl.focus();
       return;
     }
     // Show confirmation card if date is set
@@ -890,6 +922,13 @@ function getEffectiveDaySlots(dayIndex, daySlots, blockedSlots) {
   });
 }
 
+// Calculator inputs fire on every keystroke; updateCalc rebuilds the full
+// day-by-day timetable, so debounce the input-driven calls to avoid jank.
+var _calcTimer = null;
+function debouncedCalc() {
+  if (_calcTimer) clearTimeout(_calcTimer);
+  _calcTimer = setTimeout(function() { _calcTimer = null; updateCalc(); }, 140);
+}
 function updateCalc() {
   const conditions = parseInt(document.getElementById('calc-conditions').value) || 2;
   const design = document.getElementById('calc-design').value;
@@ -1911,6 +1950,7 @@ function loadState() {
 }
 
 function saveState() {
+  if (_exampleMode) return; // never persist or URL-encode the demo plan
   try {
     state.lastUpdated = new Date().toISOString();
     localStorage.setItem("dexlab_planner_state", JSON.stringify(state));
@@ -2893,6 +2933,8 @@ function updatePlanDateWarnings(today) {
 
 function renderPlan() {
   if (!state.role || !state.bpStart) { showLanding(); return; }
+  var exb = document.getElementById('example-banner');
+  if (exb) exb.classList.toggle('hidden', !_exampleMode);
   const bpStart = parseDate(state.bpStart);
   const bpEnd = addDays(bpStart, state.bpWeeks * 7 - 1);
   const today = new Date(); today.setHours(0,0,0,0);
