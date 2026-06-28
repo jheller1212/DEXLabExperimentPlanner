@@ -395,8 +395,14 @@ select { cursor: pointer; }
 .btn-primary {
   background: var(--accent);
   color: #fff;
+  box-shadow: 0 1px 2px rgba(194, 62, 16, 0.25);
 }
-.btn-primary:hover { background: var(--accent-ink); opacity: 1; }
+.btn-primary:hover {
+  background: var(--accent-ink);
+  opacity: 1;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 14px -3px rgba(194, 62, 16, 0.40);
+}
 .btn-orange {
   background: var(--warn);
   color: #fff;
@@ -415,6 +421,14 @@ select { cursor: pointer; }
 }
 .btn-outline:hover { background: var(--accent-soft); color: var(--accent-ink); }
 .btn-sm { padding: 0.4rem 0.9rem; font-size: var(--text-sm); }
+.btn:disabled, .btn[aria-disabled="true"],
+.btn-new:disabled, .btn-new[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+  box-shadow: none;
+  transform: none;
+}
 
 /* ── Yes/No toggle ── */
 .yn-group { display: flex; gap: 0.75rem; align-items: center; margin-top: 0.75rem; flex-wrap: wrap; }
@@ -494,7 +508,7 @@ select { cursor: pointer; }
 }
 .progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, var(--accent), var(--warn));
+  background: linear-gradient(90deg, var(--brand-blue), var(--accent));
   border-radius: 6px;
   transition: width 0.4s ease;
   width: 0%;
@@ -1138,6 +1152,7 @@ select { cursor: pointer; }
   align-items: center;
   gap: 8px;
   white-space: nowrap;
+  transition: color 0.15s ease, border-color 0.15s ease;
 }
 .plan-tab:hover { color: var(--ink-2); }
 .plan-tab[aria-selected="true"] {
@@ -1737,6 +1752,11 @@ select { cursor: pointer; }
     transform: translateY(-1px);
     box-shadow: var(--shadow);
   }
+  /* Don't lift cards that hold form fields — feels jittery while reaching for an input */
+  .card:has(input, select, textarea):hover {
+    transform: none;
+    box-shadow: var(--shadow-sm);
+  }
 
   /* Screen fade-in */
   .screen.active {
@@ -1745,6 +1765,24 @@ select { cursor: pointer; }
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(4px); }
     to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Landing hero staggered entrance */
+  .view-landing.active .eyebrow,
+  .view-landing.active .hero h1,
+  .view-landing.active .hero-tag,
+  .view-landing.active .hero-lead,
+  .view-landing.active .hero-cta,
+  .view-landing.active .hero-meta { animation: heroUp 0.5s ease backwards; }
+  .view-landing.active .hero h1   { animation-delay: 0.05s; }
+  .view-landing.active .hero-tag  { animation-delay: 0.10s; }
+  .view-landing.active .hero-lead { animation-delay: 0.15s; }
+  .view-landing.active .hero-cta  { animation-delay: 0.20s; }
+  .view-landing.active .hero-meta { animation-delay: 0.25s; }
+  .view-landing.active .hero-vis  { animation: heroUp 0.6s ease 0.2s backwards; }
+  @keyframes heroUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: none; }
   }
 
   /* Tab panel fade */
@@ -1861,7 +1899,7 @@ select { cursor: pointer; }
   color: var(--bg);
   border-color: var(--ink);
 }
-.btn-new.btn-primary:hover { background: #051a35; }
+.btn-new.btn-primary:hover { background: #051a35; transform: translateY(-1px); box-shadow: var(--shadow); }
 .btn-new.btn-accent {
   background: var(--accent);
   color: #fff;
@@ -2165,6 +2203,7 @@ select { cursor: pointer; }
   border-right: 1px solid var(--line);
   position: relative;
   cursor: pointer;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
 }
 .step:last-child { border-right: none; }
 .step-num-new {
@@ -2179,7 +2218,8 @@ select { cursor: pointer; }
   color: var(--ink-3);
   font-weight: 500;
 }
-.step.active { background: var(--surface); }
+.step.active { background: var(--surface); box-shadow: inset 0 2px 0 var(--accent); }
+.step.done { box-shadow: inset 0 2px 0 var(--ok); }
 .step.active .step-num-new { color: var(--accent); }
 .step.active .step-name-new { color: var(--ink); }
 .step.done .step-num-new { color: var(--ok); }
@@ -2217,7 +2257,7 @@ select { cursor: pointer; }
   transition: all 120ms;
   position: relative;
 }
-.role-card:hover { border-color: var(--ink-4); }
+.role-card:hover { border-color: var(--ink-4); transform: translateY(-2px); box-shadow: var(--shadow); }
 .role-card.selected {
   border-color: var(--accent);
   background: var(--accent-soft);
