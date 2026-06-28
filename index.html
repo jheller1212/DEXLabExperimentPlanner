@@ -399,6 +399,12 @@
       </div>
     </div>
 
+    <!-- Example-plan banner (only shown when viewing the demo) -->
+    <div class="example-banner hidden" id="example-banner">
+      <span><strong>Example plan.</strong> This is a sample to explore &mdash; nothing here is saved.</span>
+      <button class="btn btn-sm btn-primary" onclick="exitExample()">Start your own plan</button>
+    </div>
+
     <!-- Google Calendar export panel (contextual, outside tabs) -->
     <div class="card hidden" id="gcal-panel">
       <h3>Add to Google Calendar</h3>
@@ -615,11 +621,11 @@
         <div class="form-grid">
           <div class="form-row">
             <label for="calc-conditions">Number of conditions</label>
-            <input type="number" id="calc-conditions" min="1" max="20" value="2" inputmode="numeric" oninput="updateCalc()">
+            <input type="number" id="calc-conditions" min="1" max="20" value="2" inputmode="numeric" oninput="debouncedCalc()">
           </div>
           <div class="form-row">
             <label for="calc-design">Study design</label>
-            <select id="calc-design" oninput="updateCalc()">
+            <select id="calc-design" oninput="debouncedCalc()">
               <option value="between" selected>Between-subject</option>
               <option value="within">Within-subject</option>
               <option value="mixed">Mixed</option>
@@ -627,39 +633,39 @@
           </div>
           <div class="form-row">
             <label for="calc-n-per-condition">Participants per condition</label>
-            <input type="number" id="calc-n-per-condition" min="1" max="500" value="50" inputmode="numeric" oninput="updateCalc()">
+            <input type="number" id="calc-n-per-condition" min="1" max="500" value="50" inputmode="numeric" oninput="debouncedCalc()">
           </div>
           <div class="form-row">
             <label for="calc-session-duration">Session duration (minutes)</label>
-            <input type="number" id="calc-session-duration" min="5" max="240" value="30" inputmode="numeric" oninput="updateCalc()">
+            <input type="number" id="calc-session-duration" min="5" max="240" value="30" inputmode="numeric" oninput="debouncedCalc()">
           </div>
           <div class="form-row">
             <label for="calc-showup">Expected show-up rate (%) <span class="info-pill" data-tip="Discuss with your supervisor what a realistic show-up rate is for your type of experiment. 50% is a safe default for SONA studies. This determines how many slots you need to open to reach your target N." tabindex="0">?</span></label>
-            <input type="number" id="calc-showup" min="10" max="100" value="50" inputmode="numeric" oninput="updateCalc()">
+            <input type="number" id="calc-showup" min="10" max="100" value="50" inputmode="numeric" oninput="debouncedCalc()">
           </div>
           <div class="form-row">
             <label for="calc-per-timeslot">Participants per timeslot</label>
-            <input type="number" id="calc-per-timeslot" min="1" max="50" value="1" inputmode="numeric" oninput="updateCalc()">
+            <input type="number" id="calc-per-timeslot" min="1" max="50" value="1" inputmode="numeric" oninput="debouncedCalc()">
           </div>
           <div class="form-row">
             <label for="calc-buffer" class="flex-row" style="gap:0.3rem;">Buffer between sessions (min) <span data-tip="Only set this above 0 if you need substantial time between timeslots, e.g. to reset equipment or clean the lab." class="info-pill" tabindex="0">?</span></label>
-            <input type="number" id="calc-buffer" min="0" max="30" value="0" inputmode="numeric" oninput="updateCalc()">
+            <input type="number" id="calc-buffer" min="0" max="30" value="0" inputmode="numeric" oninput="debouncedCalc()">
           </div>
           <div class="form-row">
             <label for="calc-lab-start">Lab available from</label>
-            <input type="time" id="calc-lab-start" value="09:00" oninput="updateCalc()">
+            <input type="time" id="calc-lab-start" value="09:00" oninput="debouncedCalc()">
           </div>
           <div class="form-row">
             <label for="calc-lab-end">Lab available until</label>
-            <input type="time" id="calc-lab-end" value="17:00" oninput="updateCalc()">
+            <input type="time" id="calc-lab-end" value="17:00" oninput="debouncedCalc()">
           </div>
           <div class="form-row">
             <label for="calc-lunch">Lunch break (minutes)</label>
-            <input type="number" id="calc-lunch" min="0" max="120" value="30" inputmode="numeric" oninput="updateCalc()">
+            <input type="number" id="calc-lunch" min="0" max="120" value="30" inputmode="numeric" oninput="debouncedCalc()">
           </div>
           <div class="form-row">
             <label for="calc-lunch-start">Lunch starts at</label>
-            <input type="time" id="calc-lunch-start" value="12:00" oninput="updateCalc()">
+            <input type="time" id="calc-lunch-start" value="12:00" oninput="debouncedCalc()">
           </div>
         </div>
 
