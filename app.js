@@ -10,6 +10,11 @@ var _wizardStep = 1;
 var _wizardHighest = 1;
 var _exampleMode = false; // true while viewing the demo plan — suppresses persistence
 
+// Single source of truth for a fresh plan. Used by init, reset, and example exit.
+function defaultState() {
+  return { version: 1, role: null, name: "", studyTitle: "", bpStart: null, weekStart: null, bpWeeks: 8, thesisDeadline: null, proposalDate: null, supervisorEmail: "", manualLabDays: 0, collectionDays: 5, analysisWeeks: 1, customMilestones: [], hiddenMilestones: [], dateOverrides: {}, blockedSlots: [], checkedItems: [], lastUpdated: null, calExportedHash: null, calSequence: 0 };
+}
+
 function updateNavActive(active) {
   document.querySelectorAll('.nav-links .nav-link').forEach(function(l) { l.classList.remove('active'); });
   var el = document.getElementById(active);
@@ -65,7 +70,7 @@ function showExamplePlan() {
 // no-ops in example mode), so just clear in-memory state and open the wizard.
 function exitExample() {
   _exampleMode = false;
-  state = { version: 1, role: null, name: "", studyTitle: "", bpStart: null, weekStart: null, bpWeeks: 8, thesisDeadline: null, proposalDate: null, supervisorEmail: "", manualLabDays: 0, collectionDays: 5, analysisWeeks: 1, customMilestones: [], hiddenMilestones: [], dateOverrides: {}, blockedSlots: [], checkedItems: [], lastUpdated: null, calExportedHash: null, calSequence: 0 };
+  state = defaultState();
   _milestoneCacheKey = null;
   document.getElementById('btn-master').className = 'role-card';
   document.getElementById('btn-phd').className = 'role-card';
@@ -485,9 +490,7 @@ function formatDateShort(d) {
   return `${d.getDate()} ${months[d.getMonth()]}`;
 }
 
-function toISO(d) {
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-}
+function toISO(d) { return formatDateISO(d); } // alias — same YYYY-MM-DD format
 
 function daysBetween(a, b) {
   return Math.round((b - a) / 86400000);
@@ -801,19 +804,6 @@ document.addEventListener('keydown', function(e) {
 });
 
 // Go home — returns to role selection with confirmation if plan exists
-function goHome() {
-  var planScreen = document.getElementById('screen-plan');
-  if (planScreen && planScreen.classList.contains('active')) {
-    if (!confirm('Go back to the start? Your saved plan will still be available via your link.')) return;
-  }
-  editSetup();
-}
-
-// Export shortcut — opens .ics download and shows Google Calendar option
-function exportCalendar() {
-  downloadICS();
-  showGoogleCalPanel();
-}
 
 // ── Toast ──
 // ── Scroll to Lab Timetable ──
@@ -1144,43 +1134,6 @@ function updateCalc() {
   }
 }
 var _calcSuppressDirty = false;
-
-var _calcDirty = false;
-
-function applyCalcChanges() {
-  _calcDirty = false;
-  _milestoneCacheKey = null;
-  saveState();
-  renderPlan();
-  var banner = document.getElementById('calc-update-banner');
-  if (banner) banner.remove();
-}
-
-function discardCalcChanges() {
-  _calcDirty = false;
-  // Restore calculator fields from last saved labCalc state
-  if (state.labCalc) {
-    var lc = state.labCalc;
-    document.getElementById('calc-conditions').value = lc.conditions || 2;
-    document.getElementById('calc-design').value = lc.design || 'between';
-    document.getElementById('calc-n-per-condition').value = lc.nPerCondition || Math.round((lc.targetN || 60) / (lc.conditions || 2));
-    document.getElementById('calc-session-duration').value = lc.sessionMin || 30;
-    document.getElementById('calc-showup').value = lc.showupRate ? Math.round(lc.showupRate * 100) : 50;
-    document.getElementById('calc-per-timeslot').value = lc.perTimeslot || 1;
-    document.getElementById('calc-buffer').value = lc.buffer || 0;
-    if (lc.startMin != null) document.getElementById('calc-lab-start').value = fmtTime(lc.startMin);
-    if (lc.endMin != null) document.getElementById('calc-lab-end').value = fmtTime(lc.endMin);
-    document.getElementById('calc-lunch').value = lc.lunch || 0;
-    if (lc.lunchStartMin != null) document.getElementById('calc-lunch-start').value = fmtTime(lc.lunchStartMin);
-    _calcSuppressDirty = true;
-    updateCalc(); // re-render with restored values
-    _calcSuppressDirty = false;
-    _calcDirty = false;
-  }
-  var banner = document.getElementById('calc-update-banner');
-  if (banner) banner.remove();
-  showToast('Changes discarded.');
-}
 
 function onBsScopeChange() {
   const scope = document.querySelector('input[name="bs-scope"]:checked').value;
@@ -1851,9 +1804,7 @@ function openDefenseGCal() {
 }
 
 // ── Google Calendar Export ──
-function toGCalDate(d) {
-  return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
-}
+function toGCalDate(d) { return toICSDateOnly(d); } // alias — same YYYYMMDD format
 
 function buildGCalURL(milestone) {
   const dateStr = toGCalDate(milestone.date);
@@ -2038,16 +1989,6 @@ function updateStepIndicator(screenId) {
   });
 }
 
-function navigateToStep(screenId) {
-  const idx = STEP_MAP.findIndex(s => s.screen === screenId);
-  if (idx > _highestReachedStep) return; // can't skip ahead
-  if (screenId === 'screen-plan') {
-    // Plan screen needs generatePlan, can't just show it
-    return;
-  }
-  showScreensUpTo(screenId);
-}
-
 function showScreen(id) {
   if (id === 'screen-plan') {
     showPlanView();
@@ -2213,7 +2154,6 @@ function showConfirmation() {
     _calcSuppressDirty = true;
     updateCalc();
     _calcSuppressDirty = false;
-    _calcDirty = false;
   }
 }
 
@@ -2381,13 +2321,6 @@ function renderDatesDisplay() {
   }
   html += `</div>`;
   document.getElementById('plan-dates-display').innerHTML = html;
-}
-
-function onManualLabDaysChange() {
-  const val = parseInt(document.getElementById('manual-lab-days').value) || 0;
-  state.manualLabDays = Math.max(0, Math.min(30, val));
-  saveState();
-  renderPlan();
 }
 
 // ── Hide / restore milestones ──
@@ -2991,7 +2924,6 @@ function renderPlan() {
     _calcSuppressDirty = true;
     updateCalc();
     _calcSuppressDirty = false;
-    _calcDirty = false;
     renderBlockedSlotsList();
   } else if (state.quickEstimate) {
     // Seed full calculator with quick estimate values
@@ -3718,7 +3650,7 @@ function editSetup() {
 function resetState() {
   if (!confirm('This will permanently delete your plan and all checked items. Make sure you\'ve saved your link (Copy Link) if you want to keep it.\n\nReset everything?')) return;
   window.onbeforeunload = null;
-  state = { version: 1, role: null, name: "", studyTitle: "", bpStart: null, weekStart: null, bpWeeks: 8, thesisDeadline: null, proposalDate: null, supervisorEmail: "", manualLabDays: 0, collectionDays: 5, analysisWeeks: 1, customMilestones: [], hiddenMilestones: [], dateOverrides: {}, blockedSlots: [], checkedItems: [], lastUpdated: null, calExportedHash: null, calSequence: 0 };
+  state = defaultState();
   try { localStorage.removeItem("dexlab_planner_state"); } catch (e) {}
   history.replaceState(null, '', window.location.pathname);
   document.body.className = '';
@@ -3802,7 +3734,7 @@ function resetState() {
   } catch (err) {
     console.error('Init failed — clearing corrupted state and starting fresh:', err);
     try { localStorage.removeItem('dexlab_planner_state'); } catch (e) {}
-    state = { version: 1, role: null, name: "", studyTitle: "", bpStart: null, weekStart: null, bpWeeks: 8, thesisDeadline: null, proposalDate: null, supervisorEmail: "", manualLabDays: 0, collectionDays: 5, analysisWeeks: 1, customMilestones: [], hiddenMilestones: [], dateOverrides: {}, blockedSlots: [], checkedItems: [], lastUpdated: null, calExportedHash: null, calSequence: 0 };
+    state = defaultState();
     showScreen('screen-role');
   }
 })();
