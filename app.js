@@ -2139,15 +2139,26 @@ function showConfirmation() {
 
   const holidays = getHolidaysInRange(bpStart, bpEnd);
   const container = document.getElementById('holiday-warning-container');
+  // Multi-day closures (e.g. winter break) span many dates under one label \u2014
+  // list each label once so the summary doesn't repeat "Winter break" 8\u00D7.
+  const uniqueLabels = [...new Set(holidays.map(h => h.label))];
+  let hwHtml = '';
   if (holidays.length > 0) {
-    container.innerHTML = `
+    hwHtml += `
       <div class="holiday-warning">
-        <span class="hw-icon">\u26A0</span> <strong>${holidays.length} public holiday${holidays.length > 1 ? 's' : ''}</strong> fall${holidays.length === 1 ? 's' : ''} in this window
-        <div class="hw-list">\u2192 ${holidays.map(h => h.label).join(', ')}<br>These are highlighted in your timeline.</div>
+        <span class="hw-icon">\u26A0</span> <strong>${holidays.length} closed day${holidays.length > 1 ? 's' : ''}</strong> (public holidays &amp; UM closures) fall in this window
+        <div class="hw-list">\u2192 ${uniqueLabels.join(', ')}<br>These are highlighted in your timeline.</div>
       </div>`;
-  } else {
-    container.innerHTML = '';
   }
+  // Always remind students that university closures don't cover their supervisor's personal leave.
+  hwHtml += `
+      <div class="holiday-warning hw-supervisor">
+        <span class="hw-icon">\u{1F4C5}</span> <strong>Check your supervisor's holidays too</strong>
+        <span class="info-pill" data-tip="The dates flagged here are official university closures only. Your supervisor \u2014 and any co-supervisors or second assessors \u2014 may take personal leave at other times. Confirm their availability before fixing your data-collection window, meetings, and feedback deadlines." tabindex="0">?</span>
+        <div class="hw-list">University closures don\u2019t include your supervisor\u2019s personal leave.</div>
+      </div>`;
+  container.innerHTML = hwHtml;
+  if (typeof initInfoPills === 'function') initInfoPills();
 
   // In wizard mode, show the confirm card and stay on step 2
   if (document.getElementById('view-wizard').style.display !== 'none') {
@@ -3921,10 +3932,13 @@ function endTour(skipSave) {
 // Expose each info-pill's tooltip text to assistive tech and touch users.
 // The CSS only reveals the tip on :hover/:focus, which is invisible to screen
 // readers and unreachable by tap; mirroring data-tip into aria-label fixes that.
-(function () {
+// Idempotent — safe to re-run after rendering dynamic pills (e.g. the holiday card).
+function initInfoPills() {
   document.querySelectorAll('.info-pill[data-tip]').forEach(function (el) {
     if (!el.getAttribute('aria-label')) el.setAttribute('aria-label', el.getAttribute('data-tip'));
     if (!el.hasAttribute('role')) el.setAttribute('role', 'button');
+    if (el.dataset.pillBound) return; // don't double-bind the click handler
+    el.dataset.pillBound = '1';
     // Touch devices have no hover: tap toggles the tooltip open.
     el.addEventListener('click', function (e) {
       e.preventDefault();
@@ -3934,10 +3948,11 @@ function endTour(skipSave) {
       if (!wasOpen) el.classList.add('info-pill-open');
     });
   });
-  // Tap elsewhere dismisses any open tooltip.
-  document.addEventListener('click', function () {
-    document.querySelectorAll('.info-pill-open').forEach(function (o) { o.classList.remove('info-pill-open'); });
-  });
-})();
+}
+// Tap elsewhere dismisses any open tooltip (registered once).
+document.addEventListener('click', function () {
+  document.querySelectorAll('.info-pill-open').forEach(function (o) { o.classList.remove('info-pill-open'); });
+});
+initInfoPills();
 
 
