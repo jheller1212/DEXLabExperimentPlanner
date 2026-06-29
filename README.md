@@ -29,11 +29,14 @@ Enter your role, block period, and deadline — get every milestone, lab booking
 ## File Structure
 
 ```
-index.html          # HTML structure (793 lines)
-styles.css          # All CSS — design tokens, components, layout (2221 lines)
-app.js              # All JavaScript — state, rendering, calculations (3362 lines)
+index.html          # HTML structure
+styles.css          # All CSS — design tokens, components, layout
+app.js              # All JavaScript — state, rendering, calculations
+vercel.json         # Security headers (CSP, HSTS, X-Frame-Options, …)
 assets/
   dexlab-logo.png   # Official DEXLab logo (used in topnav + hero watermark)
+  fonts.css         # @font-face rules for the self-hosted fonts
+  fonts/            # Bundled woff2 files (no Google Fonts request — see fonts/README.md)
 ```
 
 ## Design System
@@ -65,4 +68,4 @@ Pre-push hook runs `node --check app.js` to catch syntax errors before deploymen
 
 ## License
 
-Internal tool for Maastricht University DEXLab. Not licensed for external use.
+Released under the MIT License — see [LICENSE](LICENSE).

@@ -1491,7 +1491,7 @@ function copyShareLink() {
   track('share-link-copied');
   const url = getShareURL();
   navigator.clipboard.writeText(url).then(() => {
-    showToast('Link copied! Bookmark it or share it to return to this plan.');
+    showToast('Link copied! It includes your name and study title — share only with people you trust.');
   }).catch(() => {
     // Fallback
     prompt('Copy this link to save/share your plan:', url);
@@ -3562,6 +3562,9 @@ function composeFeedbackText() {
 // Submit feedback via the Web3Forms relay (one click, lands in the inbox).
 // Falls back to the mail client / clipboard if the relay isn't configured or fails.
 function submitFeedback() {
+  // Honeypot: real users never see or fill #fb-website. If it's set, a bot did — drop silently.
+  var _hp = document.getElementById('fb-website');
+  if (_hp && _hp.value) { closeFeedback(); return; }
   if (feedbackRating === 0) { showToast('Please select a rating first'); return; }
   const recommend = (document.querySelector('input[name="fb-recommend"]:checked') || {}).value || '';
   track('feedback-sent', { rating: feedbackRating, recommend: recommend || 'n/a' });
@@ -3761,7 +3764,12 @@ function resetState() {
     }
   } catch (err) {
     console.error('Init failed — clearing corrupted state and starting fresh:', err);
-    try { localStorage.removeItem('dexlab_planner_state'); } catch (e) {}
+    try {
+      // Preserve the unparseable data instead of destroying it, in case it can be recovered.
+      var _corrupt = localStorage.getItem('dexlab_planner_state');
+      if (_corrupt) localStorage.setItem('dexlab_planner_state_backup', _corrupt);
+      localStorage.removeItem('dexlab_planner_state');
+    } catch (e) {}
     state = defaultState();
     showScreen('screen-role');
   }
