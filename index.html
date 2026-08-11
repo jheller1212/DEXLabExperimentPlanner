@@ -4,11 +4,26 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DEXLab Experiment Planner for Researchers</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- Fonts are self-hosted (see assets/fonts.css) so no visitor IP is sent to Google's servers. -->
+<link rel="stylesheet" href="assets/fonts.css">
 <link rel="stylesheet" href="styles.css">
-<script defer src="https://cloud.umami.is/script.js" data-website-id="e9c2aee9-1bae-4843-be52-cd15ea3d122d"></script>
+<!-- Cookieless Umami analytics, loaded only when the visitor has NOT signalled opt-out
+     via Do Not Track or Global Privacy Control. No analytics request is made for users
+     who have expressed that preference. -->
+<script>
+(function () {
+  try {
+    var optOut = navigator.doNotTrack == '1' || window.doNotTrack == '1' ||
+                 navigator.msDoNotTrack == '1' || navigator.globalPrivacyControl === true;
+    if (optOut) return;
+    var s = document.createElement('script');
+    s.defer = true;
+    s.src = 'https://cloud.umami.is/script.js';
+    s.setAttribute('data-website-id', 'e9c2aee9-1bae-4843-be52-cd15ea3d122d');
+    document.head.appendChild(s);
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
 <a href="#main-content" class="skip-link">Skip to content</a>
@@ -378,7 +393,7 @@
         <div class="plan-meta" id="plan-meta"></div>
       </div>
       <div class="plan-actions">
-        <button class="btn btn-ghost" onclick="copyShareLink()">Copy link</button>
+        <button class="btn btn-ghost" onclick="copyShareLink()" title="The link includes your name and study title (but not your supervisor's email). Only share it with people you're happy to show those to.">Copy link</button>
         <button class="btn btn-ghost hidden" id="supervisor-update-btn" onclick="toggleSupervisorUpdate()">Update supervisor</button>
         <button class="btn btn-ghost" onclick="editSetup()">Edit setup</button>
         <div class="overflow-menu" id="plan-overflow">
@@ -769,7 +784,9 @@
   <div class="feedback-modal" role="dialog" aria-modal="true" aria-labelledby="fb-heading" style="position:relative;">
     <button class="fb-close" onclick="closeFeedback()" aria-label="Close feedback">&times;</button>
     <h3 id="fb-heading">How was the planner?</h3>
-    <p class="fb-sub">Your feedback helps us improve this tool for future students.</p>
+    <p class="fb-sub">Your feedback helps us improve this tool for future students. Please don't include personal or sensitive details — just your thoughts on the tool.</p>
+    <!-- Honeypot: hidden from people, often filled by bots. If completed, the submission is dropped. -->
+    <input type="text" id="fb-website" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" />
     <label>Overall rating</label>
     <div class="fb-stars" id="fb-stars">
       <button type="button" onclick="setRating(1)" aria-label="1 star">&#9733;</button>
@@ -780,11 +797,11 @@
     </div>
     <div class="fb-field">
       <label for="fb-good">What went well?</label>
-      <textarea id="fb-good" placeholder="e.g. The timeline was really helpful..."></textarea>
+      <textarea id="fb-good" maxlength="2000" placeholder="e.g. The timeline was really helpful..."></textarea>
     </div>
     <div class="fb-field">
       <label for="fb-improve">What could be improved?</label>
-      <textarea id="fb-improve" placeholder="e.g. I wish I could also plan..."></textarea>
+      <textarea id="fb-improve" maxlength="2000" placeholder="e.g. I wish I could also plan..."></textarea>
     </div>
     <div class="fb-field">
       <label>Would you recommend this tool to other students?</label>
@@ -796,7 +813,7 @@
     </div>
     <div class="fb-field">
       <label for="fb-contact">Your email or programme <span style="font-weight:400;color:var(--ink-3);">(optional — only if you're happy to be contacted)</span></label>
-      <input type="text" id="fb-contact" placeholder="e.g. i.student@student.maastrichtuniversity.nl" style="width:100%;">
+      <input type="text" id="fb-contact" maxlength="200" placeholder="e.g. i.student@student.maastrichtuniversity.nl" style="width:100%;">
     </div>
     <div class="fb-actions">
       <button type="button" id="fb-submit-btn" class="btn btn-sm btn-primary" onclick="submitFeedback()">Submit feedback</button>
